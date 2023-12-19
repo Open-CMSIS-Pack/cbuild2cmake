@@ -1,0 +1,9 @@
+build-idx:
+  generated-by: csolution version 2.2.1
+  csolution: minimal.csolution.yml
+  cprojects:
+    - cproject: minimal.cproject.yml
+  cbuilds:
+    - cbuild: minimal.AC6+ARMCM0.cbuild.yml
+      project: minimal
+      configuration: .AC6+ARMCM0

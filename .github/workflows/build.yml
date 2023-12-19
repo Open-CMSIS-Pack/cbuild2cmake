@@ -1,0 +1,94 @@
+name: Build
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/build.yml'
+      - 'cmd/**'
+      - 'pkg/**'
+      - 'test/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'makefile'
+      - '!**/*.md'
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Declare default permissions as read only.
+permissions: read-all
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install Go
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: Build executables
+        run: |
+          GOOS=windows GOARCH=amd64 go build -o build/win-amd64/cbuild2cmake.exe ./cmd/cbuild2cmake
+          GOOS=windows GOARCH=arm64 go build -o build/win-arm64/cbuild2cmake.exe ./cmd/cbuild2cmake
+          GOOS=darwin GOARCH=amd64 go build -o build/mac-amd64/cbuild2cmake ./cmd/cbuild2cmake
+          GOOS=darwin GOARCH=arm64 go build -o build/mac-arm64/cbuild2cmake ./cmd/cbuild2cmake
+          GOOS=linux GOARCH=amd64 go build -o build/lin-amd64/cbuild2cmake ./cmd/cbuild2cmake
+          GOOS=linux GOARCH=arm64 go build -o build/lin-arm64/cbuild2cmake ./cmd/cbuild2cmake        
+
+      - name: Archive windows amd64 binaries
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: cbuild2cmake-windows-amd64
+          path: ./build/win-amd64/cbuild2cmake.exe
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Archive windows arm64 binaries
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: cbuild2cmake-windows-arm64
+          path: ./build/win-arm64/cbuild2cmake.exe
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Archive macos amd64 binaries
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: cbuild2cmake-mac-amd64
+          path: ./build/mac-amd64/cbuild2cmake
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Archive macos arm64 binaries
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: cbuild2cmake-mac-arm64
+          path: ./build/mac-arm64/cbuild2cmake
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Archive linux amd64 binaries
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: cbuild2cmake-lin-amd64
+          path: ./build/lin-amd64/cbuild2cmake
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Archive linux arm64 binaries
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: cbuild2cmake-lin-arm64
+          path: ./build/lin-arm64/cbuild2cmake
+          retention-days: 1
+          if-no-files-found: error

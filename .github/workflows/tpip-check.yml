@@ -1,0 +1,96 @@
+name: TPIP Check
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/tpip-check.yml"
+      - "**/go.mod"
+      - "**/go.sum"
+      - "scripts/template/**"
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+env:
+  tpip_report: "third_party_licenses.md"
+
+permissions:
+  contents: read
+
+jobs:
+  check-licenses:
+    # Avoid running this on forks
+    if: github.repository == 'Open-CMSIS-Pack/cbuild2cmake'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      checks: write
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Go
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: Go tidy
+        run:  go mod tidy
+
+      - name: Install go-licenses
+        run:  go install github.com/google/go-licenses@latest
+
+      - name: Generate TPIP Report
+        run:  |
+          go-licenses report . --ignore github.com/Open-CMSIS-Pack/cbuild2cmake --template ../../scripts/template/${{ env.tpip_report }}.template > ../../${{ env.tpip_report }}
+        working-directory: ./cmd/cbuild2cmake
+        
+      - name: Archive TPIP report
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: tpip-report
+          path: ./${{ env.tpip_report }}
+
+      - name: Print TPIP Report
+        run: cat ${{ env.tpip_report }} >> $GITHUB_STEP_SUMMARY
+
+      - name: Check Licenses
+        run: go-licenses check . --ignore github.com/Open-CMSIS-Pack/cbuild2cmake --disallowed_types=forbidden,restricted
+        working-directory: ./cmd/cbuild2cmake
+
+  commit-changes:
+    # Running this job only on specific event
+    # in order to have workaround for issue
+    # related to deletion of GH checks/status data
+    permissions:
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
+    if: (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch')
+    needs: [ check-licenses ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Restore Changes
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: tpip-report
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
+        with:
+          commit-message: Update TPIP report
+          title: ':robot: [TPIP] Automated report updates'
+          body: |
+            Third party IP report updates
+          branch: update-tpip
+          delete-branch: true
+          labels: TPIP
+          reviewers: soumeh01
+
