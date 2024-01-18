@@ -69,7 +69,7 @@ func preConfiguration(cmd *cobra.Command, args []string) error {
 
 func NewRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:               "cbuild2cmake [command] <name>.csolution.yml [options]",
+		Use:               "cbuild2cmake [command] <name>.cbuild-idx.yml [options]",
 		Short:             "cbuild2cmake: Generate CMakeLists " + Version + CopyrightNotice,
 		SilenceUsage:      true,
 		SilenceErrors:     true,
