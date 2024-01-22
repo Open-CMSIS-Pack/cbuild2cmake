@@ -118,7 +118,7 @@ jobs:
           go-junit-report -set-exit-code -in build/cbuild2cmaketests-${{ matrix.target }}-arm64.txt -iocopy -out build/cbuild2cmake-testreport-${{ matrix.target }}-arm64.xml
 
       - name: Archive unit test results
-        uses: actions/upload-artifact@1eb3cb2b3e0f29609092a73eb033bb759a334595 # v4.1.0
+        uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
         with:
           name: test-results-${{ matrix.target }}
           path: ./build/cbuild2cmake-testreport-*.xml
