@@ -1,0 +1,83 @@
+build:
+  generated-by: csolution version 2.2.1
+  solution: solutionName.csolution.yml
+  project: projectName.cproject.yml
+  context: projectName.BuildType+TargetType
+  compiler: AC6@>=6.6.6
+  device: deviceName
+  device-pack: vendorName::DFP@8.8.8
+  processor:
+    fpu: dp
+    dsp: on
+    mve: fp
+    endian: little
+    branch-protection: bti-signret
+    core: Cortex-M0
+  packs:
+    - pack: vendorName::DFP@8.8.8
+      path: ${CMSIS_PACK_ROOT}/vendorName/DFP/8.8.8
+  define:
+    - DEF_SCALAR
+    - DEF_KEY: VALUE
+  add-path:
+    - RTE/_BuildType_TargetType
+    - ${CMSIS_PACK_ROOT}/vendorName/DFP/8.8.8/Include
+  output-dirs:
+    intdir: tmp/projectName/TargetType/BuildType
+    outdir: out/projectName/TargetType/BuildType
+    rtedir: RTE
+  output:
+    - type: lib
+      file: projectName.lib
+  components:
+    - component: vendorName::DFP:CORE@7.7.7
+      condition: Cortex-M Condition
+      from-pack: vendorName::DFP@8.8.8
+      selected-by: CORE
+  linker:
+    script: ac6.sct.src
+    regions: regions_deviceName.h
+    define:
+      - LD_PP_DEF0
+  groups:
+    - group: Source
+      files:
+        - file: ./TestSource.c
+          category: sourceC
+          attr: config
+          version: 9.9.9
+          optimize: speed
+          debug: on
+          warnings: all
+          language-C: c90
+          language-CPP: c++20
+          define:
+            - DEF_FILE
+          undefine:
+            - UNDEF_FILE
+          add-path:
+            - ./add/path/file
+          del-path:
+            - ./del/path/file
+          misc:
+            ASM:
+              - -ASM-file
+            C:
+              - -C-file
+            CPP:
+              - -CPP-file
+            C-CPP:
+              - -C-CPP-file
+            Lib:
+              - -Lib-file
+            Library:
+              - -lgcc
+            Link:
+              - -Link-file
+            Link-C:
+              - -Link-C-file
+            Link-CPP:
+              - -Link-CPP-file
+  constructed-files:
+    - file: RTE/__BuildType_TargetType/RTE_Components.h
+      category: header

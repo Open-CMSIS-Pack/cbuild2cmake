@@ -18,18 +18,11 @@ import (
 
 type CbuildIndex struct {
 	BuildIdx struct {
-		GeneratedBy string `yaml:"generated-by"`
-		Cdefault    string `yaml:"cdefault"`
-		Csolution   string `yaml:"csolution"`
-		Cprojects   []struct {
-			Cproject string `yaml:"cproject"`
-		} `yaml:"cprojects"`
-		Licenses interface{} `yaml:"licenses"`
-		Cbuilds  []struct {
-			Cbuild        string `yaml:"cbuild"`
-			Project       string `json:"project"`
-			Configuration string `json:"configuration"`
-		} `yaml:"cbuilds"`
+		GeneratedBy string      `yaml:"generated-by"`
+		Cdefault    string      `yaml:"cdefault"`
+		Csolution   string      `yaml:"csolution"`
+		Cprojects   []Cprojects `yaml:"cprojects"`
+		Cbuilds     []Cbuilds   `yaml:"cbuilds"`
 	} `yaml:"build-idx"`
 	BaseDir string
 }
@@ -37,7 +30,7 @@ type CbuildIndex struct {
 type Cbuild struct {
 	BuildDescType struct {
 		GeneratedBy      string        `yaml:"generated-by"`
-		CurrentGenerator []struct{}    `yaml:"current-generator"`
+		CurrentGenerator struct{}      `yaml:"current-generator"`
 		Solution         string        `yaml:"solution"`
 		Project          string        `yaml:"project"`
 		Context          string        `yaml:"context"`
@@ -46,31 +39,134 @@ type Cbuild struct {
 		BoardPack        string        `yaml:"board-pack"`
 		Device           string        `yaml:"device"`
 		DevicePack       string        `yaml:"device-pack"`
-		Processor        struct{}      `yaml:"processor"`
-		Packs            []struct{}    `yaml:"packs"`
+		Processor        Processor     `yaml:"processor"`
+		Packs            []Packs       `yaml:"packs"`
 		Optimize         string        `yaml:"optimize"`
 		Debug            string        `yaml:"debug"`
 		Warnings         string        `yaml:"warnings"`
-		Misc             struct{}      `yaml:"misc"`
+		Misc             Misc          `yaml:"misc"`
 		Define           []interface{} `yaml:"define"`
 		AddPath          []string      `yaml:"add-path"`
-		OutputDirs       struct {
-			Intdir  string `yaml:"intdir"`
-			Outdir  string `yaml:"outdir"`
-			Cprjdir string `yaml:"cprjdir"`
-		} `yaml:"output-dirs"`
-		Output []struct {
-			File string `yaml:"file"`
-			Type string `yaml:"type"`
-		} `yaml:"output"`
-		Components       []struct{} `yaml:"components"`
-		Linker           struct{}   `yaml:"linker"`
-		Groups           []struct{} `yaml:"groups"`
-		Generators       []struct{} `yaml:"generators"`
-		ConstructedFiles []struct{} `yaml:"constructed-files"`
-		Licenses         []struct{} `yaml:"licenses"`
+		OutputDirs       OutputDirs    `yaml:"output-dirs"`
+		Output           []Output      `yaml:"output"`
+		Components       []Components  `yaml:"components"`
+		Linker           Linker        `yaml:"linker"`
+		Groups           []Groups      `yaml:"groups"`
+		Generators       []struct{}    `yaml:"generators"`
+		ConstructedFiles []Files       `yaml:"constructed-files"`
+		Licenses         []struct{}    `yaml:"licenses"`
 	} `yaml:"build"`
 	BaseDir string
+}
+
+type Cbuilds struct {
+	Cbuild        string   `yaml:"cbuild"`
+	Project       string   `yaml:"project"`
+	Configuration string   `yaml:"configuration"`
+	DependsOn     []string `yaml:"depends-on"`
+}
+
+type Clayers struct {
+	Clayer string `yaml:"clayer"`
+}
+
+type Cprojects struct {
+	Cproject string    `yaml:"cproject"`
+	Clayers  []Clayers `yaml:"clayers"`
+}
+
+type Components struct {
+	Component   string        `yaml:"component"`
+	Condition   string        `yaml:"condition"`
+	SelectedBy  string        `yaml:"selected-by"`
+	Rtedir      string        `yaml:"rtedir"`
+	Optimize    string        `yaml:"optimize"`
+	Debug       string        `yaml:"debug"`
+	Warnings    string        `yaml:"warnings"`
+	LanguageC   string        `yaml:"language-C"`
+	LanguageCPP string        `yaml:"language-CPP"`
+	Define      []interface{} `yaml:"define"`
+	Undefine    []string      `yaml:"undefine"`
+	AddPath     []string      `yaml:"add-path"`
+	DelPath     []string      `yaml:"del-path"`
+	Misc        Misc          `yaml:"misc"`
+	Files       []Files       `yaml:"files"`
+	Generator   Generator     `yaml:"generator"`
+	FromPack    string        `yaml:"from-pack"`
+}
+
+type Files struct {
+	File        string        `yaml:"file"`
+	Category    string        `yaml:"category"`
+	Attr        string        `yaml:"attr"`
+	Version     string        `yaml:"version"`
+	Optimize    string        `yaml:"optimize"`
+	Debug       string        `yaml:"debug"`
+	Warnings    string        `yaml:"warnings"`
+	LanguageC   string        `yaml:"language-C"`
+	LanguageCPP string        `yaml:"language-CPP"`
+	Define      []interface{} `yaml:"define"`
+	Undefine    []string      `yaml:"undefine"`
+	AddPath     []string      `yaml:"add-path"`
+	DelPath     []string      `yaml:"del-path"`
+	Misc        Misc          `yaml:"misc"`
+}
+
+type Generator struct {
+	ID       string  `yaml:"id"`
+	Path     string  `yaml:"path"`
+	FromPack string  `yaml:"from-pack"`
+	Files    []Files `yaml:"files"`
+}
+
+type Groups struct {
+	Group string  `yaml:"group"`
+	Files []Files `yaml:"files"`
+}
+
+type Linker struct {
+	Regions string        `yaml:"regions"`
+	Script  string        `yaml:"script"`
+	Define  []interface{} `yaml:"define"`
+}
+
+type Misc struct {
+	C       []string `yaml:"C"`
+	CPP     []string `yaml:"CPP"`
+	CCPP    []string `yaml:"C-CPP"`
+	ASM     []string `yaml:"ASM"`
+	Link    []string `yaml:"Link"`
+	LinkC   []string `yaml:"Link-C"`
+	LinkCPP []string `yaml:"Link-CPP"`
+	Library []string `yaml:"Library"`
+	Lib     []string `yaml:"Lib"`
+}
+
+type OutputDirs struct {
+	Intdir  string `yaml:"intdir"`
+	Outdir  string `yaml:"outdir"`
+	Cprjdir string `yaml:"cprjdir"`
+	Rtedir  string `yaml:"rtedir"`
+}
+
+type Output struct {
+	File string `yaml:"file"`
+	Type string `yaml:"type"`
+}
+
+type Processor struct {
+	Fpu              string `yaml:"fpu"`
+	Dsp              string `yaml:"dsp"`
+	Mve              string `yaml:"mve"`
+	Endian           string `yaml:"endian"`
+	Trustzone        string `yaml:"trustzone"`
+	BranchProtection string `yaml:"branch-protection"`
+	Core             string `yaml:"core"`
+}
+
+type Packs struct {
+	Pack string `yaml:"pack"`
+	Path string `yaml:"path"`
 }
 
 func (m *Maker) ParseCbuildIndexFile(cbuildIndexFile string) (data CbuildIndex, err error) {

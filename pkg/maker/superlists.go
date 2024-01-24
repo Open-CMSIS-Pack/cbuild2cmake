@@ -90,8 +90,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
 endforeach()
 `
-	intDir := path.Join(m.CbuildIndex.BaseDir, "tmp")
-	superCMakeLists := path.Join(intDir, "CMakeLists.txt")
+	superCMakeLists := path.Join(m.SolutionIntDir, "CMakeLists.txt")
 	err := utils.UpdateFile(superCMakeLists, content)
 	if err != nil {
 		return err

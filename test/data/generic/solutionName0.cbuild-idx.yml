@@ -1,0 +1,14 @@
+build-idx:
+  generated-by: csolution version 2.2.1
+  cdefault: cdefault.yml
+  csolution: solutionName.csolution.yml
+  cprojects:
+    - cproject: projectName.cproject.yml
+      clayers:
+        - clayer: layerName.clayer.yml
+  cbuilds:
+    - cbuild: projectName.BuildType0+TargetType0.cbuild.yml
+      project: projectName
+      configuration: .BuildType0+TargetType0
+      depends-on:
+        - projectName.BuildType1+TargetType1.cbuild.yml

@@ -7,6 +7,8 @@
 package maker
 
 import (
+	"path"
+
 	semver "github.com/Masterminds/semver/v3"
 	utils "github.com/Open-CMSIS-Pack/cbuild/v2/pkg/utils"
 )
@@ -33,6 +35,7 @@ type Vars struct {
 	RegisteredToolchains     map[*semver.Version]Toolchain
 	SelectedToolchainVersion *semver.Version
 	SelectedToolchainConfig  string
+	SolutionIntDir           string
 }
 
 type Maker struct {
@@ -57,6 +60,7 @@ func (m *Maker) GenerateCMakeLists() error {
 	}
 
 	// Create super project CMakeLists.txt
+	m.SolutionIntDir = path.Join(m.CbuildIndex.BaseDir, "tmp")
 	err = m.CreateSuperCMakeLists()
 	if err != nil {
 		return err

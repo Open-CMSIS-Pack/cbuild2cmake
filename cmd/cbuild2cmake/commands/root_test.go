@@ -75,7 +75,7 @@ func TestCommands(t *testing.T) {
 		assert.Equal(log.ErrorLevel, log.GetLevel())
 	})
 
-	t.Run("test debug debug level", func(t *testing.T) {
+	t.Run("test debug level", func(t *testing.T) {
 		cmd := commands.NewRootCmd()
 		cmd.SetArgs([]string{"--debug", "--version"})
 		err := cmd.Execute()

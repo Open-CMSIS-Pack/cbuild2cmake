@@ -17,8 +17,8 @@ import (
 func (m *Maker) CreateContextCMakeLists(index int, cbuild *Cbuild) error {
 
 	outDir := path.Join(cbuild.BaseDir, cbuild.BuildDescType.OutputDirs.Outdir)
-	intDir := path.Join(m.CbuildIndex.BaseDir, "tmp")
-	objDir := path.Join(intDir, strconv.Itoa(index))
+	intDir := path.Join(cbuild.BaseDir, cbuild.BuildDescType.OutputDirs.Intdir)
+	objDir := path.Join(m.SolutionIntDir, strconv.Itoa(index))
 
 	var outputFile, outputType string
 	for _, output := range cbuild.BuildDescType.Output {
