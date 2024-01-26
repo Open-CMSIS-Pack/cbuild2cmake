@@ -27,6 +27,7 @@ func (m *Maker) ProcessToolchain() error {
 
 	toolchainFiles, err := os.ReadDir(m.EnvVars.CompilerRoot)
 	if err != nil {
+		err := errors.New("reading directory failed: " + m.EnvVars.CompilerRoot)
 		return err
 	}
 
@@ -50,6 +51,11 @@ func (m *Maker) ProcessToolchain() error {
 		}
 	}
 
+	if len(m.ToolchainConfigs) == 0 {
+		err := errors.New("no toolchain configuration file was found")
+		return err
+	}
+
 	// Registered toolchains
 	m.RegisteredToolchains = make(map[*semver.Version]Toolchain)
 	systemEnvVars := os.Environ()
@@ -71,80 +77,75 @@ func (m *Maker) ProcessToolchain() error {
 		}
 	}
 
-	// Get solution's toolchain
-	var solutionToolchain string
-	solutionConstraints := make(map[*semver.Constraints]bool)
-	for _, cbuild := range m.Cbuilds {
-		if len(cbuild.BuildDescType.Compiler) > 0 &&
-			len(solutionToolchain) > 0 &&
-			solutionToolchain != cbuild.BuildDescType.Compiler {
-			err := errors.New("multiple toolchains are not supported")
-			return err
-		}
-		solutionToolchain = cbuild.BuildDescType.Compiler[:strings.Index(cbuild.BuildDescType.Compiler, "@")]
+	// Get each context's toolchain
+	m.SelectedToolchainVersion = make([]*semver.Version, len(m.Cbuilds))
+	m.SelectedToolchainConfig = make([]string, len(m.Cbuilds))
+	for index, cbuild := range m.Cbuilds {
+		contextConstraints := make(map[*semver.Constraints]bool)
+		contextToolchain := cbuild.BuildDescType.Compiler[:strings.Index(cbuild.BuildDescType.Compiler, "@")]
 		if strings.Contains(cbuild.BuildDescType.Compiler, "@") {
 			constraint, _ := semver.NewConstraint(cbuild.BuildDescType.Compiler[strings.Index(cbuild.BuildDescType.Compiler, "@")+1:])
-			solutionConstraints[constraint] = true
+			contextConstraints[constraint] = true
 		}
-	}
 
-	// Debug
-	if m.Params.Options.Debug {
-		var constraints string
-		for constraint := range solutionConstraints {
-			constraints = constraints + " " + constraint.String()
+		// Debug
+		if m.Params.Options.Debug {
+			var constraints string
+			for constraint := range contextConstraints {
+				constraints = constraints + " " + constraint.String()
+			}
+			log.Debug("Context toolchain: " + contextToolchain + " - Constraints:" + constraints)
 		}
-		log.Debug("Solution toolchain: " + solutionToolchain + " - Constraints:" + constraints)
-	}
 
-	// Sort config versions and  registered versions
-	var configVersions []*semver.Version
-	for version, toolchainConfig := range m.ToolchainConfigs {
-		if toolchainConfig.Name == solutionToolchain {
-			configVersions = append(configVersions, version)
-		}
-	}
-	sort.Sort(sort.Reverse(semver.Collection(configVersions)))
-	var registeredVersions []*semver.Version
-	for version, registeredToolchain := range m.RegisteredToolchains {
-		if registeredToolchain.Name == solutionToolchain {
-			registeredVersions = append(registeredVersions, version)
-		}
-	}
-	sort.Sort(sort.Reverse(semver.Collection(registeredVersions)))
-
-	// Get latest compatible registered version
-	compatible := false
-	for _, registeredVersion := range registeredVersions {
-		for _, configVersion := range configVersions {
-			if !registeredVersion.LessThan(configVersion) {
-				m.SelectedToolchainVersion = registeredVersion
-				m.SelectedToolchainConfig = m.ToolchainConfigs[configVersion].Path
-				compatible = true
-				break
+		// Sort config versions and registered versions
+		var configVersions []*semver.Version
+		for version, toolchainConfig := range m.ToolchainConfigs {
+			if toolchainConfig.Name == contextToolchain {
+				configVersions = append(configVersions, version)
 			}
 		}
-		if compatible {
-			for constraint := range solutionConstraints {
-				if !constraint.Check(registeredVersion) {
-					compatible = false
+		sort.Sort(sort.Reverse(semver.Collection(configVersions)))
+		var registeredVersions []*semver.Version
+		for version, registeredToolchain := range m.RegisteredToolchains {
+			if registeredToolchain.Name == contextToolchain {
+				registeredVersions = append(registeredVersions, version)
+			}
+		}
+		sort.Sort(sort.Reverse(semver.Collection(registeredVersions)))
+
+		// Get latest compatible registered version
+		compatible := false
+		for _, registeredVersion := range registeredVersions {
+			for _, configVersion := range configVersions {
+				if !registeredVersion.LessThan(configVersion) {
+					m.SelectedToolchainVersion[index] = registeredVersion
+					m.SelectedToolchainConfig[index] = m.ToolchainConfigs[configVersion].Path
+					compatible = true
 					break
 				}
 			}
+			if compatible {
+				for constraint := range contextConstraints {
+					if !constraint.Check(registeredVersion) {
+						compatible = false
+						break
+					}
+				}
+			}
+			if compatible {
+				break
+			}
 		}
-		if compatible {
-			break
+		if !compatible {
+			err := errors.New("no compatible registered toolchain was found")
+			return err
 		}
-	}
-	if !compatible {
-		err := errors.New("no compatible registered toolchain was found")
-		return err
-	}
 
-	// Debug
-	if m.Params.Options.Debug {
-		log.Debug("Latest compatible registered toolchain: " + m.RegisteredToolchains[m.SelectedToolchainVersion].Name + " " + m.SelectedToolchainVersion.String())
-		log.Debug("Compatible config file: " + m.SelectedToolchainConfig)
+		// Debug
+		if m.Params.Options.Debug {
+			log.Debug("Latest compatible registered toolchain: " + m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Name + " " + m.SelectedToolchainVersion[index].String())
+			log.Debug("Compatible config file: " + m.SelectedToolchainConfig[index])
+		}
 	}
 
 	return nil
