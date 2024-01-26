@@ -11,6 +11,19 @@ import (
 	"path/filepath"
 )
 
+func GetDefine(define interface{}) (key string, value string) {
+	switch def := define.(type) {
+	case string:
+		key = def
+	case map[string]interface{}:
+		for k, v := range def {
+			key = k
+			value = v.(string)
+		}
+	}
+	return key, value
+}
+
 func UpdateFile(filename string, content string) error {
 	// Check whether file content is the same
 	fileContent, err := os.ReadFile(filename)
