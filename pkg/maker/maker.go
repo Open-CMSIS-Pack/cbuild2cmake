@@ -33,8 +33,8 @@ type Vars struct {
 	EnvVars                  utils.EnvVars
 	ToolchainConfigs         map[*semver.Version]Toolchain
 	RegisteredToolchains     map[*semver.Version]Toolchain
-	SelectedToolchainVersion *semver.Version
-	SelectedToolchainConfig  string
+	SelectedToolchainVersion []*semver.Version
+	SelectedToolchainConfig  []string
 	SolutionIntDir           string
 }
 
