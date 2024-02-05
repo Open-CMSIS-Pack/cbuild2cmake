@@ -8,7 +8,8 @@ package utils
 
 import (
 	"os"
-	"path/filepath"
+	"path"
+	"strconv"
 )
 
 func GetDefine(define interface{}) (key string, value string) {
@@ -18,7 +19,14 @@ func GetDefine(define interface{}) (key string, value string) {
 	case map[string]interface{}:
 		for k, v := range def {
 			key = k
-			value = v.(string)
+			switch val := v.(type) {
+			case string:
+				value = val
+			case bool:
+				value = strconv.FormatBool(val)
+			case int:
+				value = strconv.Itoa(val)
+			}
 		}
 	}
 	return key, value
@@ -34,7 +42,7 @@ func UpdateFile(filename string, content string) error {
 	}
 
 	// Create or truncate file
-	_ = os.MkdirAll(filepath.Dir(filename), 0755)
+	_ = os.MkdirAll(path.Dir(filename), 0755)
 	file, err := os.Create(filename)
 	if err != nil {
 		file.Close()

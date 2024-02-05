@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"os"
 	"path"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 
@@ -98,6 +99,8 @@ type Components struct {
 type Files struct {
 	File        string        `yaml:"file"`
 	Category    string        `yaml:"category"`
+	Scope       string        `yaml:"scope"`
+	Language    string        `yaml:"language"`
 	Attr        string        `yaml:"attr"`
 	Version     string        `yaml:"version"`
 	Optimize    string        `yaml:"optimize"`
@@ -120,8 +123,19 @@ type Generator struct {
 }
 
 type Groups struct {
-	Group string  `yaml:"group"`
-	Files []Files `yaml:"files"`
+	Group       string        `yaml:"group"`
+	Groups      []Groups      `yaml:"groups"`
+	Files       []Files       `yaml:"files"`
+	Optimize    string        `yaml:"optimize"`
+	Debug       string        `yaml:"debug"`
+	Warnings    string        `yaml:"warnings"`
+	LanguageC   string        `yaml:"language-C"`
+	LanguageCPP string        `yaml:"language-CPP"`
+	Define      []interface{} `yaml:"define"`
+	Undefine    []string      `yaml:"undefine"`
+	AddPath     []string      `yaml:"add-path"`
+	DelPath     []string      `yaml:"del-path"`
+	Misc        Misc          `yaml:"misc"`
 }
 
 type Linker struct {
@@ -193,7 +207,8 @@ func (m *Maker) ParseCbuildFiles() error {
 	if err != nil {
 		return err
 	}
-	cbuildIndex.BaseDir = path.Dir(m.Params.InputFile)
+	cbuildIndex.BaseDir, _ = filepath.Abs(path.Dir(m.Params.InputFile))
+	cbuildIndex.BaseDir = filepath.ToSlash(cbuildIndex.BaseDir)
 	m.CbuildIndex = cbuildIndex
 
 	// Debug
@@ -213,7 +228,8 @@ func (m *Maker) ParseCbuildFiles() error {
 		if err != nil {
 			return err
 		}
-		cbuild.BaseDir = path.Dir(cbuildFile)
+		cbuild.BaseDir, _ = filepath.Abs(path.Dir(cbuildFile))
+		cbuild.BaseDir = filepath.ToSlash(cbuild.BaseDir)
 		m.Cbuilds = append(m.Cbuilds, cbuild)
 
 		// Debug

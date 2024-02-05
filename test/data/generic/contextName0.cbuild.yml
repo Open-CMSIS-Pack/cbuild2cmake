@@ -12,6 +12,7 @@ build:
     mve: fp
     endian: little
     branch-protection: bti-signret
+    trustzone: non-secure
     core: Cortex-M0
   packs:
     - pack: vendorName::DFP@8.8.8

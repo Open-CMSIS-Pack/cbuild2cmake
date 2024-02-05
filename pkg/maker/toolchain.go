@@ -9,6 +9,7 @@ package maker
 import (
 	"errors"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -41,7 +42,7 @@ func (m *Maker) ProcessToolchain() error {
 		}
 		var toolchain Toolchain
 		toolchain.Name = matched[0][1]
-		toolchain.Path = filepath.Join(m.EnvVars.CompilerRoot, toolchainFile.Name())
+		toolchain.Path = path.Join(m.EnvVars.CompilerRoot, toolchainFile.Name())
 		version, _ := semver.NewVersion(matched[0][2])
 		m.ToolchainConfigs[version] = toolchain
 
@@ -67,7 +68,7 @@ func (m *Maker) ProcessToolchain() error {
 		}
 		var toolchain Toolchain
 		toolchain.Name = matched[0][1]
-		toolchain.Path = matched[0][5]
+		toolchain.Path = filepath.ToSlash(matched[0][5])
 		version, _ := semver.NewVersion(matched[0][2] + "." + matched[0][3] + "." + matched[0][4])
 		m.RegisteredToolchains[version] = toolchain
 

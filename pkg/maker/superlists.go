@@ -31,8 +31,8 @@ func (m *Maker) CreateSuperCMakeLists() error {
 				break
 			}
 		}
-		output := path.Join(path.Join(cbuild.BaseDir, cbuild.BuildDescType.OutputDirs.Outdir), outputFile)
-		outputs = outputs + "  \"${SOLUTION_ROOT}/" + output + "\"\n"
+		output := path.Clean(path.Join(path.Join(cbuild.BaseDir, cbuild.BuildDescType.OutputDirs.Outdir), outputFile))
+		outputs = outputs + "  \"" + output + "\"\n"
 	}
 
 	// Write content
