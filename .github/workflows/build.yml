@@ -46,7 +46,7 @@ jobs:
           GOOS=linux GOARCH=arm64 go build -o build/lin-arm64/cbuild2cmake ./cmd/cbuild2cmake        
 
       - name: Archive windows amd64 binaries
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: cbuild2cmake-windows-amd64
           path: ./build/win-amd64/cbuild2cmake.exe
@@ -54,7 +54,7 @@ jobs:
           if-no-files-found: error
 
       - name: Archive windows arm64 binaries
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: cbuild2cmake-windows-arm64
           path: ./build/win-arm64/cbuild2cmake.exe
@@ -62,7 +62,7 @@ jobs:
           if-no-files-found: error
 
       - name: Archive macos amd64 binaries
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: cbuild2cmake-mac-amd64
           path: ./build/mac-amd64/cbuild2cmake
@@ -70,7 +70,7 @@ jobs:
           if-no-files-found: error
 
       - name: Archive macos arm64 binaries
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: cbuild2cmake-mac-arm64
           path: ./build/mac-arm64/cbuild2cmake
@@ -78,7 +78,7 @@ jobs:
           if-no-files-found: error
 
       - name: Archive linux amd64 binaries
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: cbuild2cmake-lin-amd64
           path: ./build/lin-amd64/cbuild2cmake
@@ -86,7 +86,7 @@ jobs:
           if-no-files-found: error
 
       - name: Archive linux arm64 binaries
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: cbuild2cmake-lin-arm64
           path: ./build/lin-arm64/cbuild2cmake
