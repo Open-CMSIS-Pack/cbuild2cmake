@@ -14,7 +14,7 @@ import (
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/utils"
 )
 
-func (m *Maker) CreateContextCMakeLists(index int, cbuild *Cbuild) error {
+func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 
 	outDir := path.Join(cbuild.BaseDir, cbuild.BuildDescType.OutputDirs.Outdir)
 	intDir := path.Join(cbuild.BaseDir, cbuild.BuildDescType.OutputDirs.Intdir)
@@ -40,13 +40,19 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild *Cbuild) error {
 	}
 
 	// Write content
-	content :=
-		`cmake_minimum_required(VERSION 3.22)
+	content := `cmake_minimum_required(VERSION 3.22)
 
 set(CONTEXT ` + cbuild.BuildDescType.Project + `)
 set(OUT_DIR "` + outDir + `")
 set(OBJ_DIR "` + objDir + `")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Processor Options` + ProcessorOptions(cbuild) + `
+
+# Toolchain config map
+set(REGISTERED_TOOLCHAIN_ROOT "` + m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Path + `")
+set(REGISTERED_TOOLCHAIN_VERSION "` + m.SelectedToolchainVersion[index].String() + `")
+include("` + m.SelectedToolchainConfig[index] + `")
 
 # Setup project
 project(${CONTEXT} LANGUAGES C)
@@ -58,13 +64,110 @@ add_custom_target(database COMMAND ${CMAKE_COMMAND} -E copy_if_different "${INT_
 add_library(${CONTEXT})
 set_target_properties(${CONTEXT} PROPERTIES PREFIX "" SUFFIX "` + outputExt + `" OUTPUT_NAME "` + outputName + `")
 set_target_properties(${CONTEXT} PROPERTIES ` + outputDirType + ` ${OUT_DIR})
+add_library(${CONTEXT}_GLOBAL INTERFACE)
+
+# Includes` + CMakeTargetIncludeDirectories("${CONTEXT}_GLOBAL", "INTERFACE", cbuild.BuildDescType.AddPath) + `
+
+# Defines` + CMakeTargetCompileDefinitions("${CONTEXT}_GLOBAL", "INTERFACE", cbuild.BuildDescType.Define) + `
 
 # Add groups and components
 include("groups.cmake")
 include("components.cmake")
+target_link_libraries(${CONTEXT}
+  ${CONTEXT}_GLOBAL` + GroupsAndComponentsList(cbuild) + `
+)
+
+# Linker options` + LinkerOptions(cbuild) + `
 `
-	contextCMakeLists := path.Join(path.Join(intDir, cbuild.BuildDescType.Context), "CMakeLists.txt")
+	// Update CMakeLists.txt
+	contextDir := path.Join(intDir, cbuild.BuildDescType.Context)
+	contextCMakeLists := path.Join(contextDir, "CMakeLists.txt")
 	err := utils.UpdateFile(contextCMakeLists, content)
+	if err != nil {
+		return err
+	}
+
+	// Create components.cmake
+	err = m.CMakeCreateComponents(cbuild.BuildDescType.Components, contextDir)
+	if err != nil {
+		return err
+	}
+
+	// Create groups.cmake
+	err = m.CMakeCreateGroups(cbuild.BuildDescType.Groups, contextDir)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func (m *Maker) CMakeCreateGroups(groups []Groups, contextDir string) error {
+	content := "# groups.cmake\n"
+	content += CMakeCreateGroupRecursively("Group", groups)
+	content += "\n"
+
+	filename := path.Join(contextDir, "groups.cmake")
+	err := utils.UpdateFile(filename, content)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func CMakeCreateGroupRecursively(name string, groups []Groups) string {
+	var content string
+	for _, group := range groups {
+		buildFiles := ClassifyFiles(group.Files)
+		name += "_" + ReplaceDelimiters(group.Group)
+		// add_library
+		content += "\n# group " + group.Group
+		content += CMakeAddLibrary(name, buildFiles)
+		// target_include_directories
+		if len(buildFiles.Include) > 0 {
+			content += CMakeTargetIncludeDirectoriesFromFiles(name, buildFiles)
+		}
+		if len(group.AddPath) > 0 {
+			content += CMakeTargetIncludeDirectories(name, "PRIVATE", group.AddPath)
+		}
+		// target_compile_definitions
+		if len(group.Define) > 0 {
+			content += CMakeTargetCompileDefinitions(name, "PRIVATE", group.Define)
+		}
+		// target_link_libraries
+		content += "\ntarget_link_libraries(" + name + " PRIVATE ${CONTEXT}_GLOBAL)\n"
+
+		content += CMakeCreateGroupRecursively(name, group.Groups)
+	}
+	return content
+}
+
+func (m *Maker) CMakeCreateComponents(components []Components, contextDir string) error {
+	content := "# components.cmake\n"
+	for _, component := range components {
+		buildFiles := ClassifyFiles(component.Files)
+		name := ReplaceDelimiters(component.Component)
+		// add_library
+		content += "\n# component " + component.Component
+		content += CMakeAddLibrary(name, buildFiles)
+		// target_include_directories
+		if len(buildFiles.Include) > 0 {
+			content += CMakeTargetIncludeDirectoriesFromFiles(name, buildFiles)
+		}
+		if len(component.AddPath) > 0 {
+			content += CMakeTargetIncludeDirectories(name, "PRIVATE", component.AddPath)
+		}
+		// target_compile_definitions
+		if len(component.Define) > 0 {
+			content += CMakeTargetCompileDefinitions(name, "PRIVATE", component.Define)
+		}
+		// target_link_libraries
+		content += "\ntarget_link_libraries(" + name + " PRIVATE ${CONTEXT}_GLOBAL)\n"
+	}
+
+	filename := path.Join(contextDir, "components.cmake")
+	err := utils.UpdateFile(filename, content)
 	if err != nil {
 		return err
 	}

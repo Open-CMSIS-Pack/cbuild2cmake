@@ -48,6 +48,7 @@ func TestParser(t *testing.T) {
 		assert.Equal("fp", data.BuildDescType.Processor.Mve)
 		assert.Equal("little", data.BuildDescType.Processor.Endian)
 		assert.Equal("bti-signret", data.BuildDescType.Processor.BranchProtection)
+		assert.Equal("non-secure", data.BuildDescType.Processor.Trustzone)
 		assert.Equal("Cortex-M0", data.BuildDescType.Processor.Core)
 
 		assert.Equal("vendorName::DFP@8.8.8", data.BuildDescType.Packs[0].Pack)

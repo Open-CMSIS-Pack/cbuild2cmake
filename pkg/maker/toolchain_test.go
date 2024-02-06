@@ -8,6 +8,7 @@ package maker_test
 
 import (
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
 
@@ -26,16 +27,17 @@ func TestToolchain(t *testing.T) {
 	m.EnvVars = utils.UpdateEnvVars(m.InstallConfigs.BinPath, m.InstallConfigs.EtcPath)
 	inittest.ClearToolchainRegistration()
 	absTestRoot, _ := filepath.Abs(testRoot)
-	os.Setenv("AC6_TOOLCHAIN_6_19_0", filepath.Join(absTestRoot, "run/path/to/ac619/bin"))
-	os.Setenv("AC6_TOOLCHAIN_6_21_0", filepath.Join(absTestRoot, "run/path/to/ac621/bin"))
+	absTestRoot = filepath.ToSlash(absTestRoot)
+	os.Setenv("AC6_TOOLCHAIN_6_19_0", path.Join(absTestRoot, "run/path/to/ac619/bin"))
+	os.Setenv("AC6_TOOLCHAIN_6_21_0", path.Join(absTestRoot, "run/path/to/ac621/bin"))
 
 	t.Run("test toolchain minimum version", func(t *testing.T) {
 		m.Cbuilds = make([]maker.Cbuild, 1)
 		m.Cbuilds[0].BuildDescType.Compiler = "AC6@>=6.18.0"
 		err := m.ProcessToolchain()
 		assert.Nil(err)
-		expectedConfig := filepath.Join(m.EnvVars.CompilerRoot, "AC6.6.18.0.cmake")
-		expectedPath := filepath.Join(absTestRoot, "run/path/to/ac621/bin")
+		expectedConfig := path.Join(m.EnvVars.CompilerRoot, "AC6.6.18.0.cmake")
+		expectedPath := path.Join(absTestRoot, "run/path/to/ac621/bin")
 		expectedVersion, _ := semver.NewVersion("6.21.0")
 		assert.Equal(expectedConfig, m.SelectedToolchainConfig[0])
 		assert.Equal(expectedPath, m.RegisteredToolchains[m.SelectedToolchainVersion[0]].Path)
@@ -47,8 +49,8 @@ func TestToolchain(t *testing.T) {
 		m.Cbuilds[0].BuildDescType.Compiler = "AC6@6.19.0"
 		err := m.ProcessToolchain()
 		assert.Nil(err)
-		expectedConfig := filepath.Join(m.EnvVars.CompilerRoot, "AC6.6.18.0.cmake")
-		expectedPath := filepath.Join(absTestRoot, "run/path/to/ac619/bin")
+		expectedConfig := path.Join(m.EnvVars.CompilerRoot, "AC6.6.18.0.cmake")
+		expectedPath := path.Join(absTestRoot, "run/path/to/ac619/bin")
 		expectedVersion, _ := semver.NewVersion("6.19.0")
 		assert.Equal(expectedConfig, m.SelectedToolchainConfig[0])
 		assert.Equal(expectedPath, m.RegisteredToolchains[m.SelectedToolchainVersion[0]].Path)
@@ -72,7 +74,7 @@ func TestToolchain(t *testing.T) {
 	})
 
 	t.Run("test toolchain without config files", func(t *testing.T) {
-		m.EnvVars.CompilerRoot = filepath.Join(absTestRoot, "empty")
+		m.EnvVars.CompilerRoot = path.Join(absTestRoot, "empty")
 		_ = os.MkdirAll(m.EnvVars.CompilerRoot, 0755)
 		err := m.ProcessToolchain()
 		assert.Error(err)
@@ -80,7 +82,7 @@ func TestToolchain(t *testing.T) {
 	})
 
 	t.Run("test toolchain with invalid compiler root", func(t *testing.T) {
-		m.EnvVars.CompilerRoot = filepath.Join(absTestRoot, "invalid")
+		m.EnvVars.CompilerRoot = path.Join(absTestRoot, "invalid")
 		err := m.ProcessToolchain()
 		assert.Error(err)
 		assert.ErrorContains(err, "reading directory failed")
