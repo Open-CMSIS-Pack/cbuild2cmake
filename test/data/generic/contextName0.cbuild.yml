@@ -79,6 +79,11 @@ build:
               - -Link-C-file
             Link-CPP:
               - -Link-CPP-file
+      groups:
+        - group: Subgroup
+          files:
+            - file: ./TestSubgroup.c
+              category: sourceC
   constructed-files:
     - file: RTE/__BuildType_TargetType/RTE_Components.h
       category: header
