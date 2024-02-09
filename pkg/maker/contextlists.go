@@ -70,11 +70,13 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 
 # Defines` + CMakeTargetCompileDefinitions("${CONTEXT}_GLOBAL", "INTERFACE", cbuild.BuildDescType.Define) + `
 
+# Compile options` + CMakeTargetCompileOptionsGlobal("${CONTEXT}_GLOBAL", "INTERFACE", cbuild) + `
+
 # Add groups and components
 include("groups.cmake")
 include("components.cmake")
 target_link_libraries(${CONTEXT}
-  ${CONTEXT}_GLOBAL` + GroupsAndComponentsList(cbuild) + `
+  ${CONTEXT}_GLOBAL` + ListGroupsAndComponents(cbuild) + `
 )
 
 # Linker options` + LinkerOptions(cbuild) + `
@@ -105,7 +107,6 @@ target_link_libraries(${CONTEXT}
 func (m *Maker) CMakeCreateGroups(groups []Groups, contextDir string) error {
 	content := "# groups.cmake\n"
 	content += CMakeCreateGroupRecursively("Group", groups)
-	content += "\n"
 
 	filename := path.Join(contextDir, "groups.cmake")
 	err := utils.UpdateFile(filename, content)
@@ -116,11 +117,18 @@ func (m *Maker) CMakeCreateGroups(groups []Groups, contextDir string) error {
 	return err
 }
 
-func CMakeCreateGroupRecursively(name string, groups []Groups) string {
+func CMakeCreateGroupRecursively(parent string, groups []Groups) string {
 	var content string
 	for _, group := range groups {
 		buildFiles := ClassifyFiles(group.Files)
-		name += "_" + ReplaceDelimiters(group.Group)
+		name := parent + "_" + ReplaceDelimiters(group.Group)
+		hasChildren := len(group.Groups) > 0
+		// default private scope
+		scope := "PRIVATE"
+		if hasChildren {
+			// make scope public to its children
+			scope = "PUBLIC"
+		}
 		// add_library
 		content += "\n# group " + group.Group
 		content += CMakeAddLibrary(name, buildFiles)
@@ -129,16 +137,30 @@ func CMakeCreateGroupRecursively(name string, groups []Groups) string {
 			content += CMakeTargetIncludeDirectoriesFromFiles(name, buildFiles)
 		}
 		if len(group.AddPath) > 0 {
-			content += CMakeTargetIncludeDirectories(name, "PRIVATE", group.AddPath)
+			content += CMakeTargetIncludeDirectories(name, scope, group.AddPath)
 		}
 		// target_compile_definitions
 		if len(group.Define) > 0 {
-			content += CMakeTargetCompileDefinitions(name, "PRIVATE", group.Define)
+			content += CMakeTargetCompileDefinitions(name, scope, group.Define)
+		}
+		// target_compile_options
+		if !IsCompileMiscEmpty(group.Misc) {
+			content += CMakeTargetCompileOptions(name, scope, group.Misc)
 		}
 		// target_link_libraries
-		content += "\ntarget_link_libraries(" + name + " PRIVATE ${CONTEXT}_GLOBAL)\n"
-
-		content += CMakeCreateGroupRecursively(name, group.Groups)
+		content += "\ntarget_link_libraries(" + name + " PRIVATE ${CONTEXT}_GLOBAL"
+		if len(parent) > 5 {
+			content += " " + parent
+		}
+		content += ")\n"
+		// file properties
+		for _, file := range group.Files {
+			content += CMakeSetFileProperties(file)
+		}
+		// create children groups recursively
+		if hasChildren {
+			content += CMakeCreateGroupRecursively(name, group.Groups)
+		}
 	}
 	return content
 }
@@ -161,6 +183,10 @@ func (m *Maker) CMakeCreateComponents(components []Components, contextDir string
 		// target_compile_definitions
 		if len(component.Define) > 0 {
 			content += CMakeTargetCompileDefinitions(name, "PRIVATE", component.Define)
+		}
+		// target_compile_options
+		if !IsCompileMiscEmpty(component.Misc) {
+			content += CMakeTargetCompileOptions(name, "PRIVATE", component.Misc)
 		}
 		// target_link_libraries
 		content += "\ntarget_link_libraries(" + name + " PRIVATE ${CONTEXT}_GLOBAL)\n"

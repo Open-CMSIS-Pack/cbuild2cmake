@@ -86,6 +86,10 @@ func TestParser(t *testing.T) {
 		assert.Equal("./TestSource.c", data.BuildDescType.Groups[0].Files[0].File)
 		assert.Equal("sourceC", data.BuildDescType.Groups[0].Files[0].Category)
 
+		assert.Equal("Subgroup", data.BuildDescType.Groups[0].Groups[0].Group)
+		assert.Equal("./TestSubgroup.c", data.BuildDescType.Groups[0].Groups[0].Files[0].File)
+		assert.Equal("sourceC", data.BuildDescType.Groups[0].Groups[0].Files[0].Category)
+
 		assert.Equal("config", data.BuildDescType.Groups[0].Files[0].Attr)
 		assert.Equal("9.9.9", data.BuildDescType.Groups[0].Files[0].Version)
 		assert.Equal("speed", data.BuildDescType.Groups[0].Files[0].Optimize)

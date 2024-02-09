@@ -103,4 +103,56 @@ func TestBuildContent(t *testing.T) {
 		assert.Contains(content, "includes")
 		assert.Contains(content, "includes-c")
 	})
+
+	t.Run("test cmake target compile options", func(t *testing.T) {
+		var misc = maker.Misc{
+			ASM:  []string{"-asm-flag"},
+			C:    []string{"-c-flag"},
+			CPP:  []string{"-cpp-flag"},
+			CCPP: []string{"-c-cpp-flag"},
+		}
+		content := maker.CMakeTargetCompileOptions("TARGET", "PUBLIC", misc)
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    -c-flag")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    -cpp-flag")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C,CXX>:\n    -c-cpp-flag")
+	})
+
+	t.Run("test language specific compile options", func(t *testing.T) {
+		var misc = maker.Misc{
+			ASM: []string{"-asm-flag"},
+		}
+		content := maker.LangugeSpecificCompileOptions("ASM", misc.ASM)
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag")
+	})
+
+	t.Run("test get file misc", func(t *testing.T) {
+		var files = []maker.Files{
+			{
+				Category: "sourceAsm",
+				Misc: maker.Misc{
+					ASM: []string{"-asm-flag"},
+				},
+			},
+			{
+				Category: "sourceC",
+				Misc: maker.Misc{
+					C: []string{"-c-flag"},
+				},
+			},
+			{
+				Category: "sourceCpp",
+				Misc: maker.Misc{
+					CPP: []string{"-cpp-flag"},
+				},
+			},
+		}
+		content := maker.GetFileMisc(files[0], ";")
+		assert.Contains(content, "-asm-flag")
+		content = maker.GetFileMisc(files[1], ";")
+		assert.Contains(content, "-c-flag")
+		content = maker.GetFileMisc(files[2], ";")
+		assert.Contains(content, "-cpp-flag")
+	})
+
 }

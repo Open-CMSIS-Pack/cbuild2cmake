@@ -128,61 +128,6 @@ func CMakeAddLibrary(name string, buildFiles BuildFiles) string {
 	return content
 }
 
-func CMakeTargetIncludeDirectoriesFromFiles(name string, buildFiles BuildFiles) string {
-	content := "\ntarget_include_directories(" + name
-	for _, scope := range sortedmap.AsSortedMap(buildFiles.Include) {
-		content += "\n  " + scope.Key
-		for _, language := range sortedmap.AsSortedMap(scope.Value) {
-			if language.Key == "ALL" {
-				for _, file := range language.Value {
-					content += "\n    \"" + file + "\""
-				}
-			} else {
-				content += "\n    " + "$<$<COMPILE_LANGUAGE:" + language.Key + ">:"
-				for _, file := range language.Value {
-					content += "\n      \"" + file + "\""
-				}
-				content += "\n    >"
-			}
-		}
-	}
-	content += "\n)"
-	return content
-}
-
-func CMakeTargetIncludeDirectories(name string, scope string, includes []string) string {
-	content := "\ntarget_include_directories(" + name + " " + scope
-	for _, include := range includes {
-		content += "\n  \"" + include + "\""
-	}
-	content += "\n)"
-	return content
-}
-
-func CMakeTargetCompileDefinitions(name string, scope string, defines []interface{}) string {
-	content := "\ntarget_compile_definitions(" + name + " " + scope
-	for _, define := range defines {
-		key, value := utils.GetDefine(define)
-		content += "\n  " + key
-		if len(value) > 0 {
-			content += "=" + value
-		}
-	}
-	content += "\n)"
-	return content
-}
-
-func GroupsAndComponentsList(cbuild Cbuild) string {
-	var content string
-	for _, groups := range cbuild.BuildDescType.Groups {
-		content += "\n  Group_" + ReplaceDelimiters(groups.Group)
-	}
-	for _, component := range cbuild.BuildDescType.Components {
-		content += "\n  " + ReplaceDelimiters(component.Component)
-	}
-	return content
-}
-
 func ProcessorOptions(cbuild Cbuild) string {
 	content := "\nset(CPU " + cbuild.BuildDescType.Processor.Core + ")"
 
@@ -243,6 +188,183 @@ func ProcessorOptions(cbuild Cbuild) string {
 		content += "\nset(BYTE_ORDER " + endian + ")"
 	}
 
+	return content
+}
+
+func CMakeTargetIncludeDirectoriesFromFiles(name string, buildFiles BuildFiles) string {
+	content := "\ntarget_include_directories(" + name
+	for _, scope := range sortedmap.AsSortedMap(buildFiles.Include) {
+		content += "\n  " + scope.Key
+		for _, language := range sortedmap.AsSortedMap(scope.Value) {
+			if language.Key == "ALL" {
+				for _, file := range language.Value {
+					content += "\n    \"" + file + "\""
+				}
+			} else {
+				content += "\n    " + "$<$<COMPILE_LANGUAGE:" + language.Key + ">:"
+				for _, file := range language.Value {
+					content += "\n      \"" + file + "\""
+				}
+				content += "\n    >"
+			}
+		}
+	}
+	content += "\n)"
+	return content
+}
+
+func CMakeTargetIncludeDirectories(name string, scope string, includes []string) string {
+	content := "\ntarget_include_directories(" + name + " " + scope + "\n  "
+	content += ListIncludeDirectories(includes, "\n  ", true)
+	content += "\n)"
+	return content
+}
+
+func CMakeSetFileProperties(file Files) string {
+	var content string
+	hasIncludes := len(file.AddPath) > 0
+	hasDefines := len(file.Define) > 0
+	hasMisc := !IsCompileMiscEmpty(file.Misc)
+	if hasIncludes || hasDefines || hasMisc {
+		content = "\nset_source_files_properties(\"" + file.File + "\" PROPERTIES"
+		if hasIncludes {
+			content += "\n  INCLUDE_DIRECTORIES \"" + ListIncludeDirectories(file.AddPath, ";", false) + "\""
+		}
+		if hasDefines {
+			content += "\n  COMPILE_DEFINITIONS \"" + ListCompileDefinitions(file.Define, ";") + "\""
+		}
+		if hasMisc {
+			content += "\n  COMPILE_OPTIONS \"" + GetFileMisc(file, ";") + "\""
+		}
+		content += "\n)\n"
+	}
+	return content
+}
+
+func CMakeTargetCompileDefinitions(name string, scope string, defines []interface{}) string {
+	content := "\ntarget_compile_definitions(" + name + " " + scope + "\n  "
+	content += ListCompileDefinitions(defines, "\n  ")
+	content += "\n)"
+	return content
+}
+
+func ListIncludeDirectories(includes []string, delimiter string, quoted bool) string {
+	if quoted {
+		var includesList []string
+		for _, include := range includes {
+			includesList = append(includesList, "\""+include+"\"")
+		}
+		return strings.Join(includesList, delimiter)
+	}
+	return strings.Join(includes, delimiter)
+}
+
+func ListCompileDefinitions(defines []interface{}, delimiter string) string {
+	var definesList []string
+	for _, define := range defines {
+		key, value := utils.GetDefine(define)
+		pair := key
+		if len(value) > 0 {
+			pair += "=" + value
+		}
+		definesList = append(definesList, pair)
+	}
+	return strings.Join(definesList, delimiter)
+}
+
+func ListGroupsAndComponents(cbuild Cbuild) string {
+	// get last child group names
+	content := GetLastChildGroupNamesRecursively("Group", cbuild.BuildDescType.Groups)
+	// get component names
+	for _, component := range cbuild.BuildDescType.Components {
+		content += "\n  " + ReplaceDelimiters(component.Component)
+	}
+	return content
+}
+
+func GetLastChildGroupNamesRecursively(parent string, groups []Groups) string {
+	var content string
+	for _, group := range groups {
+		name := parent + "_" + ReplaceDelimiters(group.Group)
+		if len(group.Groups) > 0 {
+			// get children group names recursively
+			content += GetLastChildGroupNamesRecursively(name, group.Groups)
+		} else {
+			// last child
+			content += "\n  " + name
+		}
+	}
+	return content
+}
+
+func CMakeTargetCompileOptionsGlobal(name string, scope string, cbuild Cbuild) string {
+	// options from context settings
+	content := "\ntarget_compile_options(" + name + " " + scope + "\n  ${CC_CPU}"
+	if len(cbuild.BuildDescType.Processor.Trustzone) > 0 {
+		content += "\n ${CC_SECURE}"
+	}
+	if len(cbuild.BuildDescType.Processor.BranchProtection) > 0 {
+		content += "\n ${CC_BRANCHPROT}"
+	}
+	if len(cbuild.BuildDescType.Processor.Endian) > 0 {
+		content += "\n ${CC_BYTE_ORDER}"
+	}
+	// misc options
+	content += ListMiscOptions(cbuild.BuildDescType.Misc)
+	content += "\n)"
+	return content
+}
+
+func CMakeTargetCompileOptions(name string, scope string, misc Misc) string {
+	content := "\ntarget_compile_options(" + name + " " + scope
+	content += ListMiscOptions(misc)
+	content += "\n)"
+	return content
+}
+
+func IsCompileMiscEmpty(misc Misc) bool {
+	if len(misc.ASM) > 0 || len(misc.C) > 0 || len(misc.CPP) > 0 || len(misc.CCPP) > 0 {
+		return false
+	}
+	return true
+}
+
+func ListMiscOptions(misc Misc) string {
+	var content string
+	if len(misc.ASM) > 0 {
+		content += LangugeSpecificCompileOptions("ASM", misc.ASM)
+	}
+	if len(misc.C) > 0 {
+		content += LangugeSpecificCompileOptions("C", misc.C)
+	}
+	if len(misc.CPP) > 0 {
+		content += LangugeSpecificCompileOptions("CXX", misc.CPP)
+	}
+	if len(misc.CCPP) > 0 {
+		content += LangugeSpecificCompileOptions("C,CXX", misc.CCPP)
+	}
+	return content
+}
+
+func GetFileMisc(file Files, delimiter string) string {
+	var misc []string
+	switch file.Category {
+	case "sourceAsm":
+		misc = file.Misc.ASM
+	case "sourceC":
+		misc = file.Misc.C
+	case "sourceCpp":
+		misc = file.Misc.CPP
+	}
+	return strings.Join(misc, delimiter)
+}
+
+func LangugeSpecificCompileOptions(language string, misc []string) string {
+	content := "\n  " + "$<$<COMPILE_LANGUAGE:" + language + ">:"
+	for _, option := range misc {
+		content += "\n    " + option
+	}
+	content += "\n  >"
 	return content
 }
 
