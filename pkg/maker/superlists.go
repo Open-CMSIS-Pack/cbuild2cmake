@@ -31,7 +31,8 @@ func (m *Maker) CreateSuperCMakeLists() error {
 				break
 			}
 		}
-		output := path.Clean(path.Join(path.Join(cbuild.BaseDir, cbuild.BuildDescType.OutputDirs.Outdir), outputFile))
+		cbuildRelativePath, _ := filepath.Rel(m.CbuildIndex.BaseDir, cbuild.BaseDir)
+		output := AddRootPrefix(cbuildRelativePath, path.Join(cbuild.BuildDescType.OutputDirs.Outdir, outputFile))
 		outputs = outputs + "  \"" + output + "\"\n"
 	}
 
@@ -41,6 +42,12 @@ func (m *Maker) CreateSuperCMakeLists() error {
 include(ExternalProject)
 	
 project("` + csolution + `" NONE)
+
+# Roots
+set(CMSIS_PACK_ROOT "` + filepath.ToSlash(m.EnvVars.PackRoot) + `")
+cmake_path(ABSOLUTE_PATH CMSIS_PACK_ROOT NORMALIZE OUTPUT_VARIABLE CMSIS_PACK_ROOT)
+set(SOLUTION_ROOT "` + m.CbuildIndex.BaseDir + `")
+cmake_path(ABSOLUTE_PATH SOLUTION_ROOT NORMALIZE OUTPUT_VARIABLE SOLUTION_ROOT)
 
 # Context specific lists
 set(CONTEXTS
@@ -53,6 +60,11 @@ set(DIRS
 
 set(OUTPUTS
 ` + outputs + `)
+
+set(ARGS
+  "-DSOLUTION_ROOT=${SOLUTION_ROOT}"
+  "-DCMSIS_PACK_ROOT=${CMSIS_PACK_ROOT}"
+)
 
 # Iterate over contexts
 foreach(INDEX RANGE ${CONTEXTS_LENGTH})
@@ -69,7 +81,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     BINARY_DIR        ${N}
     INSTALL_COMMAND   ""
     TEST_COMMAND      ""
-    CONFIGURE_COMMAND ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR>
+    CONFIGURE_COMMAND ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS}
     BUILD_COMMAND     ${CMAKE_COMMAND} --build <BINARY_DIR>
     BUILD_ALWAYS      TRUE
     BUILD_BYPRODUCTS  ${OUTPUT}
