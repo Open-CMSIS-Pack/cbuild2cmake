@@ -45,23 +45,25 @@ func TestBuildContent(t *testing.T) {
 
 	t.Run("test classify files", func(t *testing.T) {
 		var files []maker.Files
+		var cbuild maker.Cbuild
+		cbuild.ContextRoot = "project"
 		header := maker.Files{
 			File:     "./headers/header.h",
 			Category: "header",
 		}
 		files = append(files, header)
-		buildFiles := maker.ClassifyFiles(files)
+		buildFiles := cbuild.ClassifyFiles(files)
 		assert.True(buildFiles.Interface)
-		assert.Equal("headers", buildFiles.Include["INTERFACE"]["ALL"][0])
+		assert.Equal("${SOLUTION_ROOT}/project/headers", buildFiles.Include["INTERFACE"]["ALL"][0])
 
 		include := maker.Files{
 			File:     "./includes",
 			Category: "include",
 		}
 		files = append(files, include)
-		buildFiles = maker.ClassifyFiles(files)
+		buildFiles = cbuild.ClassifyFiles(files)
 		assert.True(buildFiles.Interface)
-		assert.Equal("includes", buildFiles.Include["INTERFACE"]["ALL"][1])
+		assert.Equal("${SOLUTION_ROOT}/project/includes", buildFiles.Include["INTERFACE"]["ALL"][1])
 
 		source := maker.Files{
 			File:     "./source.c",
@@ -78,13 +80,13 @@ func TestBuildContent(t *testing.T) {
 			Category: "object",
 		}
 		files = append(files, object)
-		buildFiles = maker.ClassifyFiles(files)
+		buildFiles = cbuild.ClassifyFiles(files)
 		assert.False(buildFiles.Interface)
-		assert.Equal("headers", buildFiles.Include["PUBLIC"]["ALL"][0])
-		assert.Equal("includes", buildFiles.Include["PUBLIC"]["ALL"][1])
-		assert.Equal("source.c", buildFiles.Source["ALL"][0])
-		assert.Equal("lib.a", buildFiles.Library[0])
-		assert.Equal("obj.o", buildFiles.Object[0])
+		assert.Equal("${SOLUTION_ROOT}/project/headers", buildFiles.Include["PUBLIC"]["ALL"][0])
+		assert.Equal("${SOLUTION_ROOT}/project/includes", buildFiles.Include["PUBLIC"]["ALL"][1])
+		assert.Equal("${SOLUTION_ROOT}/project/source.c", buildFiles.Source["ALL"][0])
+		assert.Equal("${SOLUTION_ROOT}/project/lib.a", buildFiles.Library[0])
+		assert.Equal("${SOLUTION_ROOT}/project/obj.o", buildFiles.Object[0])
 	})
 
 	t.Run("test cmake target include directories from files", func(t *testing.T) {
@@ -98,7 +100,8 @@ func TestBuildContent(t *testing.T) {
 				Category: "includeC",
 			},
 		}
-		buildFiles := maker.ClassifyFiles(files)
+		var cbuild maker.Cbuild
+		buildFiles := cbuild.ClassifyFiles(files)
 		content := maker.CMakeTargetIncludeDirectoriesFromFiles("TARGET", buildFiles)
 		assert.Contains(content, "includes")
 		assert.Contains(content, "includes-c")
@@ -155,4 +158,44 @@ func TestBuildContent(t *testing.T) {
 		assert.Contains(content, "-cpp-flag")
 	})
 
+	t.Run("test get output files info for secure executable", func(t *testing.T) {
+		var output = []maker.Output{
+			{
+				File: "./arfifact.elf",
+				Type: "elf",
+			},
+			{
+				File: "./binary.bin",
+				Type: "bin",
+			},
+			{
+				File: "./hexadecimal.hex",
+				Type: "hex",
+			},
+			{
+				File: "./secure.lib",
+				Type: "cmse-lib",
+			},
+		}
+		outputByProducts, outputFile, outputType, customCommands := maker.OutputFiles(output)
+		assert.Equal(outputFile, "./arfifact.elf")
+		assert.Equal(outputType, "elf")
+		assert.Contains(outputByProducts, "binary.bin")
+		assert.Contains(outputByProducts, "hexadecimal.hex")
+		assert.Contains(outputByProducts, "secure.lib")
+		assert.Contains(customCommands, "${ELF2BIN}")
+		assert.Contains(customCommands, "${ELF2HEX}")
+	})
+
+	t.Run("test get output files info for library", func(t *testing.T) {
+		var output = []maker.Output{
+			{
+				File: "./library.a",
+				Type: "lib",
+			},
+		}
+		_, outputFile, outputType, _ := maker.OutputFiles(output)
+		assert.Equal(outputFile, "./library.a")
+		assert.Equal(outputType, "lib")
+	})
 }
