@@ -114,18 +114,24 @@ func TestBuildContent(t *testing.T) {
 			CPP:  []string{"-cpp-flag"},
 			CCPP: []string{"-c-cpp-flag"},
 		}
-		content := maker.CMakeTargetCompileOptions("TARGET", "PUBLIC", misc)
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    -c-flag")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    -cpp-flag")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C,CXX>:\n    -c-cpp-flag")
+		var abstractions = maker.CompilerAbstractions{
+			Debug:    "on",
+			Optimize: "speed",
+			Warnings: "all",
+		}
+		var cbuild maker.Cbuild
+		cbuild.Languages = []string{"ASM", "C", "CXX"}
+		content := cbuild.CMakeTargetCompileOptions("TARGET", "PUBLIC", misc, abstractions)
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag\n    ${ASM_OPTIONS_FLAGS}")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    -c-flag\n    -c-cpp-flag\n    ${CC_OPTIONS_FLAGS}")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    -cpp-flag\n    -c-cpp-flag\n    ${CXX_OPTIONS_FLAGS}")
 	})
 
 	t.Run("test language specific compile options", func(t *testing.T) {
 		var misc = maker.Misc{
 			ASM: []string{"-asm-flag"},
 		}
-		content := maker.LangugeSpecificCompileOptions("ASM", misc.ASM)
+		content := maker.LanguageSpecificCompileOptions("ASM", misc.ASM)
 		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag")
 	})
 
@@ -197,5 +203,19 @@ func TestBuildContent(t *testing.T) {
 		_, outputFile, outputType, _ := maker.OutputFiles(output)
 		assert.Equal(outputFile, "./library.a")
 		assert.Equal(outputType, "lib")
+	})
+
+	t.Run("test compile abstractions", func(t *testing.T) {
+		var abstractions = maker.CompilerAbstractions{
+			Debug:    "on",
+			Optimize: "speed",
+			Warnings: "all",
+		}
+		var cbuild maker.Cbuild
+		cbuild.Languages = []string{"C"}
+		content := cbuild.CompilerAbstractions(abstractions)
+		assert.Contains(content, "set(DEBUG on)")
+		assert.Contains(content, "set(OPTIMIZE speed)")
+		assert.Contains(content, "set(WARNINGS all)")
 	})
 }
