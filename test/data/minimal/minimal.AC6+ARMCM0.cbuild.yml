@@ -9,6 +9,11 @@ build:
   processor:
     fpu: off
     core: Cortex-M0
+  misc:
+    ASM:
+      - -masm=auto
+    C-CPP:
+      - -Wno-license-management
   packs:
     - pack: ARM::CMSIS@6.0.0
       path: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0
