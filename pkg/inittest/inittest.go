@@ -34,6 +34,9 @@ func TestInitialization(testRoot string) {
 
 	// Set toolchain root
 	os.Setenv("AC6_TOOLCHAIN_6_19_0", path.Join(absTestRoot, "run/path/to/ac619/bin"))
+	os.Setenv("GCC_TOOLCHAIN_12_3_0", path.Join(absTestRoot, "run/path/to/gcc1230/bin"))
+	os.Setenv("IAR_TOOLCHAIN_9_32_5", path.Join(absTestRoot, "run/path/to/iar9325/bin"))
+	os.Setenv("CLANG_TOOLCHAIN_18_0_0", path.Join(absTestRoot, "run/path/to/clang1800/bin"))
 }
 
 func ClearToolchainRegistration() {

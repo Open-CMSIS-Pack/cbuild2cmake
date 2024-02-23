@@ -36,6 +36,11 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		outputs = outputs + "  \"" + output + "\"\n"
 	}
 
+	packRoot, _ := filepath.EvalSymlinks(m.EnvVars.PackRoot)
+	packRoot = filepath.ToSlash(packRoot)
+	solutionRoot, _ := filepath.EvalSymlinks(m.CbuildIndex.BaseDir)
+	solutionRoot = filepath.ToSlash(solutionRoot)
+
 	// Write content
 	content :=
 		`cmake_minimum_required(VERSION 3.22)
@@ -44,9 +49,9 @@ include(ExternalProject)
 project("` + csolution + `" NONE)
 
 # Roots
-set(CMSIS_PACK_ROOT "` + filepath.ToSlash(m.EnvVars.PackRoot) + `")
+set(CMSIS_PACK_ROOT "` + packRoot + `")
 cmake_path(ABSOLUTE_PATH CMSIS_PACK_ROOT NORMALIZE OUTPUT_VARIABLE CMSIS_PACK_ROOT)
-set(SOLUTION_ROOT "` + m.CbuildIndex.BaseDir + `")
+set(SOLUTION_ROOT "` + solutionRoot + `")
 cmake_path(ABSOLUTE_PATH SOLUTION_ROOT NORMALIZE OUTPUT_VARIABLE SOLUTION_ROOT)
 
 # Context specific lists

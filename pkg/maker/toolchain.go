@@ -83,10 +83,13 @@ func (m *Maker) ProcessToolchain() error {
 	m.SelectedToolchainConfig = make([]string, len(m.Cbuilds))
 	for index, cbuild := range m.Cbuilds {
 		contextConstraints := make(map[*semver.Constraints]bool)
-		contextToolchain := cbuild.BuildDescType.Compiler[:strings.Index(cbuild.BuildDescType.Compiler, "@")]
+		var contextToolchain string
 		if strings.Contains(cbuild.BuildDescType.Compiler, "@") {
+			contextToolchain = cbuild.BuildDescType.Compiler[:strings.Index(cbuild.BuildDescType.Compiler, "@")]
 			constraint, _ := semver.NewConstraint(cbuild.BuildDescType.Compiler[strings.Index(cbuild.BuildDescType.Compiler, "@")+1:])
 			contextConstraints[constraint] = true
+		} else {
+			contextToolchain = cbuild.BuildDescType.Compiler
 		}
 
 		// Debug
@@ -104,6 +107,10 @@ func (m *Maker) ProcessToolchain() error {
 			if toolchainConfig.Name == contextToolchain {
 				configVersions = append(configVersions, version)
 			}
+		}
+		if len(configVersions) == 0 {
+			err := errors.New("no toolchain configuration file was found for " + contextToolchain)
+			return err
 		}
 		sort.Sort(sort.Reverse(semver.Collection(configVersions)))
 		var registeredVersions []*semver.Version
@@ -138,7 +145,7 @@ func (m *Maker) ProcessToolchain() error {
 			}
 		}
 		if !compatible {
-			err := errors.New("no compatible registered toolchain was found")
+			err := errors.New("no compatible registered toolchain was found for " + contextToolchain)
 			return err
 		}
 

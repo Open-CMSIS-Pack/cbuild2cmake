@@ -83,3 +83,15 @@ func TestCommands(t *testing.T) {
 		assert.Equal(log.DebugLevel, log.GetLevel())
 	})
 }
+
+func TestSolutions(t *testing.T) {
+	assert := assert.New(t)
+
+	t.Run("test linker preprocessing", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		cbuildIdxFile := testRoot + "/run/solutions/linker-pre-processing/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
+		err := cmd.Execute()
+		assert.Nil(err)
+	})
+}
