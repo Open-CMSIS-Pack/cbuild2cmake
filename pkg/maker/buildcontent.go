@@ -70,7 +70,7 @@ func GetScope(file Files) string {
 }
 
 func ReplaceDelimiters(identifier string) string {
-	pattern := regexp.MustCompile(`::|:|&|@>=|@|\.`)
+	pattern := regexp.MustCompile(`::|:|&|@>=|@|\.| `)
 	return pattern.ReplaceAllString(identifier, "_")
 }
 
@@ -527,10 +527,40 @@ func (c *Cbuild) AddContextLanguage(language string) {
 	c.Languages = append(c.Languages, language)
 }
 
-func (c *Cbuild) LinkerOptions() string {
-	content := `
-set(LD_SCRIPT "` + AddRootPrefix(c.ContextRoot, c.BuildDescType.Linker.Script) + `")
-target_link_options(${CONTEXT} PUBLIC ${GLOBAL_OPTIONS_LD})
-set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})`
-	return content
+func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
+	linkerVars += "\nset(LD_SCRIPT \"" + AddRootPrefix(c.ContextRoot, c.BuildDescType.Linker.Script) + "\")"
+	if len(c.BuildDescType.Linker.Regions) > 0 {
+		linkerVars += "\nset(LD_REGIONS \"" + AddRootPrefix(c.ContextRoot, c.BuildDescType.Linker.Regions) + "\")"
+	}
+	if len(c.BuildDescType.Linker.Define) > 0 {
+		linkerVars += "\nset(LD_SCRIPT_PP_DEFINES\n  "
+		linkerVars += ListCompileDefinitions(c.BuildDescType.Linker.Define, "\n  ")
+		linkerVars += "\n)"
+	}
+	linkerOptions += "\n# Linker options\nstring(STRIP ${_LS} _LS)\ntarget_link_options(${CONTEXT} PUBLIC\n  ${LD_CPU}\n  ${_LS}${LD_SCRIPT_PP}"
+	if len(c.BuildDescType.Processor.Trustzone) > 0 {
+		linkerOptions += "\n  ${LD_SECURE}"
+	}
+	options := c.BuildDescType.Misc.Link
+	for _, language := range c.Languages {
+		if language == "C" {
+			options = append(options, c.BuildDescType.Misc.LinkC...)
+		}
+		if language == "CXX" {
+			options = append(options, c.BuildDescType.Misc.LinkCPP...)
+		}
+	}
+	for _, option := range options {
+		linkerOptions += "\n  " + option
+	}
+	linkerOptions += "\n)"
+	linkerOptions += "\nset_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})"
+	if path.Ext(c.BuildDescType.Linker.Script) == ".src" || len(c.BuildDescType.Linker.Regions) > 0 || len(c.BuildDescType.Linker.Define) > 0 {
+		linkerScriptPP := strings.TrimSuffix(path.Base(c.BuildDescType.Linker.Script), ".src")
+		linkerVars += "\nset(LD_SCRIPT_PP \"${CMAKE_CURRENT_BINARY_DIR}/" + linkerScriptPP + "\")"
+		linkerOptions += "\n\n# Linker script pre-processing\nadd_custom_command(TARGET ${CONTEXT} PRE_LINK COMMAND ${CPP} ARGS ${CPP_ARGS_LD_SCRIPT} BYPRODUCTS ${LD_SCRIPT_PP})"
+	} else {
+		linkerVars += "\nset(LD_SCRIPT_PP ${LD_SCRIPT})"
+	}
+	return linkerVars, linkerOptions
 }

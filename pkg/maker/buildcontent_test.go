@@ -218,4 +218,37 @@ func TestBuildContent(t *testing.T) {
 		assert.Contains(content, "set(OPTIMIZE speed)")
 		assert.Contains(content, "set(WARNINGS all)")
 	})
+
+	t.Run("test linker options", func(t *testing.T) {
+		var cbuild maker.Cbuild
+		cbuild.Languages = []string{"C", "CXX"}
+		cbuild.BuildDescType.Linker = maker.Linker{
+			Script: "./path/to/script.ld",
+		}
+		cbuild.BuildDescType.Processor.Trustzone = "secure"
+		cbuild.BuildDescType.Misc.Link = []string{"--link-flag"}
+		cbuild.BuildDescType.Misc.LinkC = []string{"--linkC-flag"}
+		cbuild.BuildDescType.Misc.LinkCPP = []string{"--linkCPP-flag"}
+		linkerVars, linkerOptions := cbuild.LinkerOptions()
+		assert.Contains(linkerVars, "set(LD_SCRIPT \"${SOLUTION_ROOT}/path/to/script.ld\")")
+		assert.Contains(linkerOptions, "${LD_SECURE}")
+		assert.Contains(linkerOptions, "--link-flag")
+		assert.Contains(linkerOptions, "--linkC-flag")
+		assert.Contains(linkerOptions, "--linkCPP-flag")
+	})
+
+	t.Run("test linker options with pre-processing", func(t *testing.T) {
+		var cbuild maker.Cbuild
+		define := make([]interface{}, 1)
+		define[0] = "DEF_LD_PP"
+		cbuild.BuildDescType.Linker = maker.Linker{
+			Script:  "./path/to/script.ld.src",
+			Regions: "./path/to/regions.h",
+			Define:  define,
+		}
+		linkerVars, _ := cbuild.LinkerOptions()
+		assert.Contains(linkerVars, "set(LD_SCRIPT \"${SOLUTION_ROOT}/path/to/script.ld.src\")")
+		assert.Contains(linkerVars, "set(LD_REGIONS \"${SOLUTION_ROOT}/path/to/regions.h\")")
+		assert.Contains(linkerVars, "DEF_LD_PP")
+	})
 }

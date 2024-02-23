@@ -44,6 +44,19 @@ func TestToolchain(t *testing.T) {
 		assert.Equal(expectedVersion, m.SelectedToolchainVersion[0])
 	})
 
+	t.Run("test toolchain without version", func(t *testing.T) {
+		m.Cbuilds = make([]maker.Cbuild, 1)
+		m.Cbuilds[0].BuildDescType.Compiler = "AC6"
+		err := m.ProcessToolchain()
+		assert.Nil(err)
+		expectedConfig := path.Join(m.EnvVars.CompilerRoot, "AC6.6.18.0.cmake")
+		expectedPath := path.Join(absTestRoot, "run/path/to/ac621/bin")
+		expectedVersion, _ := semver.NewVersion("6.21.0")
+		assert.Equal(expectedConfig, m.SelectedToolchainConfig[0])
+		assert.Equal(expectedPath, m.RegisteredToolchains[m.SelectedToolchainVersion[0]].Path)
+		assert.Equal(expectedVersion, m.SelectedToolchainVersion[0])
+	})
+
 	t.Run("test toolchain fixed version", func(t *testing.T) {
 		m.Cbuilds = make([]maker.Cbuild, 1)
 		m.Cbuilds[0].BuildDescType.Compiler = "AC6@6.19.0"
@@ -70,7 +83,15 @@ func TestToolchain(t *testing.T) {
 		m.Cbuilds[0].BuildDescType.Compiler = "AC6@>=6.22.0"
 		err := m.ProcessToolchain()
 		assert.Error(err)
-		assert.ErrorContains(err, "no compatible registered toolchain was found")
+		assert.ErrorContains(err, "no compatible registered toolchain was found for AC6")
+	})
+
+	t.Run("test toolchain without specific config file", func(t *testing.T) {
+		m.Cbuilds = make([]maker.Cbuild, 1)
+		m.Cbuilds[0].BuildDescType.Compiler = "AC5"
+		err := m.ProcessToolchain()
+		assert.Error(err)
+		assert.ErrorContains(err, "no toolchain configuration file was found for AC5")
 	})
 
 	t.Run("test toolchain without config files", func(t *testing.T) {
