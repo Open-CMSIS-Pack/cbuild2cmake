@@ -94,4 +94,12 @@ func TestSolutions(t *testing.T) {
 		err := cmd.Execute()
 		assert.Nil(err)
 	})
+
+	t.Run("test global and local pre-includes", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		cbuildIdxFile := testRoot + "/run/solutions/pre-include/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
+		err := cmd.Execute()
+		assert.Nil(err)
+	})
 }

@@ -80,6 +80,16 @@ func TestBuildContent(t *testing.T) {
 			Category: "object",
 		}
 		files = append(files, object)
+		preIncludeLocal := maker.Files{
+			File:     "./RTE/class/pre-include.h",
+			Category: "preIncludeLocal",
+		}
+		files = append(files, preIncludeLocal)
+		preIncludeGlobal := maker.Files{
+			File:     "${CMSIS_PACK_ROOT}/vendor/pack/inc/pre-include.h",
+			Category: "preIncludeGlobal",
+		}
+		files = append(files, preIncludeGlobal)
 		buildFiles = cbuild.ClassifyFiles(files)
 		assert.False(buildFiles.Interface)
 		assert.Equal("${SOLUTION_ROOT}/project/headers", buildFiles.Include["PUBLIC"]["ALL"][0])
@@ -87,6 +97,8 @@ func TestBuildContent(t *testing.T) {
 		assert.Equal("${SOLUTION_ROOT}/project/source.c", buildFiles.Source["ALL"][0])
 		assert.Equal("${SOLUTION_ROOT}/project/lib.a", buildFiles.Library[0])
 		assert.Equal("${SOLUTION_ROOT}/project/obj.o", buildFiles.Object[0])
+		assert.Equal("${SOLUTION_ROOT}/project/RTE/class/pre-include.h", buildFiles.PreIncludeLocal[0])
+		assert.Equal("${CMSIS_PACK_ROOT}/vendor/pack/inc/pre-include.h", cbuild.PreIncludeGlobal[0])
 	})
 
 	t.Run("test cmake target include directories from files", func(t *testing.T) {
@@ -121,10 +133,12 @@ func TestBuildContent(t *testing.T) {
 		}
 		var cbuild maker.Cbuild
 		cbuild.Languages = []string{"ASM", "C", "CXX"}
-		content := cbuild.CMakeTargetCompileOptions("TARGET", "PUBLIC", misc, abstractions)
+		preIncludes := []string{"${SOLUTION_ROOT}/project/RTE/class/pre-include.h"}
+		content := cbuild.CMakeTargetCompileOptions("TARGET", "PUBLIC", misc, preIncludes, abstractions)
 		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag\n    ${ASM_OPTIONS_FLAGS}")
 		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    -c-flag\n    -c-cpp-flag\n    ${CC_OPTIONS_FLAGS}")
 		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    -cpp-flag\n    -c-cpp-flag\n    ${CXX_OPTIONS_FLAGS}")
+		assert.Contains(content, "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/class/pre-include.h\"")
 	})
 
 	t.Run("test language specific compile options", func(t *testing.T) {

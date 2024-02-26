@@ -53,6 +53,13 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 	toolchainConfig, _ := filepath.EvalSymlinks(m.SelectedToolchainConfig[index])
 	toolchainConfig = filepath.ToSlash(toolchainConfig)
 
+	// Global pre-includes
+	for _, file := range cbuild.BuildDescType.ConstructedFiles {
+		if file.Category == "preIncludeGlobal" {
+			cbuild.PreIncludeGlobal = append(cbuild.PreIncludeGlobal, AddRootPrefix(cbuild.ContextRoot, file.File))
+		}
+	}
+
 	// Create CMakeLists content
 	content := `cmake_minimum_required(VERSION 3.22)
 
@@ -148,8 +155,8 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups, par
 		abstractions := InheritCompilerAbstractions(parentAbstractions, CompilerAbstractions{group.Debug, group.Optimize, group.Warnings})
 		content += c.CompilerAbstractions(abstractions)
 		// target_compile_options
-		if !IsCompileMiscEmpty(group.Misc) {
-			content += c.CMakeTargetCompileOptions(name, scope, group.Misc, CompilerAbstractions{})
+		if !IsCompileMiscEmpty(group.Misc) || len(buildFiles.PreIncludeLocal) > 0 {
+			content += c.CMakeTargetCompileOptions(name, scope, group.Misc, buildFiles.PreIncludeLocal, CompilerAbstractions{})
 		}
 		// target_link_libraries
 		content += "\ntarget_link_libraries(" + name + " PRIVATE ${CONTEXT}_GLOBAL"
@@ -200,8 +207,8 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 			CompilerAbstractions{component.Debug, component.Optimize, component.Warnings})
 
 		// target_compile_options
-		if !IsCompileMiscEmpty(component.Misc) || !IsAbstractionEmpty(abstractions) {
-			content += c.CMakeTargetCompileOptions(name, scope, component.Misc, abstractions)
+		if !IsCompileMiscEmpty(component.Misc) || len(buildFiles.PreIncludeLocal) > 0 || !IsAbstractionEmpty(abstractions) {
+			content += c.CMakeTargetCompileOptions(name, scope, component.Misc, buildFiles.PreIncludeLocal, abstractions)
 		}
 		// target_link_libraries
 		content += "\ntarget_link_libraries(" + name + " " + scope + " ${CONTEXT}_GLOBAL)\n"
