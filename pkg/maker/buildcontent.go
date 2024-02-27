@@ -16,11 +16,12 @@ import (
 )
 
 type BuildFiles struct {
-	Interface bool
-	Include   ScopeMap
-	Source    LanguageMap
-	Library   []string
-	Object    []string
+	Interface       bool
+	Include         ScopeMap
+	Source          LanguageMap
+	Library         []string
+	Object          []string
+	PreIncludeLocal []string
 }
 
 type CompilerAbstractions struct {
@@ -227,15 +228,22 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 	for language, options := range optionsMap {
 		content += LanguageSpecificCompileOptions(language, options)
 	}
+	// pre-includes global
+	for _, preInclude := range c.PreIncludeGlobal {
+		content += "\n  SHELL:${_PI}\"" + preInclude + "\""
+	}
 	content += "\n)"
 	return content
 }
 
-func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc, abstractions CompilerAbstractions) string {
+func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc, preIncludes []string, abstractions CompilerAbstractions) string {
 	content := "\ntarget_compile_options(" + name + " " + scope
 	optionsMap := c.GetCompileOptionsLanguageMap(misc, abstractions)
 	for language, options := range optionsMap {
 		content += LanguageSpecificCompileOptions(language, options)
+	}
+	for _, preInclude := range preIncludes {
+		content += "\n  SHELL:${_PI}\"" + preInclude + "\""
 	}
 	content += "\n)"
 	return content
@@ -379,6 +387,10 @@ func (c *Cbuild) ClassifyFiles(files []Files) BuildFiles {
 			buildFiles.Library = append(buildFiles.Library, AddRootPrefix(c.ContextRoot, file.File))
 		case "object":
 			buildFiles.Object = append(buildFiles.Object, AddRootPrefix(c.ContextRoot, file.File))
+		case "preIncludeLocal":
+			buildFiles.PreIncludeLocal = append(buildFiles.PreIncludeLocal, AddRootPrefix(c.ContextRoot, file.File))
+		case "preIncludeGlobal":
+			c.PreIncludeGlobal = append(c.PreIncludeGlobal, AddRootPrefix(c.ContextRoot, file.File))
 		}
 	}
 

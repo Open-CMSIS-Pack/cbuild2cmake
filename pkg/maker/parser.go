@@ -57,9 +57,10 @@ type Cbuild struct {
 		ConstructedFiles []Files       `yaml:"constructed-files"`
 		Licenses         []struct{}    `yaml:"licenses"`
 	} `yaml:"build"`
-	BaseDir     string
-	ContextRoot string
-	Languages   []string
+	BaseDir          string
+	ContextRoot      string
+	Languages        []string
+	PreIncludeGlobal []string
 }
 
 type Cbuilds struct {
