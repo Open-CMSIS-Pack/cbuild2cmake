@@ -12,6 +12,15 @@ import (
 	"strconv"
 )
 
+func AppendUniquely(list []string, element string) []string {
+	for _, item := range list {
+		if item == element {
+			return list
+		}
+	}
+	return append(list, element)
+}
+
 func GetDefine(define interface{}) (key string, value string) {
 	switch def := define.(type) {
 	case string:

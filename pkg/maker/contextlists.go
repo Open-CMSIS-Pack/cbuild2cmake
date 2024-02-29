@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/utils"
+	"golang.org/x/exp/maps"
 )
 
 func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
@@ -60,6 +61,13 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 		}
 	}
 
+	// Global compile options abstractions
+	abstractions := CompilerAbstractions{cbuild.BuildDescType.Debug, cbuild.BuildDescType.Optimize, cbuild.BuildDescType.Warnings, cbuild.BuildDescType.LanguageC, cbuild.BuildDescType.LanguageCpp}
+	var globalCompilerAbstractions string
+	if !AreAbstractionsEmpty(abstractions, cbuild.Languages) {
+		globalCompilerAbstractions = "\n# Compile Options Abstractions" + cbuild.CMakeTargetCompileOptionsAbstractions("${CONTEXT}_GLOBAL", abstractions, cbuild.Languages)
+	}
+
 	// Create CMakeLists content
 	content := `cmake_minimum_required(VERSION 3.22)
 
@@ -92,12 +100,13 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 # Defines` + CMakeTargetCompileDefinitions("${CONTEXT}_GLOBAL", "INTERFACE", cbuild.BuildDescType.Define) + `
 
 # Compile options` + cbuild.CMakeTargetCompileOptionsGlobal("${CONTEXT}_GLOBAL", "INTERFACE") + `
+` + globalCompilerAbstractions + `
 
 # Add groups and components
 include("groups.cmake")
 include("components.cmake")
 target_link_libraries(${CONTEXT}
-  ${CONTEXT}_GLOBAL` + ListGroupsAndComponents(cbuild) + `
+  ${CONTEXT}_GLOBAL` + cbuild.ListGroupsAndComponents() + `
 )
 ` + linkerOptions + customCommands + `
 `
@@ -113,7 +122,7 @@ target_link_libraries(${CONTEXT}
 
 func (c *Cbuild) CMakeCreateGroups(contextDir string) error {
 	content := "# groups.cmake\n"
-	abstractions := CompilerAbstractions{c.BuildDescType.Debug, c.BuildDescType.Optimize, c.BuildDescType.Warnings}
+	abstractions := CompilerAbstractions{c.BuildDescType.Debug, c.BuildDescType.Optimize, c.BuildDescType.Warnings, c.BuildDescType.LanguageC, c.BuildDescType.LanguageCpp}
 	content += c.CMakeCreateGroupRecursively("Group", c.BuildDescType.Groups, abstractions)
 
 	filename := path.Join(contextDir, "groups.cmake")
@@ -131,11 +140,17 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups, par
 		buildFiles := c.ClassifyFiles(group.Files)
 		name := parent + "_" + ReplaceDelimiters(group.Group)
 		hasChildren := len(group.Groups) > 0
+		if !hasChildren && len(buildFiles.Source) == 0 {
+			continue
+		}
 		// default private scope
 		scope := "PRIVATE"
 		if hasChildren {
-			// make scope public to its children
-			scope = "PUBLIC"
+			if len(buildFiles.Source) == 0 {
+				scope = "INTERFACE"
+			} else {
+				scope = "PUBLIC"
+			}
 		}
 		// add_library
 		content += "\n# group " + group.Group
@@ -152,25 +167,54 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups, par
 			content += CMakeTargetCompileDefinitions(name, scope, group.Define)
 		}
 		// compiler abstractions
-		abstractions := InheritCompilerAbstractions(parentAbstractions, CompilerAbstractions{group.Debug, group.Optimize, group.Warnings})
-		content += c.CompilerAbstractions(abstractions)
+		hasFileAbstractions := HasFileAbstractions(group.Files)
+		groupAbstractions := CompilerAbstractions{group.Debug, group.Optimize, group.Warnings, group.LanguageC, group.LanguageCpp}
+		languages := maps.Keys(buildFiles.Source)
+		var abstractions CompilerAbstractions
+		if !AreAbstractionsEmpty(groupAbstractions, c.Languages) {
+			abstractions = InheritCompilerAbstractions(parentAbstractions, groupAbstractions)
+			if !hasFileAbstractions {
+				content += c.CMakeTargetCompileOptionsAbstractions(name, abstractions, languages)
+			}
+		}
+
 		// target_compile_options
 		if !IsCompileMiscEmpty(group.Misc) || len(buildFiles.PreIncludeLocal) > 0 {
-			content += c.CMakeTargetCompileOptions(name, scope, group.Misc, buildFiles.PreIncludeLocal, CompilerAbstractions{})
+			content += c.CMakeTargetCompileOptions(name, scope, group.Misc, buildFiles.PreIncludeLocal)
 		}
 		// target_link_libraries
-		content += "\ntarget_link_libraries(" + name + " PRIVATE ${CONTEXT}_GLOBAL"
+		content += "\ntarget_link_libraries(" + name + " " + scope + "\n  ${CONTEXT}_GLOBAL"
 		if len(parent) > 5 {
-			content += " " + parent
+			content += "\n  " + parent
 		}
-		content += ")\n"
+		if !hasFileAbstractions {
+			if !AreAbstractionsEmpty(groupAbstractions, languages) {
+				content += "\n  " + name + "_ABSTRACTIONS"
+			} else if !AreAbstractionsEmpty(parentAbstractions, languages) {
+				if len(parent) > 5 {
+					content += "\n  " + parent + "_ABSTRACTIONS"
+				} else {
+					content += "\n  ${CONTEXT}_GLOBAL_ABSTRACTIONS"
+				}
+			}
+		}
+		content += "\n)\n"
+
 		// file properties
 		for _, file := range group.Files {
-			content += c.CMakeSetFileProperties(file, abstractions)
+			if strings.Contains(file.Category, "source") {
+				fileAbstractions := CompilerAbstractions{file.Debug, file.Optimize, file.Warnings, file.LanguageC, file.LanguageCpp}
+				if hasFileAbstractions {
+					fileAbstractions = InheritCompilerAbstractions(abstractions, fileAbstractions)
+				}
+				content += c.CMakeSetFileProperties(file, fileAbstractions)
+			}
 		}
 		// create children groups recursively
 		if hasChildren {
 			content += c.CMakeCreateGroupRecursively(name, group.Groups, abstractions)
+		} else {
+			c.BuildGroups = append(c.BuildGroups, name)
 		}
 	}
 	return content
@@ -202,16 +246,25 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 			content += CMakeTargetCompileDefinitions(name, scope, component.Define)
 		}
 		// compiler abstractions
-		abstractions := InheritCompilerAbstractions(
-			CompilerAbstractions{c.BuildDescType.Debug, c.BuildDescType.Optimize, c.BuildDescType.Warnings},
-			CompilerAbstractions{component.Debug, component.Optimize, component.Warnings})
-
+		componentAbstractions := CompilerAbstractions{component.Debug, component.Optimize, component.Warnings, component.LanguageC, component.LanguageCpp}
+		globalAbstractions := CompilerAbstractions{c.BuildDescType.Debug, c.BuildDescType.Optimize, c.BuildDescType.Warnings, c.BuildDescType.LanguageC, c.BuildDescType.LanguageCpp}
+		languages := maps.Keys(buildFiles.Source)
+		if !AreAbstractionsEmpty(componentAbstractions, languages) {
+			abstractions := InheritCompilerAbstractions(globalAbstractions, componentAbstractions)
+			content += c.CMakeTargetCompileOptionsAbstractions(name, abstractions, languages)
+		}
 		// target_compile_options
-		if !IsCompileMiscEmpty(component.Misc) || len(buildFiles.PreIncludeLocal) > 0 || !IsAbstractionEmpty(abstractions) {
-			content += c.CMakeTargetCompileOptions(name, scope, component.Misc, buildFiles.PreIncludeLocal, abstractions)
+		if !IsCompileMiscEmpty(component.Misc) || len(buildFiles.PreIncludeLocal) > 0 {
+			content += c.CMakeTargetCompileOptions(name, scope, component.Misc, buildFiles.PreIncludeLocal)
 		}
 		// target_link_libraries
-		content += "\ntarget_link_libraries(" + name + " " + scope + " ${CONTEXT}_GLOBAL)\n"
+		content += "\ntarget_link_libraries(" + name + " " + scope + "\n  ${CONTEXT}_GLOBAL"
+		if !AreAbstractionsEmpty(componentAbstractions, languages) {
+			content += "\n  " + name + "_ABSTRACTIONS"
+		} else if !AreAbstractionsEmpty(globalAbstractions, languages) {
+			content += "\n  ${CONTEXT}_GLOBAL_ABSTRACTIONS"
+		}
+		content += "\n)\n"
 	}
 
 	filename := path.Join(contextDir, "components.cmake")

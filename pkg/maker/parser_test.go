@@ -96,7 +96,7 @@ func TestParser(t *testing.T) {
 		assert.Equal("on", data.BuildDescType.Groups[0].Files[0].Debug)
 		assert.Equal("all", data.BuildDescType.Groups[0].Files[0].Warnings)
 		assert.Equal("c90", data.BuildDescType.Groups[0].Files[0].LanguageC)
-		assert.Equal("c++20", data.BuildDescType.Groups[0].Files[0].LanguageCPP)
+		assert.Equal("c++20", data.BuildDescType.Groups[0].Files[0].LanguageCpp)
 
 		key, _ = utils.GetDefine(data.BuildDescType.Groups[0].Files[0].Define[0])
 		assert.Equal("DEF_FILE", key)
