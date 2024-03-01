@@ -45,6 +45,10 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 		return err
 	}
 
+	// Libraries
+	libraries := []string{"${CONTEXT}_GLOBAL"}
+	libraries = append(libraries, cbuild.ListGroupsAndComponents()...)
+
 	// Linker options
 	if outputType == "elf" {
 		linkerVars, linkerOptions = cbuild.LinkerOptions()
@@ -105,9 +109,7 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 # Add groups and components
 include("groups.cmake")
 include("components.cmake")
-target_link_libraries(${CONTEXT}
-  ${CONTEXT}_GLOBAL` + cbuild.ListGroupsAndComponents() + `
-)
+` + cbuild.CMakeTargetLinkLibraries("${CONTEXT}", "PUBLIC", libraries...) + `
 ` + linkerOptions + customCommands + `
 `
 	// Update CMakeLists.txt
@@ -140,17 +142,15 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups, par
 		buildFiles := c.ClassifyFiles(group.Files)
 		name := parent + "_" + ReplaceDelimiters(group.Group)
 		hasChildren := len(group.Groups) > 0
-		if !hasChildren && len(buildFiles.Source) == 0 {
+		if !hasChildren && len(buildFiles.Source) == 0 && len(buildFiles.Library) == 0 && len(buildFiles.Object) == 0 {
 			continue
 		}
 		// default private scope
 		scope := "PRIVATE"
-		if hasChildren {
-			if len(buildFiles.Source) == 0 {
-				scope = "INTERFACE"
-			} else {
-				scope = "PUBLIC"
-			}
+		if len(buildFiles.Source) == 0 {
+			scope = "INTERFACE"
+		} else if hasChildren {
+			scope = "PUBLIC"
 		}
 		// add_library
 		content += "\n# group " + group.Group
@@ -183,22 +183,24 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups, par
 			content += c.CMakeTargetCompileOptions(name, scope, group.Misc, buildFiles.PreIncludeLocal)
 		}
 		// target_link_libraries
-		content += "\ntarget_link_libraries(" + name + " " + scope + "\n  ${CONTEXT}_GLOBAL"
+		libraries := []string{"${CONTEXT}_GLOBAL"}
 		if len(parent) > 5 {
-			content += "\n  " + parent
+			libraries = append(libraries, parent)
 		}
 		if !hasFileAbstractions {
 			if !AreAbstractionsEmpty(groupAbstractions, languages) {
-				content += "\n  " + name + "_ABSTRACTIONS"
+				libraries = append(libraries, name+"_ABSTRACTIONS")
 			} else if !AreAbstractionsEmpty(parentAbstractions, languages) {
 				if len(parent) > 5 {
-					content += "\n  " + parent + "_ABSTRACTIONS"
+					libraries = append(libraries, parent+"_ABSTRACTIONS")
 				} else {
-					content += "\n  ${CONTEXT}_GLOBAL_ABSTRACTIONS"
+					libraries = append(libraries, "${CONTEXT}_GLOBAL_ABSTRACTIONS")
 				}
 			}
 		}
-		content += "\n)\n"
+		libraries = append(libraries, buildFiles.Library...)
+		libraries = append(libraries, buildFiles.Object...)
+		content += c.CMakeTargetLinkLibraries(name, scope, libraries...)
 
 		// file properties
 		for _, file := range group.Files {
@@ -216,6 +218,8 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups, par
 		} else {
 			c.BuildGroups = append(c.BuildGroups, name)
 		}
+
+		content += "\n"
 	}
 	return content
 }
@@ -258,13 +262,17 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 			content += c.CMakeTargetCompileOptions(name, scope, component.Misc, buildFiles.PreIncludeLocal)
 		}
 		// target_link_libraries
-		content += "\ntarget_link_libraries(" + name + " " + scope + "\n  ${CONTEXT}_GLOBAL"
+		libraries := []string{"${CONTEXT}_GLOBAL"}
 		if !AreAbstractionsEmpty(componentAbstractions, languages) {
-			content += "\n  " + name + "_ABSTRACTIONS"
+			libraries = append(libraries, name+"_ABSTRACTIONS")
 		} else if !AreAbstractionsEmpty(globalAbstractions, languages) {
-			content += "\n  ${CONTEXT}_GLOBAL_ABSTRACTIONS"
+			libraries = append(libraries, "${CONTEXT}_GLOBAL_ABSTRACTIONS")
 		}
-		content += "\n)\n"
+		libraries = append(libraries, buildFiles.Library...)
+		libraries = append(libraries, buildFiles.Object...)
+		content += c.CMakeTargetLinkLibraries(name, scope, libraries...)
+
+		content += "\n"
 	}
 
 	filename := path.Join(contextDir, "components.cmake")
