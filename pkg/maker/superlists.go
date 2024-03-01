@@ -106,6 +106,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
   ExternalProject_Add_StepTargets(${CONTEXT} database)
 
 endforeach()
+` + BuildDependencies(m.CbuildIndex.BuildIdx.Cbuilds) + `
 `
 	superCMakeLists := path.Join(m.SolutionIntDir, "CMakeLists.txt")
 	err := utils.UpdateFile(superCMakeLists, content)

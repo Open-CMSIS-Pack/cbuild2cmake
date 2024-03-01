@@ -318,6 +318,18 @@ func TestBuildContent(t *testing.T) {
 		assert.Contains(content, "${CXX_OPTIONS_FLAGS}")
 	})
 
+	t.Run("test build dependencies", func(t *testing.T) {
+		var cbuilds = []maker.Cbuilds{
+			{
+				Project:       "project",
+				Configuration: ".build+target",
+				DependsOn:     []string{"dependentContext"},
+			},
+		}
+		content := maker.BuildDependencies(cbuilds)
+		assert.Contains(content, "ExternalProject_Add_StepDependencies(project.build+target build\n  dependentContext-build\n)")
+	})
+
 	t.Run("test linker options", func(t *testing.T) {
 		var cbuild maker.Cbuild
 		cbuild.Languages = []string{"C", "CXX"}

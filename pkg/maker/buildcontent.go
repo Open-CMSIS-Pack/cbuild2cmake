@@ -121,6 +121,23 @@ func OutputFiles(outputList []Output) (outputByProducts string, outputFile strin
 	return outputByProducts, outputFile, outputType, customCommands
 }
 
+func BuildDependencies(cbuilds []Cbuilds) string {
+	var content string
+	for _, cbuild := range cbuilds {
+		if len(cbuild.DependsOn) > 0 {
+			content += "\nExternalProject_Add_StepDependencies(" + cbuild.Project + cbuild.Configuration + " build"
+			for _, dependency := range cbuild.DependsOn {
+				content += "\n  " + dependency + "-build"
+			}
+			content += "\n)"
+		}
+	}
+	if len(content) > 0 {
+		content = "\n# Build dependencies" + content
+	}
+	return content
+}
+
 func CMakeTargetIncludeDirectoriesFromFiles(name string, buildFiles BuildFiles) string {
 	content := "\ntarget_include_directories(" + name
 	for _, scope := range sortedmap.AsSortedMap(buildFiles.Include) {
@@ -181,17 +198,14 @@ func ListCompileDefinitions(defines []interface{}, delimiter string) string {
 	return strings.Join(definesList, delimiter)
 }
 
-func (c *Cbuild) ListGroupsAndComponents() string {
+func (c *Cbuild) ListGroupsAndComponents() []string {
 	// get last child group names
-	var content string
-	for _, group := range c.BuildGroups {
-		content += "\n  " + group
-	}
+	groupsAndComponents := c.BuildGroups
 	// get component names
 	for _, component := range c.BuildDescType.Components {
-		content += "\n  " + ReplaceDelimiters(component.Component)
+		groupsAndComponents = append(groupsAndComponents, ReplaceDelimiters(component.Component))
 	}
-	return content
+	return groupsAndComponents
 }
 
 func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) string {
@@ -225,6 +239,15 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 	// pre-includes global
 	for _, preInclude := range c.PreIncludeGlobal {
 		content += "\n  SHELL:${_PI}\"" + preInclude + "\""
+	}
+	content += "\n)"
+	return content
+}
+
+func (c *Cbuild) CMakeTargetLinkLibraries(name string, scope string, libraries ...string) string {
+	content := "\ntarget_link_libraries(" + name + " " + scope
+	for _, library := range libraries {
+		content += "\n  " + library
 	}
 	content += "\n)"
 	return content
@@ -602,7 +625,7 @@ func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 	}
 	linkerOptions += "\n# Linker options\ntarget_link_options(${CONTEXT} PUBLIC\n  SHELL:${LD_CPU}\n  SHELL:${_LS}\"${LD_SCRIPT_PP}\""
 	if len(c.BuildDescType.Processor.Trustzone) > 0 {
-		linkerOptions += "\n  ${LD_SECURE}"
+		linkerOptions += "\n  SHELL:${LD_SECURE}"
 	}
 	options := c.BuildDescType.Misc.Link
 	for _, language := range c.Languages {
