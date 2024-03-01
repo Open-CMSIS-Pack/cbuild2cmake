@@ -272,15 +272,11 @@ func (c *Cbuild) GetCompileOptionsLanguageMap(misc Misc, optionsMap *map[string]
 			if len(misc.ASM) > 0 {
 				(*optionsMap)[language] = append((*optionsMap)[language], misc.ASM...)
 			}
-		case "C":
-			if len(misc.C) > 0 {
+		case "C", "CXX":
+			if language == "C" && len(misc.C) > 0 {
 				(*optionsMap)[language] = append((*optionsMap)[language], misc.C...)
 			}
-			if len(misc.CCPP) > 0 {
-				(*optionsMap)[language] = append((*optionsMap)[language], misc.CCPP...)
-			}
-		case "CXX":
-			if len(misc.CPP) > 0 {
+			if language == "CXX" && len(misc.CPP) > 0 {
 				(*optionsMap)[language] = append((*optionsMap)[language], misc.CPP...)
 			}
 			if len(misc.CCPP) > 0 {
