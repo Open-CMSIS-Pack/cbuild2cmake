@@ -45,6 +45,8 @@ type Cbuild struct {
 		Optimize         string        `yaml:"optimize"`
 		Debug            string        `yaml:"debug"`
 		Warnings         string        `yaml:"warnings"`
+		LanguageC        string        `yaml:"language-C"`
+		LanguageCpp      string        `yaml:"language-CPP"`
 		Misc             Misc          `yaml:"misc"`
 		Define           []interface{} `yaml:"define"`
 		AddPath          []string      `yaml:"add-path"`
@@ -61,6 +63,7 @@ type Cbuild struct {
 	ContextRoot      string
 	Languages        []string
 	PreIncludeGlobal []string
+	BuildGroups      []string
 }
 
 type Cbuilds struct {
@@ -88,7 +91,7 @@ type Components struct {
 	Debug       string        `yaml:"debug"`
 	Warnings    string        `yaml:"warnings"`
 	LanguageC   string        `yaml:"language-C"`
-	LanguageCPP string        `yaml:"language-CPP"`
+	LanguageCpp string        `yaml:"language-CPP"`
 	Define      []interface{} `yaml:"define"`
 	Undefine    []string      `yaml:"undefine"`
 	AddPath     []string      `yaml:"add-path"`
@@ -110,7 +113,7 @@ type Files struct {
 	Debug       string        `yaml:"debug"`
 	Warnings    string        `yaml:"warnings"`
 	LanguageC   string        `yaml:"language-C"`
-	LanguageCPP string        `yaml:"language-CPP"`
+	LanguageCpp string        `yaml:"language-CPP"`
 	Define      []interface{} `yaml:"define"`
 	Undefine    []string      `yaml:"undefine"`
 	AddPath     []string      `yaml:"add-path"`
@@ -133,7 +136,7 @@ type Groups struct {
 	Debug       string        `yaml:"debug"`
 	Warnings    string        `yaml:"warnings"`
 	LanguageC   string        `yaml:"language-C"`
-	LanguageCPP string        `yaml:"language-CPP"`
+	LanguageCpp string        `yaml:"language-CPP"`
 	Define      []interface{} `yaml:"define"`
 	Undefine    []string      `yaml:"undefine"`
 	AddPath     []string      `yaml:"add-path"`

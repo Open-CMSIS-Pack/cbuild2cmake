@@ -25,9 +25,11 @@ type BuildFiles struct {
 }
 
 type CompilerAbstractions struct {
-	Debug    string
-	Optimize string
-	Warnings string
+	Debug       string
+	Optimize    string
+	Warnings    string
+	LanguageC   string
+	LanguageCpp string
 }
 
 type ScopeMap map[string]map[string][]string
@@ -54,13 +56,22 @@ var LanguageReMap = map[string]string{
 
 func GetLanguage(file Files) string {
 	language := CategoryLanguageMap[file.Category]
-	if len(language) == 0 {
-		language = LanguageReMap[file.Language]
+	if len(language) > 0 {
+		return language
 	}
-	if len(language) == 0 {
-		language = "ALL"
+	language = LanguageReMap[file.Language]
+	if len(language) > 0 {
+		return language
 	}
-	return language
+	switch path.Ext(file.File) {
+	case ".c", ".C":
+		return "C"
+	case ".cpp", ".c++", ".C++", ".cxx", ".cc", ".CC":
+		return "CXX"
+	case ".asm", ".s", ".S":
+		return "ASM"
+	}
+	return "ALL"
 }
 
 func GetScope(file Files) string {
@@ -71,7 +82,7 @@ func GetScope(file Files) string {
 }
 
 func ReplaceDelimiters(identifier string) string {
-	pattern := regexp.MustCompile(`::|:|&|@>=|@|\.| `)
+	pattern := regexp.MustCompile(`::|:|&|@>=|@|\.|/| `)
 	return pattern.ReplaceAllString(identifier, "_")
 }
 
@@ -170,63 +181,46 @@ func ListCompileDefinitions(defines []interface{}, delimiter string) string {
 	return strings.Join(definesList, delimiter)
 }
 
-func ListGroupsAndComponents(cbuild Cbuild) string {
+func (c *Cbuild) ListGroupsAndComponents() string {
 	// get last child group names
-	content := GetLastChildGroupNamesRecursively("Group", cbuild.BuildDescType.Groups)
-	// get component names
-	for _, component := range cbuild.BuildDescType.Components {
-		content += "\n  " + ReplaceDelimiters(component.Component)
-	}
-	return content
-}
-
-func GetLastChildGroupNamesRecursively(parent string, groups []Groups) string {
 	var content string
-	for _, group := range groups {
-		name := parent + "_" + ReplaceDelimiters(group.Group)
-		if len(group.Groups) > 0 {
-			// get children group names recursively
-			content += GetLastChildGroupNamesRecursively(name, group.Groups)
-		} else {
-			// last child
-			content += "\n  " + name
-		}
+	for _, group := range c.BuildGroups {
+		content += "\n  " + group
+	}
+	// get component names
+	for _, component := range c.BuildDescType.Components {
+		content += "\n  " + ReplaceDelimiters(component.Component)
 	}
 	return content
 }
 
 func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) string {
 	// options from context settings
-	var flags []string
+	optionsMap := make(map[string][]string)
 	for _, language := range c.Languages {
 		prefix := language
 		if language == "C" {
 			prefix = "CC"
 		}
-		flags = append(flags, prefix+"_CPU")
-		flags = append(flags, prefix+"_FLAGS")
+		optionsMap[language] = append(optionsMap[language], "SHELL:${"+prefix+"_CPU}")
+		optionsMap[language] = append(optionsMap[language], "SHELL:${"+prefix+"_FLAGS}")
 		if len(c.BuildDescType.Processor.Trustzone) > 0 {
-			flags = append(flags, prefix+"_SECURE")
+			optionsMap[language] = append(optionsMap[language], "${"+prefix+"_SECURE}")
 		}
 		if len(c.BuildDescType.Processor.BranchProtection) > 0 {
-			flags = append(flags, prefix+"_BRANCHPROT")
+			optionsMap[language] = append(optionsMap[language], "${"+prefix+"_BRANCHPROT}")
 		}
 		if len(c.BuildDescType.Processor.Endian) > 0 {
-			flags = append(flags, prefix+"_BYTE_ORDER")
+			optionsMap[language] = append(optionsMap[language], "${"+prefix+"_BYTE_ORDER}")
 		}
 	}
-	var content string
-	for _, flag := range flags {
-		content += "\nseparate_arguments(" + flag + ")"
-	}
-	content += "\ntarget_compile_options(" + name + " " + scope
-	for _, flag := range flags {
-		content += "\n  ${" + flag + "}"
-	}
-	// misc options
-	optionsMap := c.GetCompileOptionsLanguageMap(c.BuildDescType.Misc, CompilerAbstractions{})
+	// add global misc options
+	c.GetCompileOptionsLanguageMap(c.BuildDescType.Misc, &optionsMap)
+
+	// target compile options
+	content := "\ntarget_compile_options(" + name + " " + scope
 	for language, options := range optionsMap {
-		content += LanguageSpecificCompileOptions(language, options)
+		content += LanguageSpecificCompileOptions(language, options...)
 	}
 	// pre-includes global
 	for _, preInclude := range c.PreIncludeGlobal {
@@ -236,11 +230,12 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 	return content
 }
 
-func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc, preIncludes []string, abstractions CompilerAbstractions) string {
+func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc, preIncludes []string) string {
 	content := "\ntarget_compile_options(" + name + " " + scope
-	optionsMap := c.GetCompileOptionsLanguageMap(misc, abstractions)
+	optionsMap := make(map[string][]string)
+	c.GetCompileOptionsLanguageMap(misc, &optionsMap)
 	for language, options := range optionsMap {
-		content += LanguageSpecificCompileOptions(language, options)
+		content += LanguageSpecificCompileOptions(language, options...)
 	}
 	for _, preInclude := range preIncludes {
 		content += "\n  SHELL:${_PI}\"" + preInclude + "\""
@@ -249,38 +244,46 @@ func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc,
 	return content
 }
 
-func (c *Cbuild) GetCompileOptionsLanguageMap(misc Misc, abstractions CompilerAbstractions) map[string][]string {
-	optionsMap := make(map[string][]string)
+func (c *Cbuild) CMakeTargetCompileOptionsAbstractions(name string, abstractions CompilerAbstractions, languages []string) string {
+	content := "\nadd_library(" + name + "_ABSTRACTIONS INTERFACE)"
+	var options string
+	for _, language := range languages {
+		prefix := language
+		if language == "C" {
+			prefix = "CC"
+		}
+		if !IsAbstractionEmpty(abstractions, language) {
+			content += "\ncbuild_set_options_flags(" + prefix
+			content += c.SetOptionsFlags(abstractions, language)
+			content += " " + prefix + "_OPTIONS_FLAGS_" + name + ")"
+			options += LanguageSpecificCompileOptions(language, "SHELL:${"+prefix+"_OPTIONS_FLAGS_"+name+"}")
+		}
+	}
+	if len(content) > 0 {
+		content += "\ntarget_compile_options(" + name + "_ABSTRACTIONS INTERFACE" + options + "\n)"
+	}
+	return content
+}
+
+func (c *Cbuild) GetCompileOptionsLanguageMap(misc Misc, optionsMap *map[string][]string) {
 	for _, language := range c.Languages {
 		switch language {
 		case "ASM":
 			if len(misc.ASM) > 0 {
-				optionsMap[language] = append(optionsMap[language], misc.ASM...)
+				(*optionsMap)[language] = append((*optionsMap)[language], misc.ASM...)
 			}
-		case "C":
-			if len(misc.C) > 0 {
-				optionsMap[language] = append(optionsMap[language], misc.C...)
+		case "C", "CXX":
+			if language == "C" && len(misc.C) > 0 {
+				(*optionsMap)[language] = append((*optionsMap)[language], misc.C...)
 			}
-			if len(misc.CCPP) > 0 {
-				optionsMap[language] = append(optionsMap[language], misc.CCPP...)
-			}
-		case "CXX":
-			if len(misc.CPP) > 0 {
-				optionsMap[language] = append(optionsMap[language], misc.CPP...)
+			if language == "CXX" && len(misc.CPP) > 0 {
+				(*optionsMap)[language] = append((*optionsMap)[language], misc.CPP...)
 			}
 			if len(misc.CCPP) > 0 {
-				optionsMap[language] = append(optionsMap[language], misc.CCPP...)
+				(*optionsMap)[language] = append((*optionsMap)[language], misc.CCPP...)
 			}
-		}
-		if !IsAbstractionEmpty(abstractions) {
-			prefix := language
-			if language == "C" {
-				prefix = "CC"
-			}
-			optionsMap[language] = append(optionsMap[language], "${"+prefix+"_OPTIONS_FLAGS}")
 		}
 	}
-	return optionsMap
 }
 
 func IsCompileMiscEmpty(misc Misc) bool {
@@ -290,42 +293,44 @@ func IsCompileMiscEmpty(misc Misc) bool {
 	return true
 }
 
-func IsAbstractionEmpty(abstractions CompilerAbstractions) bool {
-	if len(abstractions.Debug) > 0 || len(abstractions.Optimize) > 0 || len(abstractions.Warnings) > 0 {
+func AreAbstractionsEmpty(abstractions CompilerAbstractions, languages []string) bool {
+	for _, language := range languages {
+		if !IsAbstractionEmpty(abstractions, language) {
+			return false
+		}
+	}
+	return true
+}
+
+func IsAbstractionEmpty(abstractions CompilerAbstractions, language string) bool {
+	if len(abstractions.Debug) > 0 || len(abstractions.Optimize) > 0 || len(abstractions.Warnings) > 0 ||
+		(language == "C" && len(abstractions.LanguageC) > 0) ||
+		(language == "CXX" && len(abstractions.LanguageCpp) > 0) {
 		return false
 	}
 	return true
 }
 
-func GetFileMisc(file Files, delimiter string) string {
-	var misc []string
-	switch file.Category {
-	case "sourceAsm":
-		misc = file.Misc.ASM
-	case "sourceC":
-		misc = append(file.Misc.C, file.Misc.CCPP...)
-	case "sourceCpp":
-		misc = append(file.Misc.CPP, file.Misc.CCPP...)
+func GetFileOptions(file Files, hasAbstractions bool, delimiter string) string {
+	var options []string
+	language := GetLanguage(file)
+	prefix := language
+	switch language {
+	case "ASM":
+		options = file.Misc.ASM
+	case "C":
+		options = append(file.Misc.C, file.Misc.CCPP...)
+		prefix = "CC"
+	case "CXX":
+		options = append(file.Misc.CPP, file.Misc.CCPP...)
 	}
-	return strings.Join(misc, delimiter)
+	if hasAbstractions {
+		options = append(options, "${"+prefix+"_OPTIONS_FLAGS}")
+	}
+	return strings.Join(options, delimiter)
 }
 
-func GetFileOptions(file Files, abstractions CompilerAbstractions, delimiter string) string {
-	var options string
-	if !IsAbstractionEmpty(abstractions) {
-		switch file.Category {
-		case "sourceAsm":
-			options = delimiter + "${ASM_OPTIONS_FLAGS}"
-		case "sourceC":
-			options = delimiter + "${CC_OPTIONS_FLAGS}"
-		case "sourceCpp":
-			options = delimiter + "${CXX_OPTIONS_FLAGS}"
-		}
-	}
-	return options
-}
-
-func LanguageSpecificCompileOptions(language string, options []string) string {
+func LanguageSpecificCompileOptions(language string, options ...string) string {
 	content := "\n  " + "$<$<COMPILE_LANGUAGE:" + language + ">:"
 	for _, option := range options {
 		content += "\n    " + option
@@ -378,7 +383,7 @@ func (c *Cbuild) ClassifyFiles(files []Files) BuildFiles {
 			if _, ok := buildFiles.Include[scope]; !ok {
 				buildFiles.Include[scope] = make(LanguageMap)
 			}
-			buildFiles.Include[scope][language] = append(buildFiles.Include[scope][language], AddRootPrefix(c.ContextRoot, includePath))
+			buildFiles.Include[scope][language] = utils.AppendUniquely(buildFiles.Include[scope][language], AddRootPrefix(c.ContextRoot, includePath))
 		case "source", "sourceAsm", "sourceC", "sourceCpp":
 			language := GetLanguage(file)
 			c.AddContextLanguage(language)
@@ -470,60 +475,103 @@ func InheritCompilerAbstractions(parent CompilerAbstractions, child CompilerAbst
 	if len(child.Warnings) == 0 {
 		child.Warnings = parent.Warnings
 	}
+	if len(child.LanguageC) == 0 {
+		child.LanguageC = parent.LanguageC
+	}
+	if len(child.LanguageCpp) == 0 {
+		child.LanguageCpp = parent.LanguageCpp
+	}
 	return child
 }
 
-func (c *Cbuild) CompilerAbstractions(abstractions CompilerAbstractions) string {
-	flags := make(map[string]string)
-
-	if len(abstractions.Debug) > 0 {
-		flags["DEBUG"] = abstractions.Debug
+func (c *Cbuild) SetOptionsFlags(abstractions CompilerAbstractions, language string) string {
+	languageStandard := map[string]string{
+		"C":   abstractions.LanguageC,
+		"CXX": abstractions.LanguageCpp,
 	}
-	if len(abstractions.Optimize) > 0 {
-		flags["OPTIMIZE"] = abstractions.Optimize
+	flags := []string{
+		abstractions.Optimize,
+		abstractions.Debug,
+		abstractions.Warnings,
+		languageStandard[language],
 	}
-	if len(abstractions.Warnings) > 0 {
-		flags["WARNINGS"] = abstractions.Warnings
-	}
-
 	var content string
-	if len(flags) > 0 {
-		for flag, value := range flags {
-			content += "\nset(" + flag + " " + value + ")"
+	for _, flag := range flags {
+		content += " \""
+		if len(flag) > 0 {
+			content += flag
 		}
+		content += "\""
+	}
+	return content
+}
 
-		for _, language := range c.Languages {
-			prefix := language
-			if language == "C" {
-				prefix = "CC"
+func HasFileAbstractions(files []Files) bool {
+	hasFileAbstractions := false
+	for _, file := range files {
+		if strings.Contains(file.Category, "source") {
+			fileAbstractions := CompilerAbstractions{file.Debug, file.Optimize, file.Warnings, file.LanguageC, file.LanguageCpp}
+			hasFileAbstractions = !IsAbstractionEmpty(fileAbstractions, GetLanguage(file))
+			if hasFileAbstractions {
+				break
 			}
-			content += "\ncbuild_set_options_flags(" + prefix
-			for flag := range flags {
-				content += " \"${" + flag + "}\""
-
-			}
-			content += " " + prefix + "_OPTIONS_FLAGS)"
-			content += "\nseparate_arguments(" + prefix + "_OPTIONS_FLAGS)"
 		}
 	}
+	return hasFileAbstractions
+}
+
+func (c *Cbuild) CompilerAbstractions(abstractions CompilerAbstractions, language string) string {
+	languageStandard := map[string]string{
+		"C":   abstractions.LanguageC,
+		"CXX": abstractions.LanguageCpp,
+	}
+	flags := []string{
+		abstractions.Optimize,
+		abstractions.Debug,
+		abstractions.Warnings,
+		languageStandard[language],
+	}
+	prefix := language
+	if language == "C" {
+		prefix = "CC"
+	}
+	content := "\nset(" + prefix + "_OPTIONS_FLAGS)"
+	content += "\ncbuild_set_options_flags(" + prefix
+	for _, flag := range flags {
+		content += " \""
+		if len(flag) > 0 {
+			content += flag
+		}
+		content += "\""
+	}
+	content += " " + prefix + "_OPTIONS_FLAGS)"
+	content += "\nseparate_arguments(" + prefix + "_OPTIONS_FLAGS)"
 	return content
 }
 
 func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstractions) string {
 	var content string
+	// file build options
 	hasIncludes := len(file.AddPath) > 0
 	hasDefines := len(file.Define) > 0
 	hasMisc := !IsCompileMiscEmpty(file.Misc)
-	if hasIncludes || hasDefines || hasMisc {
-		content = "\nset_source_files_properties(\"" + file.File + "\" PROPERTIES"
+	// file compiler abstractions
+	language := GetLanguage(file)
+	hasAbstractions := !IsAbstractionEmpty(abstractions, language)
+	if hasAbstractions {
+		content += c.CompilerAbstractions(abstractions, language)
+	}
+	// set file properties
+	if hasIncludes || hasDefines || hasMisc || hasAbstractions {
+		content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) + "\" PROPERTIES"
 		if hasIncludes {
 			content += "\n  INCLUDE_DIRECTORIES \"" + ListIncludeDirectories(AddRootPrefixes(c.ContextRoot, file.AddPath), ";", false) + "\""
 		}
 		if hasDefines {
 			content += "\n  COMPILE_DEFINITIONS \"" + ListCompileDefinitions(file.Define, ";") + "\""
 		}
-		if hasMisc {
-			content += "\n  COMPILE_OPTIONS \"" + GetFileMisc(file, ";") + GetFileOptions(file, abstractions, ";") + "\""
+		if hasMisc || hasAbstractions {
+			content += "\n  COMPILE_OPTIONS \"" + GetFileOptions(file, hasAbstractions, ";") + "\""
 		}
 		content += "\n)\n"
 	}
@@ -531,8 +579,11 @@ func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstrac
 }
 
 func (c *Cbuild) AddContextLanguage(language string) {
+	if language == "ALL" {
+		return
+	}
 	for _, stored := range c.Languages {
-		if stored == language || language == "ALL" {
+		if stored == language {
 			return
 		}
 	}
@@ -549,7 +600,7 @@ func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 		linkerVars += ListCompileDefinitions(c.BuildDescType.Linker.Define, "\n  ")
 		linkerVars += "\n)"
 	}
-	linkerOptions += "\n# Linker options\nstring(STRIP ${_LS} _LS)\ntarget_link_options(${CONTEXT} PUBLIC\n  ${LD_CPU}\n  ${_LS}${LD_SCRIPT_PP}"
+	linkerOptions += "\n# Linker options\ntarget_link_options(${CONTEXT} PUBLIC\n  SHELL:${LD_CPU}\n  SHELL:${_LS}\"${LD_SCRIPT_PP}\""
 	if len(c.BuildDescType.Processor.Trustzone) > 0 {
 		linkerOptions += "\n  ${LD_SECURE}"
 	}

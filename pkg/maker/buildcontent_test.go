@@ -94,7 +94,7 @@ func TestBuildContent(t *testing.T) {
 		assert.False(buildFiles.Interface)
 		assert.Equal("${SOLUTION_ROOT}/project/headers", buildFiles.Include["PUBLIC"]["ALL"][0])
 		assert.Equal("${SOLUTION_ROOT}/project/includes", buildFiles.Include["PUBLIC"]["ALL"][1])
-		assert.Equal("${SOLUTION_ROOT}/project/source.c", buildFiles.Source["ALL"][0])
+		assert.Equal("${SOLUTION_ROOT}/project/source.c", buildFiles.Source["C"][0])
 		assert.Equal("${SOLUTION_ROOT}/project/lib.a", buildFiles.Library[0])
 		assert.Equal("${SOLUTION_ROOT}/project/obj.o", buildFiles.Object[0])
 		assert.Equal("${SOLUTION_ROOT}/project/RTE/class/pre-include.h", buildFiles.PreIncludeLocal[0])
@@ -126,18 +126,13 @@ func TestBuildContent(t *testing.T) {
 			CPP:  []string{"-cpp-flag"},
 			CCPP: []string{"-c-cpp-flag"},
 		}
-		var abstractions = maker.CompilerAbstractions{
-			Debug:    "on",
-			Optimize: "speed",
-			Warnings: "all",
-		}
 		var cbuild maker.Cbuild
 		cbuild.Languages = []string{"ASM", "C", "CXX"}
 		preIncludes := []string{"${SOLUTION_ROOT}/project/RTE/class/pre-include.h"}
-		content := cbuild.CMakeTargetCompileOptions("TARGET", "PUBLIC", misc, preIncludes, abstractions)
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag\n    ${ASM_OPTIONS_FLAGS}")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    -c-flag\n    -c-cpp-flag\n    ${CC_OPTIONS_FLAGS}")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    -cpp-flag\n    -c-cpp-flag\n    ${CXX_OPTIONS_FLAGS}")
+		content := cbuild.CMakeTargetCompileOptions("TARGET", "PUBLIC", misc, preIncludes)
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    -c-flag\n    -c-cpp-flag")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    -cpp-flag\n    -c-cpp-flag")
 		assert.Contains(content, "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/class/pre-include.h\"")
 	})
 
@@ -145,8 +140,16 @@ func TestBuildContent(t *testing.T) {
 		var misc = maker.Misc{
 			ASM: []string{"-asm-flag"},
 		}
-		content := maker.LanguageSpecificCompileOptions("ASM", misc.ASM)
+		content := maker.LanguageSpecificCompileOptions("ASM", misc.ASM...)
 		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag")
+	})
+
+	t.Run("test add context language", func(t *testing.T) {
+		var cbuild maker.Cbuild
+		cbuild.AddContextLanguage("ALL")
+		assert.Empty(cbuild.Languages)
+		cbuild.AddContextLanguage("C")
+		assert.Equal("C", cbuild.Languages[0])
 	})
 
 	t.Run("test get file misc", func(t *testing.T) {
@@ -170,11 +173,11 @@ func TestBuildContent(t *testing.T) {
 				},
 			},
 		}
-		content := maker.GetFileMisc(files[0], ";")
+		content := maker.GetFileOptions(files[0], false, ";")
 		assert.Contains(content, "-asm-flag")
-		content = maker.GetFileMisc(files[1], ";")
+		content = maker.GetFileOptions(files[1], false, ";")
 		assert.Contains(content, "-c-flag")
-		content = maker.GetFileMisc(files[2], ";")
+		content = maker.GetFileOptions(files[2], false, ";")
 		assert.Contains(content, "-cpp-flag")
 	})
 
@@ -219,18 +222,100 @@ func TestBuildContent(t *testing.T) {
 		assert.Equal(outputType, "lib")
 	})
 
+	t.Run("test inherit compile abstractions", func(t *testing.T) {
+		var parent = maker.CompilerAbstractions{
+			Debug:       "on",
+			Optimize:    "speed",
+			Warnings:    "all",
+			LanguageC:   "c90",
+			LanguageCpp: "c++98",
+		}
+		var child = maker.CompilerAbstractions{
+			Debug:       "off",
+			Optimize:    "size",
+			Warnings:    "off",
+			LanguageC:   "c11",
+			LanguageCpp: "c++11",
+		}
+		inherited := maker.InheritCompilerAbstractions(parent, child)
+		assert.Equal(inherited, child)
+
+		var emptyChild = maker.CompilerAbstractions{}
+		inherited = maker.InheritCompilerAbstractions(parent, emptyChild)
+		assert.Equal(inherited, parent)
+	})
+
+	t.Run("test abstractions empty", func(t *testing.T) {
+		areAbstractionsEmpty := maker.AreAbstractionsEmpty(maker.CompilerAbstractions{}, []string{"ASM", "C", "CXX"})
+		assert.Equal(true, areAbstractionsEmpty)
+		areAbstractionsEmpty = maker.AreAbstractionsEmpty(maker.CompilerAbstractions{Debug: "on"}, []string{"ASM"})
+		assert.Equal(false, areAbstractionsEmpty)
+		areAbstractionsEmpty = maker.AreAbstractionsEmpty(maker.CompilerAbstractions{LanguageC: "c11"}, []string{"C"})
+		assert.Equal(false, areAbstractionsEmpty)
+		areAbstractionsEmpty = maker.AreAbstractionsEmpty(maker.CompilerAbstractions{LanguageCpp: "c++11"}, []string{"CXX"})
+		assert.Equal(false, areAbstractionsEmpty)
+		areAbstractionsEmpty = maker.AreAbstractionsEmpty(maker.CompilerAbstractions{LanguageC: "c11"}, []string{"CXX"})
+		assert.Equal(true, areAbstractionsEmpty)
+		areAbstractionsEmpty = maker.AreAbstractionsEmpty(maker.CompilerAbstractions{LanguageCpp: "c++11"}, []string{"C"})
+		assert.Equal(true, areAbstractionsEmpty)
+	})
+
 	t.Run("test compile abstractions", func(t *testing.T) {
 		var abstractions = maker.CompilerAbstractions{
-			Debug:    "on",
-			Optimize: "speed",
-			Warnings: "all",
+			Debug:       "on",
+			Optimize:    "speed",
+			Warnings:    "all",
+			LanguageC:   "c90",
+			LanguageCpp: "c++98",
 		}
 		var cbuild maker.Cbuild
-		cbuild.Languages = []string{"C"}
-		content := cbuild.CompilerAbstractions(abstractions)
-		assert.Contains(content, "set(DEBUG on)")
-		assert.Contains(content, "set(OPTIMIZE speed)")
-		assert.Contains(content, "set(WARNINGS all)")
+		cbuild.Languages = []string{"ASM", "C", "CXX"}
+		content := cbuild.CompilerAbstractions(abstractions, "ASM")
+		assert.Contains(content, "cbuild_set_options_flags(ASM \"speed\" \"on\" \"all\" \"\" ASM_OPTIONS_FLAGS)")
+		content = cbuild.CompilerAbstractions(abstractions, "C")
+		assert.Contains(content, "cbuild_set_options_flags(CC \"speed\" \"on\" \"all\" \"c90\" CC_OPTIONS_FLAGS")
+		content = cbuild.CompilerAbstractions(abstractions, "CXX")
+		assert.Contains(content, "cbuild_set_options_flags(CXX \"speed\" \"on\" \"all\" \"c++98\" CXX_OPTIONS_FLAGS)")
+	})
+
+	t.Run("test cmake target compile options abstractions", func(t *testing.T) {
+		var abstractions = maker.CompilerAbstractions{
+			Debug:       "on",
+			Optimize:    "speed",
+			Warnings:    "all",
+			LanguageC:   "c90",
+			LanguageCpp: "c++98",
+		}
+		var cbuild maker.Cbuild
+		cbuild.Languages = []string{"ASM", "C", "CXX"}
+		content := cbuild.CMakeTargetCompileOptionsAbstractions("NAME", abstractions, cbuild.Languages)
+		assert.Contains(content, "add_library(NAME_ABSTRACTIONS INTERFACE)")
+		assert.Contains(content, "cbuild_set_options_flags(ASM \"speed\" \"on\" \"all\" \"\" ASM_OPTIONS_FLAGS_NAME)")
+		assert.Contains(content, "cbuild_set_options_flags(CC \"speed\" \"on\" \"all\" \"c90\" CC_OPTIONS_FLAGS_NAME")
+		assert.Contains(content, "cbuild_set_options_flags(CXX \"speed\" \"on\" \"all\" \"c++98\" CXX_OPTIONS_FLAGS_NAME)")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    SHELL:${ASM_OPTIONS_FLAGS_NAME}\n  >")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    SHELL:${CC_OPTIONS_FLAGS_NAME}\n  >")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    SHELL:${CXX_OPTIONS_FLAGS_NAME}\n  >")
+	})
+
+	t.Run("test get file options", func(t *testing.T) {
+		var files = []maker.Files{
+			{
+				File: "source.asm",
+			},
+			{
+				File: "source.c",
+			},
+			{
+				File: "source.cxx",
+			},
+		}
+		content := maker.GetFileOptions(files[0], true, ";")
+		assert.Contains(content, "${ASM_OPTIONS_FLAGS}")
+		content = maker.GetFileOptions(files[1], true, ";")
+		assert.Contains(content, "${CC_OPTIONS_FLAGS}")
+		content = maker.GetFileOptions(files[2], true, ";")
+		assert.Contains(content, "${CXX_OPTIONS_FLAGS}")
 	})
 
 	t.Run("test linker options", func(t *testing.T) {
