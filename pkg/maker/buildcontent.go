@@ -13,6 +13,7 @@ import (
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/utils"
 	sortedmap "github.com/gobs/sortedmap"
+	log "github.com/sirupsen/logrus"
 )
 
 type BuildFiles struct {
@@ -574,6 +575,13 @@ func (c *Cbuild) CompilerAbstractions(abstractions CompilerAbstractions, languag
 
 func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstractions) string {
 	var content string
+	// del-path and undefine are currently not supported at file level
+	if len(file.DelPath) > 0 {
+		log.Warn("del-path is not supported for file " + AddRootPrefix(c.ContextRoot, file.File))
+	}
+	if len(file.Undefine) > 0 {
+		log.Warn("undefine is not supported for file " + AddRootPrefix(c.ContextRoot, file.File))
+	}
 	// file build options
 	hasIncludes := len(file.AddPath) > 0
 	hasDefines := len(file.Define) > 0
