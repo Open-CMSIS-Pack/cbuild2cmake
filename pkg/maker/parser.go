@@ -7,7 +7,6 @@
 package maker
 
 import (
-	"encoding/json"
 	"os"
 	"path"
 	"path/filepath"
@@ -217,12 +216,6 @@ func (m *Maker) ParseCbuildFiles() error {
 	cbuildIndex.BaseDir = filepath.ToSlash(cbuildIndex.BaseDir)
 	m.CbuildIndex = cbuildIndex
 
-	// Debug
-	if m.Params.Options.Debug {
-		s, _ := json.MarshalIndent(cbuildIndex, "", "\t")
-		log.Debug(string(s))
-	}
-
 	// Parse cbuild files
 	for _, cbuildRef := range m.CbuildIndex.BuildIdx.Cbuilds {
 		cbuildFile := path.Join(m.CbuildIndex.BaseDir, cbuildRef.Cbuild)
@@ -237,12 +230,6 @@ func (m *Maker) ParseCbuildFiles() error {
 		cbuild.BaseDir, _ = filepath.Abs(path.Dir(cbuildFile))
 		cbuild.BaseDir = filepath.ToSlash(cbuild.BaseDir)
 		m.Cbuilds = append(m.Cbuilds, cbuild)
-
-		// Debug
-		if m.Params.Options.Debug {
-			s, _ := json.MarshalIndent(cbuild, "", "\t")
-			log.Debug(string(s))
-		}
 	}
 	return err
 }

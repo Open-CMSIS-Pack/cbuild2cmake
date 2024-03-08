@@ -8,6 +8,7 @@ package maker
 
 import (
 	"path"
+	"path/filepath"
 
 	semver "github.com/Masterminds/semver/v3"
 	utils "github.com/Open-CMSIS-Pack/cbuild/v2/pkg/utils"
@@ -46,6 +47,10 @@ type Maker struct {
 func (m *Maker) GenerateCMakeLists() error {
 	// Update environment variables
 	m.EnvVars = utils.UpdateEnvVars(m.InstallConfigs.BinPath, m.InstallConfigs.EtcPath)
+	m.EnvVars.PackRoot, _ = filepath.EvalSymlinks(m.EnvVars.PackRoot)
+	m.EnvVars.PackRoot = filepath.ToSlash(m.EnvVars.PackRoot)
+	m.EnvVars.CompilerRoot, _ = filepath.EvalSymlinks(m.EnvVars.CompilerRoot)
+	m.EnvVars.CompilerRoot = filepath.ToSlash(m.EnvVars.CompilerRoot)
 
 	// Parse cbuild files
 	err := m.ParseCbuildFiles()

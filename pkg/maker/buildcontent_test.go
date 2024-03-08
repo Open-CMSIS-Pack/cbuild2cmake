@@ -140,7 +140,8 @@ func TestBuildContent(t *testing.T) {
 		var misc = maker.Misc{
 			ASM: []string{"-asm-flag"},
 		}
-		content := maker.LanguageSpecificCompileOptions("ASM", misc.ASM...)
+		var cbuild maker.Cbuild
+		content := cbuild.LanguageSpecificCompileOptions("ASM", misc.ASM...)
 		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag")
 	})
 
@@ -361,5 +362,14 @@ func TestBuildContent(t *testing.T) {
 		assert.Contains(linkerVars, "set(LD_SCRIPT \"${SOLUTION_ROOT}/path/to/script.ld.src\")")
 		assert.Contains(linkerVars, "set(LD_REGIONS \"${SOLUTION_ROOT}/path/to/regions.h\")")
 		assert.Contains(linkerVars, "DEF_LD_PP")
+	})
+
+	t.Run("test adjust relative path", func(t *testing.T) {
+		var cbuild maker.Cbuild
+		cbuild.ContextRoot = "./context/folder"
+		adjustedOption := cbuild.AdjustRelativePath("-map=./out/file.map")
+		assert.Equal("-map=${SOLUTION_ROOT}/context/folder/out/file.map", adjustedOption)
+		adjustedOption = cbuild.AdjustRelativePath("-map=../../out/file.map")
+		assert.Equal("-map=${SOLUTION_ROOT}/out/file.map", adjustedOption)
 	})
 }

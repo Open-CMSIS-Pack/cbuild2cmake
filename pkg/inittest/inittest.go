@@ -11,12 +11,15 @@
 package inittest
 
 import (
+	"errors"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
+	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/utils"
 	cp "github.com/otiai10/copy"
 )
 
@@ -50,4 +53,33 @@ func ClearToolchainRegistration() {
 		}
 		os.Unsetenv(systemEnvVar)
 	}
+}
+
+func CompareFiles(reference string, actual string) error {
+	referenceEntries, err := os.ReadDir(reference)
+	if err != nil {
+		return err
+	}
+	for _, referenceEntry := range referenceEntries {
+		referencePath := path.Join(reference, referenceEntry.Name())
+		actualPath := path.Join(actual, referenceEntry.Name())
+		if referenceEntry.IsDir() {
+			err = CompareFiles(referencePath, actualPath)
+			if err != nil {
+				return err
+			}
+		} else {
+			referenceContent, _ := utils.ReadFileContent(referencePath)
+			actualContent, err := utils.ReadFileContent(actualPath)
+			if err != nil {
+				return err
+			}
+			actualContent = strings.ReplaceAll(actualContent, "\r\n", "\n")
+			referenceContent = strings.ReplaceAll(referenceContent, "\r\n", "\n")
+			if actualContent != referenceContent {
+				return errors.New("files " + referencePath + " and " + actualPath + " do not match")
+			}
+		}
+	}
+	return nil
 }

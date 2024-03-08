@@ -1,5 +1,6 @@
 build-idx:
-  generated-by: csolution version 0.0.0+g062434ca
+  generated-by: csolution version 2.2.1
+  cdefault: ${CMSIS_COMPILER_ROOT}/cdefault.yml
   csolution: solution.csolution.yml
   cprojects:
     - cproject: project/project.cproject.yml

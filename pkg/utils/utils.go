@@ -65,11 +65,20 @@ func GetDefine(define interface{}) (key string, value string) {
 	return key, value
 }
 
-func UpdateFile(filename string, content string) error {
-	// Check whether file content is the same
+func ReadFileContent(filename string) (string, error) {
+	// Read file content
 	fileContent, err := os.ReadFile(filename)
 	if err == nil {
-		if string(fileContent) == content {
+		return string(fileContent), nil
+	}
+	return "", err
+}
+
+func UpdateFile(filename string, content string) error {
+	// Check whether file content is the same
+	fileContent, err := ReadFileContent(filename)
+	if err == nil {
+		if fileContent == content {
 			return nil
 		}
 	}
