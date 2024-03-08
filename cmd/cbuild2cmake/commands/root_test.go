@@ -102,4 +102,12 @@ func TestSolutions(t *testing.T) {
 		err := cmd.Execute()
 		assert.Nil(err)
 	})
+
+	t.Run("test add-path, del-path, define, undefine", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		cbuildIdxFile := testRoot + "/run/solutions/include-define/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
+		err := cmd.Execute()
+		assert.Nil(err)
+	})
 }

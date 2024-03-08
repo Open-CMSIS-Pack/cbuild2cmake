@@ -9,6 +9,7 @@ package utils
 import (
 	"os"
 	"path"
+	"slices"
 	"strconv"
 )
 
@@ -19,6 +20,29 @@ func AppendUniquely(list []string, element string) []string {
 		}
 	}
 	return append(list, element)
+}
+
+func RemoveIncludes(includes []string, delpaths ...string) []string {
+	for _, delpath := range delpaths {
+		index := slices.Index(includes, delpath)
+		if index > -1 {
+			includes = append(includes[:index], includes[index+1:]...)
+		}
+	}
+	return includes
+}
+
+func RemoveDefines(defines []interface{}, undefines ...string) []interface{} {
+	for _, undefine := range undefines {
+		for index, define := range defines {
+			key, _ := GetDefine(define)
+			if key == undefine {
+				defines = append(defines[:index], defines[index+1:]...)
+				break
+			}
+		}
+	}
+	return defines
 }
 
 func GetDefine(define interface{}) (key string, value string) {
