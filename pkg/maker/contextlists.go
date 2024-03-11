@@ -33,8 +33,14 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 		outputDirType = "ARCHIVE_OUTPUT_DIRECTORY"
 	}
 
+	// Create toolchain.cmake
+	err := m.CMakeCreateToolchain(index, contextDir)
+	if err != nil {
+		return err
+	}
+
 	// Create components.cmake
-	err := cbuild.CMakeCreateComponents(contextDir)
+	err = cbuild.CMakeCreateComponents(contextDir)
 	if err != nil {
 		return err
 	}
@@ -54,10 +60,6 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 		linkerVars, linkerOptions = cbuild.LinkerOptions()
 	}
 
-	// Toolchain config
-	toolchainConfig, _ := filepath.EvalSymlinks(m.SelectedToolchainConfig[index])
-	toolchainConfig = filepath.ToSlash(toolchainConfig)
-
 	// Global pre-includes
 	for _, file := range cbuild.BuildDescType.ConstructedFiles {
 		if file.Category == "preIncludeGlobal" {
@@ -69,7 +71,7 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 	abstractions := CompilerAbstractions{cbuild.BuildDescType.Debug, cbuild.BuildDescType.Optimize, cbuild.BuildDescType.Warnings, cbuild.BuildDescType.LanguageC, cbuild.BuildDescType.LanguageCpp}
 	var globalCompilerAbstractions string
 	if !AreAbstractionsEmpty(abstractions, cbuild.Languages) {
-		globalCompilerAbstractions = "\n# Compile Options Abstractions" + cbuild.CMakeTargetCompileOptionsAbstractions("${CONTEXT}", abstractions, cbuild.Languages)
+		globalCompilerAbstractions = "\n\n# Compile Options Abstractions" + cbuild.CMakeTargetCompileOptionsAbstractions("${CONTEXT}", abstractions, cbuild.Languages)
 	}
 
 	// Create CMakeLists content
@@ -83,9 +85,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)` + outputByProducts + linkerVars + `
 # Processor Options` + cbuild.ProcessorOptions() + `
 
 # Toolchain config map
-set(REGISTERED_TOOLCHAIN_ROOT "` + m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Path + `")
-set(REGISTERED_TOOLCHAIN_VERSION "` + m.SelectedToolchainVersion[index].String() + `")
-include("` + toolchainConfig + `")
+include("toolchain.cmake")
 
 # Setup project
 project(${CONTEXT} LANGUAGES ` + strings.Join(cbuild.Languages, " ") + `)
@@ -105,8 +105,7 @@ add_library(${CONTEXT}_INCLUDES INTERFACE)` + CMakeTargetIncludeDirectories("${C
 # Defines
 add_library(${CONTEXT}_DEFINES INTERFACE)` + CMakeTargetCompileDefinitions("${CONTEXT}_DEFINES", "INTERFACE", cbuild.BuildDescType.Define) + `
 
-# Compile options` + cbuild.CMakeTargetCompileOptionsGlobal("${CONTEXT}_GLOBAL", "INTERFACE") + `
-` + globalCompilerAbstractions + `
+# Compile options` + cbuild.CMakeTargetCompileOptionsGlobal("${CONTEXT}_GLOBAL", "INTERFACE") + globalCompilerAbstractions + `
 
 # Add groups and components
 include("groups.cmake")
@@ -120,7 +119,23 @@ include("components.cmake")
 	if err != nil {
 		return err
 	}
+	return err
+}
 
+func (m *Maker) CMakeCreateToolchain(index int, contextDir string) error {
+	toolchainConfig, _ := filepath.Rel(m.EnvVars.CompilerRoot, m.SelectedToolchainConfig[index])
+	toolchainConfig = "${CMSIS_COMPILER_ROOT}/" + filepath.ToSlash(toolchainConfig)
+	content := `# toolchain.cmake
+
+set(REGISTERED_TOOLCHAIN_ROOT "` + m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Path + `")
+set(REGISTERED_TOOLCHAIN_VERSION "` + m.SelectedToolchainVersion[index].String() + `")
+include("` + toolchainConfig + `")
+`
+	filename := path.Join(contextDir, "toolchain.cmake")
+	err := utils.UpdateFile(filename, content)
+	if err != nil {
+		return err
+	}
 	return err
 }
 

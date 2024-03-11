@@ -1,5 +1,5 @@
 build:
-  generated-by: csolution version 0.0.0+g382c3df
+  generated-by: csolution version 2.2.1
   solution: ../solution.csolution.yml
   project: project.cproject.yml
   context: project.GCC+ARMCM0
@@ -14,6 +14,23 @@ build:
       path: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0
     - pack: ARM::Cortex_DFP@1.0.0
       path: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0
+  misc:
+    C:
+      - -std=gnu11
+      - -masm-syntax-unified
+      - -fomit-frame-pointer
+      - -ffunction-sections
+      - -fdata-sections
+    CPP:
+      - -masm-syntax-unified
+      - -fomit-frame-pointer
+      - -ffunction-sections
+      - -fdata-sections
+    Link:
+      - --specs=nano.specs
+      - --specs=rdimon.specs
+      - -Wl,-Map=../out/project/ARMCM0/GCC/project.elf.map
+      - -Wl,--gc-sections
   define:
     - ARMCM0
     - _RTE_

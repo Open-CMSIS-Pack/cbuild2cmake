@@ -1,5 +1,6 @@
 solution:
   created-for: CMSIS-Toolbox@2.2.1
+  cdefault:
 
   packs:
     - pack: ARM::Cortex_DFP
@@ -15,9 +16,6 @@ solution:
 
     - type: GCC
       compiler: GCC
-      misc:
-        - Link:
-            - --specs=nosys.specs
     
     - type: IAR
       compiler: IAR

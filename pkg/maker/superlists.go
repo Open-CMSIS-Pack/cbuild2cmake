@@ -12,6 +12,7 @@ import (
 	"regexp"
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 func (m *Maker) CreateSuperCMakeLists() error {
@@ -33,13 +34,16 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		}
 		cbuildRelativePath, _ := filepath.Rel(m.CbuildIndex.BaseDir, cbuild.BaseDir)
 		output := AddRootPrefix(cbuildRelativePath, path.Join(cbuild.BuildDescType.OutputDirs.Outdir, outputFile))
-		outputs = outputs + "  \"" + output + "\"\n"
+		outputs += "  \"" + output + "\"\n"
 	}
 
-	packRoot, _ := filepath.EvalSymlinks(m.EnvVars.PackRoot)
-	packRoot = filepath.ToSlash(packRoot)
 	solutionRoot, _ := filepath.EvalSymlinks(m.CbuildIndex.BaseDir)
 	solutionRoot = filepath.ToSlash(solutionRoot)
+
+	var verbosity string
+	if m.Options.Debug || m.Options.Verbose {
+		verbosity = " --verbose"
+	}
 
 	// Write content
 	content :=
@@ -49,8 +53,10 @@ include(ExternalProject)
 project("` + csolution + `" NONE)
 
 # Roots
-set(CMSIS_PACK_ROOT "` + packRoot + `")
+set(CMSIS_PACK_ROOT "` + m.EnvVars.PackRoot + `")
 cmake_path(ABSOLUTE_PATH CMSIS_PACK_ROOT NORMALIZE OUTPUT_VARIABLE CMSIS_PACK_ROOT)
+set(CMSIS_COMPILER_ROOT "` + m.EnvVars.CompilerRoot + `")
+cmake_path(ABSOLUTE_PATH CMSIS_COMPILER_ROOT NORMALIZE OUTPUT_VARIABLE CMSIS_COMPILER_ROOT)
 set(SOLUTION_ROOT "` + solutionRoot + `")
 cmake_path(ABSOLUTE_PATH SOLUTION_ROOT NORMALIZE OUTPUT_VARIABLE SOLUTION_ROOT)
 
@@ -69,6 +75,7 @@ set(OUTPUTS
 set(ARGS
   "-DSOLUTION_ROOT=${SOLUTION_ROOT}"
   "-DCMSIS_PACK_ROOT=${CMSIS_PACK_ROOT}"
+  "-DCMSIS_COMPILER_ROOT=${CMSIS_COMPILER_ROOT}"
 )
 
 # Iterate over contexts
@@ -86,8 +93,8 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     BINARY_DIR        ${N}
     INSTALL_COMMAND   ""
     TEST_COMMAND      ""
-    CONFIGURE_COMMAND ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS}
-    BUILD_COMMAND     ${CMAKE_COMMAND} --build <BINARY_DIR>
+    CONFIGURE_COMMAND ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
+    BUILD_COMMAND     ${CMAKE_COMMAND} --build <BINARY_DIR>` + verbosity + `
     BUILD_ALWAYS      TRUE
     BUILD_BYPRODUCTS  ${OUTPUT}
   )
@@ -105,13 +112,14 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
   )
   ExternalProject_Add_StepTargets(${CONTEXT} database)
 
-endforeach()
-` + BuildDependencies(m.CbuildIndex.BuildIdx.Cbuilds) + `
+endforeach()` + BuildDependencies(m.CbuildIndex.BuildIdx.Cbuilds) + `
 `
 	superCMakeLists := path.Join(m.SolutionIntDir, "CMakeLists.txt")
 	err := utils.UpdateFile(superCMakeLists, content)
 	if err != nil {
 		return err
 	}
-	return err
+
+	log.Info("CMakeLists were successfully generated in the " + m.SolutionIntDir + " directory")
+	return nil
 }

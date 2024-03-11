@@ -16,6 +16,21 @@ build:
       path: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0
     - pack: ARM::PreIncludeTestPack@0.0.1
       path: ../pack
+  misc:
+    C:
+      - -std=gnu11
+      - -fomit-frame-pointer
+      - -ffunction-sections
+      - -fdata-sections
+    CPP:
+      - -fomit-frame-pointer
+      - -ffunction-sections
+      - -fdata-sections
+    Link:
+      - -lcrt0-semihost
+      - -lsemihost
+      - -Wl,-Map=../out/project/ARMCM0/CLANG/project.elf.map
+      - -Wl,--gc-sections
   define:
     - ARMCM0
     - _RTE_

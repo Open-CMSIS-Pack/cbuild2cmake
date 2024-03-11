@@ -53,7 +53,7 @@ func (m *Maker) ProcessToolchain() error {
 	}
 
 	if len(m.ToolchainConfigs) == 0 {
-		err := errors.New("no toolchain configuration file was found")
+		err := errors.New("no toolchain configuration file was found in " + m.EnvVars.CompilerRoot)
 		return err
 	}
 

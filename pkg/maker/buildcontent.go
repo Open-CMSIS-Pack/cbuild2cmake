@@ -126,7 +126,7 @@ func BuildDependencies(cbuilds []Cbuilds) string {
 	var content string
 	for _, cbuild := range cbuilds {
 		if len(cbuild.DependsOn) > 0 {
-			content += "\nExternalProject_Add_StepDependencies(" + cbuild.Project + cbuild.Configuration + " build"
+			content += "\n\nExternalProject_Add_StepDependencies(" + cbuild.Project + cbuild.Configuration + " build"
 			for _, dependency := range cbuild.DependsOn {
 				content += "\n  " + dependency + "-build"
 			}
@@ -235,7 +235,7 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 	// target compile options
 	content := "\ntarget_compile_options(" + name + " " + scope
 	for language, options := range optionsMap {
-		content += LanguageSpecificCompileOptions(language, options...)
+		content += c.LanguageSpecificCompileOptions(language, options...)
 	}
 	// pre-includes global
 	for _, preInclude := range c.PreIncludeGlobal {
@@ -259,7 +259,7 @@ func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc,
 	optionsMap := make(map[string][]string)
 	c.GetCompileOptionsLanguageMap(misc, &optionsMap)
 	for language, options := range optionsMap {
-		content += LanguageSpecificCompileOptions(language, options...)
+		content += c.LanguageSpecificCompileOptions(language, options...)
 	}
 	for _, preInclude := range preIncludes {
 		content += "\n  SHELL:${_PI}\"" + preInclude + "\""
@@ -280,7 +280,7 @@ func (c *Cbuild) CMakeTargetCompileOptionsAbstractions(name string, abstractions
 			content += "\ncbuild_set_options_flags(" + prefix
 			content += c.SetOptionsFlags(abstractions, language)
 			content += " " + prefix + "_OPTIONS_FLAGS_" + name + ")"
-			options += LanguageSpecificCompileOptions(language, "SHELL:${"+prefix+"_OPTIONS_FLAGS_"+name+"}")
+			options += c.LanguageSpecificCompileOptions(language, "SHELL:${"+prefix+"_OPTIONS_FLAGS_"+name+"}")
 		}
 	}
 	if len(content) > 0 {
@@ -354,10 +354,10 @@ func GetFileOptions(file Files, hasAbstractions bool, delimiter string) string {
 	return strings.Join(options, delimiter)
 }
 
-func LanguageSpecificCompileOptions(language string, options ...string) string {
+func (c *Cbuild) LanguageSpecificCompileOptions(language string, options ...string) string {
 	content := "\n  " + "$<$<COMPILE_LANGUAGE:" + language + ">:"
 	for _, option := range options {
-		content += "\n    " + option
+		content += "\n    " + c.AdjustRelativePath(option)
 	}
 	content += "\n  >"
 	return content
@@ -645,7 +645,7 @@ func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 		}
 	}
 	for _, option := range options {
-		linkerOptions += "\n  " + option
+		linkerOptions += "\n  " + c.AdjustRelativePath(option)
 	}
 	linkerOptions += "\n)"
 	linkerOptions += "\nset_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})"
@@ -657,4 +657,13 @@ func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 		linkerVars += "\nset(LD_SCRIPT_PP ${LD_SCRIPT})"
 	}
 	return linkerVars, linkerOptions
+}
+
+func (c *Cbuild) AdjustRelativePath(option string) string {
+	pattern := regexp.MustCompile(`\./.*|\.\./.*`)
+	if pattern.MatchString(option) {
+		relativePath := pattern.FindString(option)
+		option = strings.Replace(option, relativePath, AddRootPrefix(c.ContextRoot, relativePath), 1)
+	}
+	return option
 }

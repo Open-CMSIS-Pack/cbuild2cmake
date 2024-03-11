@@ -14,6 +14,26 @@ build:
       path: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0
     - pack: ARM::Cortex_DFP@1.0.0
       path: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0
+  misc:
+    ASM:
+      - -masm=auto
+    C:
+      - -std=gnu11
+      - -Wno-macro-redefined
+      - -Wno-pragma-pack
+      - -Wno-parentheses-equality
+      - -Wno-license-management
+    CPP:
+      - -Wno-macro-redefined
+      - -Wno-pragma-pack
+      - -Wno-parentheses-equality
+      - -Wno-license-management
+    Link:
+      - --entry=Reset_Handler
+      - --map
+      - --info summarysizes
+      - --summary_stderr
+      - --diag_suppress=L6314W
   define:
     - ARMCM0
     - _RTE_
