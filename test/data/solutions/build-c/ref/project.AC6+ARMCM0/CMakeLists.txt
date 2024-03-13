@@ -46,6 +46,11 @@ target_compile_options(${CONTEXT}_GLOBAL INTERFACE
   $<$<COMPILE_LANGUAGE:C>:
     SHELL:${CC_CPU}
     SHELL:${CC_FLAGS}
+    -std=gnu11
+    -Wno-macro-redefined
+    -Wno-pragma-pack
+    -Wno-parentheses-equality
+    -Wno-license-management
   >
 )
 
@@ -64,5 +69,10 @@ target_link_libraries(${CONTEXT} PUBLIC
 target_link_options(${CONTEXT} PUBLIC
   SHELL:${LD_CPU}
   SHELL:${_LS}"${LD_SCRIPT_PP}"
+  --entry=Reset_Handler
+  --map
+  --info summarysizes
+  --summary_stderr
+  --diag_suppress=L6314W
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})

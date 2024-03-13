@@ -46,6 +46,11 @@ target_compile_options(${CONTEXT}_GLOBAL INTERFACE
   $<$<COMPILE_LANGUAGE:C>:
     SHELL:${CC_CPU}
     SHELL:${CC_FLAGS}
+    -std=gnu11
+    -masm-syntax-unified
+    -fomit-frame-pointer
+    -ffunction-sections
+    -fdata-sections
   >
 )
 
@@ -58,11 +63,19 @@ target_link_libraries(${CONTEXT} PUBLIC
   Group_Source
   ARM_CMSIS_CORE_6_0_0
   ARM_Device_Startup_C_Startup_2_2_0
+  -lm
+  -lc
 )
+get_target_property(LINK_LIBRARIES ${CONTEXT} LINK_LIBRARIES)
+set_target_properties(${CONTEXT} PROPERTIES LINK_LIBRARIES "-Wl,--start-group;${LINK_LIBRARIES};-Wl,--end-group")
 
 # Linker options
 target_link_options(${CONTEXT} PUBLIC
   SHELL:${LD_CPU}
   SHELL:${_LS}"${LD_SCRIPT_PP}"
+  --specs=nano.specs
+  --specs=rdimon.specs
+  -Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/GCC/project.elf.map
+  -Wl,--gc-sections
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})

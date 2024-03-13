@@ -54,6 +54,7 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 	// Libraries
 	libraries := []string{"${CONTEXT}_GLOBAL"}
 	libraries = append(libraries, cbuild.ListGroupsAndComponents()...)
+	libraries = append(libraries, cbuild.BuildDescType.Misc.Library...)
 
 	// Linker options
 	if outputType == "elf" {
@@ -110,7 +111,7 @@ add_library(${CONTEXT}_DEFINES INTERFACE)` + CMakeTargetCompileDefinitions("${CO
 # Add groups and components
 include("groups.cmake")
 include("components.cmake")
-` + cbuild.CMakeTargetLinkLibraries("${CONTEXT}", "PUBLIC", libraries...) + `
+` + cbuild.CMakeTargetLinkLibraries("${CONTEXT}", "PUBLIC", libraries...) + RescanLinkLibraries("${CONTEXT}", m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Name) + `
 ` + linkerOptions + customCommands + `
 `
 	// Update CMakeLists.txt
@@ -346,4 +347,13 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 	}
 
 	return err
+}
+
+func RescanLinkLibraries(name string, compiler string) string {
+	var content string
+	if compiler == "GCC" {
+		content += "\nget_target_property(LINK_LIBRARIES " + name + " LINK_LIBRARIES)"
+		content += "\nset_target_properties(" + name + " PROPERTIES LINK_LIBRARIES \"-Wl,--start-group;${LINK_LIBRARIES};-Wl,--end-group\")"
+	}
+	return content
 }
