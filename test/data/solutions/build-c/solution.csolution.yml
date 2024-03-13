@@ -16,6 +16,10 @@ solution:
 
     - type: GCC
       compiler: GCC
+      misc: 
+        - Library:
+          - -lm
+          - -lc
     
     - type: IAR
       compiler: IAR

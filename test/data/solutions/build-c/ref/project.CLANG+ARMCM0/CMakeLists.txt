@@ -47,6 +47,10 @@ target_compile_options(${CONTEXT}_GLOBAL INTERFACE
   $<$<COMPILE_LANGUAGE:C>:
     SHELL:${CC_CPU}
     SHELL:${CC_FLAGS}
+    -std=gnu11
+    -fomit-frame-pointer
+    -ffunction-sections
+    -fdata-sections
   >
 )
 
@@ -65,6 +69,10 @@ target_link_libraries(${CONTEXT} PUBLIC
 target_link_options(${CONTEXT} PUBLIC
   SHELL:${LD_CPU}
   SHELL:${_LS}"${LD_SCRIPT_PP}"
+  -lcrt0-semihost
+  -lsemihost
+  -Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/CLANG/project.elf.map
+  -Wl,--gc-sections
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
 

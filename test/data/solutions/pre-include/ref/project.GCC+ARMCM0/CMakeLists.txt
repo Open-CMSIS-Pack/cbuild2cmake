@@ -69,6 +69,8 @@ target_link_libraries(${CONTEXT} PUBLIC
   ARM_TestClass_TestGlobal_1_0_0
   ARM_TestClass_TestLocal_1_0_0
 )
+get_target_property(LINK_LIBRARIES ${CONTEXT} LINK_LIBRARIES)
+set_target_properties(${CONTEXT} PROPERTIES LINK_LIBRARIES "-Wl,--start-group;${LINK_LIBRARIES};-Wl,--end-group")
 
 # Linker options
 target_link_options(${CONTEXT} PUBLIC

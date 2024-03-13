@@ -68,6 +68,8 @@ target_link_libraries(${CONTEXT} PUBLIC
   ARM_CMSIS_CORE_6_0_0
   ARM_Device_Startup_C_Startup_2_2_0
 )
+get_target_property(LINK_LIBRARIES ${CONTEXT} LINK_LIBRARIES)
+set_target_properties(${CONTEXT} PROPERTIES LINK_LIBRARIES "-Wl,--start-group;${LINK_LIBRARIES};-Wl,--end-group")
 
 # Linker options
 target_link_options(${CONTEXT} PUBLIC
