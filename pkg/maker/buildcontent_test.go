@@ -90,6 +90,12 @@ func TestBuildContent(t *testing.T) {
 			Category: "preIncludeGlobal",
 		}
 		files = append(files, preIncludeGlobal)
+		template := maker.Files{
+			File:     "./template.c",
+			Category: "source",
+			Attr:     "template",
+		}
+		files = append(files, template)
 		buildFiles = cbuild.ClassifyFiles(files)
 		assert.False(buildFiles.Interface)
 		assert.Equal("${SOLUTION_ROOT}/project/headers", buildFiles.Include["PUBLIC"]["ALL"][0])
