@@ -384,13 +384,16 @@ func (c *Cbuild) ClassifyFiles(files []Files) BuildFiles {
 	buildFiles.Source = make(LanguageMap)
 	buildFiles.Interface = true
 	for _, file := range files {
-		if strings.Contains(file.Category, "source") {
+		if strings.Contains(file.Category, "source") && file.Attr != "template" {
 			buildFiles.Interface = false
 			break
 		}
 	}
 
 	for _, file := range files {
+		if file.Attr == "template" {
+			continue
+		}
 		switch file.Category {
 		case "header", "headerAsm", "headerC", "headerCpp", "include", "includeAsm", "includeC", "includeCpp":
 			var scope string

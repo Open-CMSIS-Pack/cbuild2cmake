@@ -7,6 +7,7 @@
 package commands_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/cmd/cbuild2cmake/commands"
@@ -99,6 +100,8 @@ func TestSolutions(t *testing.T) {
 		// check super CMakeLists contents
 		content, err := utils.ReadFileContent(testCaseRoot + "/tmp/CMakeLists.txt")
 		assert.Nil(err)
+
+		content = strings.ReplaceAll(content, "\r\n", "\n")
 		assert.Contains(content, `
 set(CONTEXTS
   "project.AC6+ARMCM0"
