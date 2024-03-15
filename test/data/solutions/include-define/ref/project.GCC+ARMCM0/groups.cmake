@@ -13,7 +13,9 @@ target_link_libraries(Group_Source1_INCLUDES INTERFACE
 )
 add_library(Group_Source1_DEFINES INTERFACE)
 target_compile_definitions(Group_Source1_DEFINES INTERFACE
-  DEF1=1
+  $<$<COMPILE_LANGUAGE:C,CXX>:
+    DEF1=1
+  >
 )
 target_link_libraries(Group_Source1_DEFINES INTERFACE
   ${CONTEXT}_DEFINES
@@ -37,9 +39,11 @@ target_include_directories(Group_Source1_Source2_INCLUDES INTERFACE
 )
 add_library(Group_Source1_Source2_DEFINES INTERFACE)
 target_compile_definitions(Group_Source1_Source2_DEFINES INTERFACE
-  ARMCM0
-  _RTE_
-  DEF2=1
+  $<$<COMPILE_LANGUAGE:C,CXX>:
+    ARMCM0
+    _RTE_
+    DEF2=1
+  >
 )
 target_link_libraries(Group_Source1_Source2 PRIVATE
   ${CONTEXT}_GLOBAL
@@ -57,7 +61,6 @@ target_link_libraries(Group_Main PRIVATE
   ${CONTEXT}_DEFINES
 )
 set_source_files_properties("${SOLUTION_ROOT}/project/main.c" PROPERTIES
-  INCLUDE_DIRECTORIES "${SOLUTION_ROOT}/project/inc2"
-  COMPILE_DEFINITIONS "DEF2"
+  INCLUDE_DIRECTORIES ${SOLUTION_ROOT}/project/inc2
+  COMPILE_DEFINITIONS DEF2
 )
-

@@ -11,15 +11,25 @@ import (
 	"path"
 	"slices"
 	"strconv"
+	"strings"
 )
 
-func AppendUniquely(list []string, element string) []string {
-	for _, item := range list {
-		if item == element {
-			return list
+func AppendUniquely(list []string, elements ...string) []string {
+	for _, element := range elements {
+		if !slices.Contains(list, element) {
+			list = append(list, element)
 		}
 	}
-	return append(list, element)
+	return list
+}
+
+func FindLast(list []string, substr string) string {
+	for i := len(list) - 1; i >= 0; i-- {
+		if strings.Contains(list[i], substr) {
+			return list[i]
+		}
+	}
+	return ""
 }
 
 func RemoveIncludes(includes []string, delpaths ...string) []string {

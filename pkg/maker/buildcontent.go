@@ -169,8 +169,10 @@ func CMakeTargetIncludeDirectories(name string, scope string, includes []string)
 }
 
 func CMakeTargetCompileDefinitions(name string, scope string, defines []interface{}) string {
-	content := "\ntarget_compile_definitions(" + name + " " + scope + "\n  "
-	content += ListCompileDefinitions(defines, "\n  ")
+	content := "\ntarget_compile_definitions(" + name + " " + scope
+	content += "\n  $<$<COMPILE_LANGUAGE:C,CXX>:\n    "
+	content += ListCompileDefinitions(defines, "\n    ")
+	content += "\n  >"
 	content += "\n)"
 	return content
 }
@@ -234,8 +236,8 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 
 	// target compile options
 	content := "\ntarget_compile_options(" + name + " " + scope
-	for language, options := range optionsMap {
-		content += c.LanguageSpecificCompileOptions(language, options...)
+	for _, language := range sortedmap.AsSortedMap(optionsMap) {
+		content += c.LanguageSpecificCompileOptions(language.Key, language.Value...)
 	}
 	// pre-includes global
 	for _, preInclude := range c.PreIncludeGlobal {
@@ -258,8 +260,8 @@ func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc,
 	content := "\ntarget_compile_options(" + name + " " + scope
 	optionsMap := make(map[string][]string)
 	c.GetCompileOptionsLanguageMap(misc, &optionsMap)
-	for language, options := range optionsMap {
-		content += c.LanguageSpecificCompileOptions(language, options...)
+	for _, language := range sortedmap.AsSortedMap(optionsMap) {
+		content += c.LanguageSpecificCompileOptions(language.Key, language.Value...)
 	}
 	for _, preInclude := range preIncludes {
 		content += "\n  SHELL:${_PI}\"" + preInclude + "\""
@@ -576,7 +578,7 @@ func (c *Cbuild) CompilerAbstractions(abstractions CompilerAbstractions, languag
 	return content
 }
 
-func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstractions) string {
+func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstractions, parentMiscAsm []string) string {
 	var content string
 	// del-path and undefine are currently not supported at file level
 	if len(file.DelPath) > 0 {
@@ -595,19 +597,34 @@ func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstrac
 	if hasAbstractions {
 		content += c.CompilerAbstractions(abstractions, language)
 	}
+	// handle specific asm defines
+	if language == "ASM" && hasDefines {
+		flags := utils.AppendUniquely(parentMiscAsm, file.Misc.ASM...)
+		if (c.Toolchain == "AC6" || c.Toolchain == "GCC") && path.Ext(file.File) != ".S" && !strings.Contains(utils.FindLast(flags, "-x"), "assembler-with-cpp") {
+			syntax := "AS_GNU"
+			masm := utils.FindLast(flags, "-masm")
+			if c.Toolchain == "AC6" && (strings.Contains(masm, "armasm") || strings.Contains(masm, "auto")) {
+				syntax = "AS_ARM"
+			}
+			content += "\nset(COMPILE_DEFINITIONS\n  " + ListCompileDefinitions(file.Define, "\n  ") + "\n)"
+			content += "\ncbuild_set_defines(" + syntax + " COMPILE_DEFINITIONS)"
+			content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) + "\" PROPERTIES\n  COMPILE_FLAGS \"${COMPILE_DEFINITIONS}\"\n)"
+			hasDefines = false
+		}
+	}
 	// set file properties
 	if hasIncludes || hasDefines || hasMisc || hasAbstractions {
 		content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) + "\" PROPERTIES"
 		if hasIncludes {
-			content += "\n  INCLUDE_DIRECTORIES \"" + ListIncludeDirectories(AddRootPrefixes(c.ContextRoot, file.AddPath), ";", false) + "\""
+			content += "\n  INCLUDE_DIRECTORIES " + ListIncludeDirectories(AddRootPrefixes(c.ContextRoot, file.AddPath), ";", false)
 		}
 		if hasDefines {
-			content += "\n  COMPILE_DEFINITIONS \"" + ListCompileDefinitions(file.Define, ";") + "\""
+			content += "\n  COMPILE_DEFINITIONS " + ListCompileDefinitions(file.Define, ";")
 		}
 		if hasMisc || hasAbstractions {
-			content += "\n  COMPILE_OPTIONS \"" + GetFileOptions(file, hasAbstractions, ";") + "\""
+			content += "\n  COMPILE_OPTIONS " + GetFileOptions(file, hasAbstractions, ";")
 		}
-		content += "\n)\n"
+		content += "\n)"
 	}
 	return content
 }
