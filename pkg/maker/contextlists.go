@@ -21,6 +21,7 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 	outputExt := path.Ext(outputFile)
 	outputName := strings.TrimSuffix(outputFile, outputExt)
 	cbuild.ContextRoot, _ = filepath.Rel(m.CbuildIndex.BaseDir, cbuild.BaseDir)
+	cbuild.Toolchain = m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Name
 	outDir := AddRootPrefix(cbuild.ContextRoot, cbuild.BuildDescType.OutputDirs.Outdir)
 	contextDir := path.Join(m.SolutionIntDir, cbuild.BuildDescType.Context)
 
@@ -111,7 +112,7 @@ add_library(${CONTEXT}_DEFINES INTERFACE)` + CMakeTargetCompileDefinitions("${CO
 # Add groups and components
 include("groups.cmake")
 include("components.cmake")
-` + cbuild.CMakeTargetLinkLibraries("${CONTEXT}", "PUBLIC", libraries...) + RescanLinkLibraries("${CONTEXT}", m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Name) + `
+` + cbuild.CMakeTargetLinkLibraries("${CONTEXT}", "PUBLIC", libraries...) + RescanLinkLibraries("${CONTEXT}", cbuild.Toolchain) + `
 ` + linkerOptions + customCommands + `
 `
 	// Update CMakeLists.txt
@@ -143,7 +144,8 @@ include("` + toolchainConfig + `")
 func (c *Cbuild) CMakeCreateGroups(contextDir string) error {
 	content := "# groups.cmake\n"
 	abstractions := CompilerAbstractions{c.BuildDescType.Debug, c.BuildDescType.Optimize, c.BuildDescType.Warnings, c.BuildDescType.LanguageC, c.BuildDescType.LanguageCpp}
-	content += c.CMakeCreateGroupRecursively("", c.BuildDescType.Groups, AddRootPrefixes(c.ContextRoot, c.BuildDescType.AddPath), "${CONTEXT}_INCLUDES", c.BuildDescType.Define, "${CONTEXT}_DEFINES", abstractions)
+	content += c.CMakeCreateGroupRecursively("", c.BuildDescType.Groups, AddRootPrefixes(c.ContextRoot, c.BuildDescType.AddPath),
+		"${CONTEXT}_INCLUDES", c.BuildDescType.Define, "${CONTEXT}_DEFINES", abstractions, c.BuildDescType.Misc.ASM)
 
 	filename := path.Join(contextDir, "groups.cmake")
 	err := utils.UpdateFile(filename, content)
@@ -157,9 +159,10 @@ func (c *Cbuild) CMakeCreateGroups(contextDir string) error {
 func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 	parentIncludes []string, parentIncludesInterface string,
 	parentDefines []interface{}, parentDefinesInterface string,
-	parentAbstractions CompilerAbstractions) string {
+	parentAbstractions CompilerAbstractions, parentMiscAsm []string) string {
 	var content string
 	for _, group := range groups {
+		miscAsm := utils.AppendUniquely(parentMiscAsm, group.Misc.ASM...)
 		buildFiles := c.ClassifyFiles(group.Files)
 		hasChildren := len(group.Groups) > 0
 		if !hasChildren && len(buildFiles.Source) == 0 && len(buildFiles.Library) == 0 && len(buildFiles.Object) == 0 {
@@ -255,14 +258,14 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 				if hasFileAbstractions {
 					fileAbstractions = InheritCompilerAbstractions(abstractions, fileAbstractions)
 				}
-				content += c.CMakeSetFileProperties(file, fileAbstractions)
+				content += c.CMakeSetFileProperties(file, fileAbstractions, miscAsm)
 			}
 		}
 		content += "\n"
 
 		// create children groups recursively
 		if hasChildren {
-			content += c.CMakeCreateGroupRecursively(name, group.Groups, includes, includesInterface, defines, definesInterface, abstractions)
+			content += c.CMakeCreateGroupRecursively(name, group.Groups, includes, includesInterface, defines, definesInterface, abstractions, miscAsm)
 		}
 		c.BuildGroups = append(c.BuildGroups, name)
 	}

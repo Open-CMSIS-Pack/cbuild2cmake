@@ -37,8 +37,10 @@ target_include_directories(${CONTEXT}_INCLUDES INTERFACE
 # Defines
 add_library(${CONTEXT}_DEFINES INTERFACE)
 target_compile_definitions(${CONTEXT}_DEFINES INTERFACE
-  ARMCM0
-  _RTE_
+  $<$<COMPILE_LANGUAGE:C,CXX>:
+    ARMCM0
+    _RTE_
+  >
 )
 
 # Compile options

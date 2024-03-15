@@ -21,7 +21,11 @@ import (
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/utils"
 	cp "github.com/otiai10/copy"
+	log "github.com/sirupsen/logrus"
 )
+
+// Update original references
+const updateReferences = false
 
 func TestInitialization(testRoot string) {
 	// Prepare test data
@@ -55,31 +59,46 @@ func ClearToolchainRegistration() {
 	}
 }
 
-func CompareFiles(reference string, actual string) error {
+func CompareFiles(reference string, actual string) (error, bool) {
 	referenceEntries, err := os.ReadDir(reference)
 	if err != nil {
-		return err
+		return err, false
 	}
+	mismatch := false
 	for _, referenceEntry := range referenceEntries {
+		if path.Ext(referenceEntry.Name()) == ".bak" {
+			continue
+		}
 		referencePath := path.Join(reference, referenceEntry.Name())
 		actualPath := path.Join(actual, referenceEntry.Name())
 		if referenceEntry.IsDir() {
-			err = CompareFiles(referencePath, actualPath)
+			err, childMismatch := CompareFiles(referencePath, actualPath)
 			if err != nil {
-				return err
+				return err, false
+			}
+			if childMismatch {
+				mismatch = true
 			}
 		} else {
 			referenceContent, _ := utils.ReadFileContent(referencePath)
 			actualContent, err := utils.ReadFileContent(actualPath)
 			if err != nil {
-				return err
+				return err, false
 			}
 			actualContent = strings.ReplaceAll(actualContent, "\r\n", "\n")
 			referenceContent = strings.ReplaceAll(referenceContent, "\r\n", "\n")
 			if actualContent != referenceContent {
-				return errors.New("files " + referencePath + " and " + actualPath + " do not match")
+				if updateReferences {
+					originalReference := strings.ReplaceAll(referencePath, "/run/", "/data/")
+					_ = cp.Copy(actualPath, originalReference)
+				}
+				log.Error("files " + referencePath + " and " + actualPath + " do not match")
+				mismatch = true
 			}
 		}
 	}
-	return nil
+	if mismatch {
+		return errors.New("reference files comparison failed, see log messages"), true
+	}
+	return nil, false
 }
