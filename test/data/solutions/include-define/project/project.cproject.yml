@@ -44,3 +44,4 @@ project:
             - ./not-supported
           undefine:
             - not-supported
+        - file: ./inc3/inc.h

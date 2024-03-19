@@ -62,6 +62,7 @@ type Cbuild struct {
 	ContextRoot      string
 	Languages        []string
 	PreIncludeGlobal []string
+	IncludeGlobal    []string
 	BuildGroups      []string
 	Toolchain        string
 }

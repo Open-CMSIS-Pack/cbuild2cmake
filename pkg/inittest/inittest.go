@@ -11,7 +11,6 @@
 package inittest
 
 import (
-	"errors"
 	"os"
 	"path"
 	"path/filepath"
@@ -97,8 +96,5 @@ func CompareFiles(reference string, actual string) (error, bool) {
 			}
 		}
 	}
-	if mismatch {
-		return errors.New("reference files comparison failed, see log messages"), true
-	}
-	return nil, false
+	return nil, mismatch
 }

@@ -102,7 +102,7 @@ set_target_properties(${CONTEXT} PROPERTIES ` + outputDirType + ` ${OUT_DIR})
 add_library(${CONTEXT}_GLOBAL INTERFACE)
 
 # Includes
-add_library(${CONTEXT}_INCLUDES INTERFACE)` + CMakeTargetIncludeDirectories("${CONTEXT}_INCLUDES", "INTERFACE", AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPath)) + `
+add_library(${CONTEXT}_INCLUDES INTERFACE)` + CMakeTargetIncludeDirectories("${CONTEXT}_INCLUDES", "INTERFACE", append(cbuild.IncludeGlobal, AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPath)...)) + `
 
 # Defines
 add_library(${CONTEXT}_DEFINES INTERFACE)` + CMakeTargetCompileDefinitions("${CONTEXT}_DEFINES", "INTERFACE", cbuild.BuildDescType.Define) + `
@@ -188,6 +188,7 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 		// target_include_directories
 		if len(buildFiles.Include) > 0 {
 			content += CMakeTargetIncludeDirectoriesFromFiles(name, buildFiles)
+			c.IncludeGlobal = append(c.IncludeGlobal, "$<TARGET_PROPERTY:"+name+",INTERFACE_INCLUDE_DIRECTORIES>")
 		}
 		includes := parentIncludes
 		includesInterface := parentIncludesInterface
