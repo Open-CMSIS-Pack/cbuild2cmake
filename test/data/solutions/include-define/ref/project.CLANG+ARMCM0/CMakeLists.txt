@@ -31,7 +31,7 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 # Includes
 add_library(${CONTEXT}_INCLUDES INTERFACE)
 target_include_directories(${CONTEXT}_INCLUDES INTERFACE
-  "$<TARGET_PROPERTY:Group_Main,INTERFACE_INCLUDE_DIRECTORIES>"
+  "$<TARGET_PROPERTY:Group_Headers,INTERFACE_INCLUDE_DIRECTORIES>"
   "${SOLUTION_ROOT}/project/RTE/_CLANG_ARMCM0"
   "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include"
   "${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include"
@@ -67,6 +67,7 @@ target_link_libraries(${CONTEXT} PUBLIC
   Group_Source1_Source2
   Group_Source1
   Group_Main
+  Group_Headers
   ARM_CMSIS_CORE_6_0_0
   ARM_Device_Startup_C_Startup_2_2_0
 )
