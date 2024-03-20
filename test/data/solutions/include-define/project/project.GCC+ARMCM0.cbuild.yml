@@ -54,6 +54,17 @@ build:
         - DEF1
       del-path:
         - inc1
+      files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Template/ARMv8-M/main_s.c
+          category: sourceC
+          attr: template
+          version: 1.1.1
+          select: Secure mode 'main' module for ARMv8-M
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Template/ARMv8-M/tz_context.c
+          category: sourceC
+          attr: template
+          version: 1.1.1
+          select: RTOS Context Management (TrustZone for ARMv8-M)
     - component: ARM::Device:Startup&C Startup@2.2.0
       condition: ARMCM0 CMSIS
       from-pack: ARM::Cortex_DFP@1.0.0
@@ -111,6 +122,8 @@ build:
             - inc2
           del-path:
             - not-supported
+        - file: ./inc3/inc.h
+          category: header
   constructed-files:
     - file: RTE/_GCC_ARMCM0/RTE_Components.h
       category: header
