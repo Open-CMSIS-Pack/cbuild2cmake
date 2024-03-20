@@ -44,4 +44,7 @@ project:
             - ./not-supported
           undefine:
             - not-supported
+
+    - group: Headers
+      files:
         - file: ./inc3/inc.h

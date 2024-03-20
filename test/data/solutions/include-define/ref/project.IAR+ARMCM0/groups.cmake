@@ -55,10 +55,6 @@ target_link_libraries(Group_Source1_Source2 PRIVATE
 add_library(Group_Main OBJECT
   "${SOLUTION_ROOT}/project/main.c"
 )
-target_include_directories(Group_Main
-  PUBLIC
-    "${SOLUTION_ROOT}/project/inc3"
-)
 target_link_libraries(Group_Main PRIVATE
   ${CONTEXT}_GLOBAL
   ${CONTEXT}_INCLUDES
@@ -67,4 +63,16 @@ target_link_libraries(Group_Main PRIVATE
 set_source_files_properties("${SOLUTION_ROOT}/project/main.c" PROPERTIES
   INCLUDE_DIRECTORIES ${SOLUTION_ROOT}/project/inc2
   COMPILE_DEFINITIONS DEF2
+)
+
+# group Headers
+add_library(Group_Headers INTERFACE)
+target_include_directories(Group_Headers
+  INTERFACE
+    "${SOLUTION_ROOT}/project/inc3"
+)
+target_link_libraries(Group_Headers INTERFACE
+  ${CONTEXT}_GLOBAL
+  ${CONTEXT}_INCLUDES
+  ${CONTEXT}_DEFINES
 )

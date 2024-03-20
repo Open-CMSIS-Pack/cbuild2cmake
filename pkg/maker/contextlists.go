@@ -174,7 +174,7 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 		miscAsm := utils.AppendUniquely(parentMiscAsm, group.Misc.ASM...)
 		buildFiles := c.ClassifyFiles(group.Files)
 		hasChildren := len(group.Groups) > 0
-		if !hasChildren && len(buildFiles.Source) == 0 && len(buildFiles.Library) == 0 && len(buildFiles.Object) == 0 {
+		if !hasChildren && len(buildFiles.Source) == 0 && len(buildFiles.Include) == 0 && len(buildFiles.Library) == 0 && len(buildFiles.Object) == 0 {
 			continue
 		}
 		firstLevelGroup := len(parent) == 0
