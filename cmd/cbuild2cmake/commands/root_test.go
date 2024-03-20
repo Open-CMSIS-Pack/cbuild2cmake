@@ -140,6 +140,18 @@ set(OUTPUTS
 		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
 	})
 
+	t.Run("test build cpp", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		testCaseRoot := testRoot + "/run/solutions/build-cpp"
+		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
+		err := cmd.Execute()
+		assert.Nil(err)
+
+		// check golden references
+		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
+	})
+
 	t.Run("test linker preprocessing", func(t *testing.T) {
 		cmd := commands.NewRootCmd()
 		testCaseRoot := testRoot + "/run/solutions/linker-pre-processing"

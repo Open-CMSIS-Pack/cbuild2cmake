@@ -23,6 +23,7 @@ project(${CONTEXT} LANGUAGES C)
 
 # Compilation database
 add_custom_target(database COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" "${OUT_DIR}")
+set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES})
 
 # Setup context
 add_executable(${CONTEXT})

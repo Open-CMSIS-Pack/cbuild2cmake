@@ -1,0 +1,105 @@
+build:
+  generated-by: csolution version 2.3.0-devint0
+  solution: ../solution.csolution.yml
+  project: project.cproject.yml
+  context: project.CLANG+ARMCM55
+  compiler: CLANG
+  device: ARMCM55
+  device-pack: ARM::Cortex_DFP@1.0.0
+  processor:
+    dsp: on
+    fpu: dp
+    mve: fp
+    core: Cortex-M55
+  packs:
+    - pack: ARM::CMSIS@6.0.0
+      path: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0
+    - pack: ARM::Cortex_DFP@1.0.0
+      path: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0
+  misc:
+    C:
+      - -std=gnu11
+      - -fomit-frame-pointer
+      - -ffunction-sections
+      - -fdata-sections
+    CPP:
+      - -fomit-frame-pointer
+      - -ffunction-sections
+      - -fdata-sections
+    Link:
+      - -lcrt0-semihost
+      - -lsemihost
+      - -Wl,-Map=../out/project/ARMCM55/CLANG/project.elf.map
+      - -Wl,--gc-sections
+  define:
+    - ARMCM55
+    - _RTE_
+  add-path:
+    - RTE/Device/ARMCM55
+    - RTE/_CLANG_ARMCM55
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
+    - ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM55/Include
+  output-dirs:
+    intdir: ../tmp/project/ARMCM55/CLANG
+    outdir: ../out/project/ARMCM55/CLANG
+    rtedir: RTE
+  output:
+    - type: elf
+      file: project.elf
+  components:
+    - component: ARM::CMSIS:CORE@6.0.0
+      condition: ARMv6_7_8-M Device
+      from-pack: ARM::CMSIS@6.0.0
+      selected-by: ARM::CMSIS:CORE
+      files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Template/ARMv8-M/main_s.c
+          category: sourceC
+          attr: template
+          version: 1.1.1
+          select: Secure mode 'main' module for ARMv8-M
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Template/ARMv8-M/tz_context.c
+          category: sourceC
+          attr: template
+          version: 1.1.1
+          select: RTOS Context Management (TrustZone for ARMv8-M)
+    - component: ARM::Device:Startup&C Startup@2.2.0
+      condition: ARMCM55 CMSIS
+      from-pack: ARM::Cortex_DFP@1.0.0
+      selected-by: ARM::Device:Startup&C Startup
+      files:
+        - file: RTE/Device/ARMCM55/partition_ARMCM55.h
+          category: header
+          attr: config
+          version: 1.0.0
+        - file: RTE/Device/ARMCM55/startup_ARMCM55.c
+          category: sourceC
+          attr: config
+          version: 1.1.0
+        - file: RTE/Device/ARMCM55/system_ARMCM55.c
+          category: sourceC
+          attr: config
+          version: 1.1.0
+  linker:
+    script: RTE/Device/ARMCM55/clang_linker_script.ld.src
+    regions: RTE/Device/ARMCM55/regions_ARMCM55.h
+  groups:
+    - group: Source
+      files:
+        - file: ./main.cpp
+          category: sourceCpp
+  constructed-files:
+    - file: RTE/_CLANG_ARMCM55/RTE_Components.h
+      category: header
+  licenses:
+    - license: <unknown>
+      license-agreement: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/LICENSE
+      packs:
+        - pack: ARM::CMSIS@6.0.0
+      components:
+        - component: ARM::CMSIS:CORE@6.0.0
+    - license: <unknown>
+      license-agreement: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/LICENSE
+      packs:
+        - pack: ARM::Cortex_DFP@1.0.0
+      components:
+        - component: ARM::Device:Startup&C Startup@2.2.0

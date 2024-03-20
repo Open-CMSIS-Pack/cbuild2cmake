@@ -1,46 +1,49 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(CONTEXT project.GCC+ARMCM0)
+set(CONTEXT project.AC6+ARMCM55)
 set(TARGET ${CONTEXT})
-set(OUT_DIR "${SOLUTION_ROOT}/out/project/ARMCM0/GCC")
+set(OUT_DIR "${SOLUTION_ROOT}/out/project/ARMCM55/AC6")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(LD_SCRIPT "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/ARMCM0_gcc.ld")
+set(LD_SCRIPT "${SOLUTION_ROOT}/project/RTE/Device/ARMCM55/ARMCM55_ac6.sct")
 set(LD_SCRIPT_PP ${LD_SCRIPT})
 
 # Processor Options
-set(CPU Cortex-M0)
-set(FPU NO_FPU)
+set(CPU Cortex-M55)
+set(FPU DP_FPU)
+set(DSP DSP)
+set(MVE FP_FVE)
 
 # Toolchain config map
 include("toolchain.cmake")
 
 # Setup project
-project(${CONTEXT} LANGUAGES C)
+project(${CONTEXT} LANGUAGES C CXX)
 
 # Compilation database
 add_custom_target(database COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" "${OUT_DIR}")
 set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES})
+set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 
 # Setup context
 add_executable(${CONTEXT})
-set_target_properties(${CONTEXT} PROPERTIES PREFIX "" SUFFIX ".elf" OUTPUT_NAME "project")
+set_target_properties(${CONTEXT} PROPERTIES PREFIX "" SUFFIX ".axf" OUTPUT_NAME "project")
 set_target_properties(${CONTEXT} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})
 add_library(${CONTEXT}_GLOBAL INTERFACE)
 
 # Includes
 add_library(${CONTEXT}_INCLUDES INTERFACE)
 target_include_directories(${CONTEXT}_INCLUDES INTERFACE
-  "$<TARGET_PROPERTY:Group_Main,INTERFACE_INCLUDE_DIRECTORIES>"
-  "${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0"
+  "${SOLUTION_ROOT}/project/RTE/Device/ARMCM55"
+  "${SOLUTION_ROOT}/project/RTE/_AC6_ARMCM55"
   "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include"
-  "${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include"
+  "${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM55/Include"
 )
 
 # Defines
 add_library(${CONTEXT}_DEFINES INTERFACE)
 target_compile_definitions(${CONTEXT}_DEFINES INTERFACE
   $<$<COMPILE_LANGUAGE:C,CXX>:
-    ARMCM0
+    ARMCM55
     _RTE_
   >
 )
@@ -51,10 +54,18 @@ target_compile_options(${CONTEXT}_GLOBAL INTERFACE
     SHELL:${CC_CPU}
     SHELL:${CC_FLAGS}
     -std=gnu11
-    -masm-syntax-unified
-    -fomit-frame-pointer
-    -ffunction-sections
-    -fdata-sections
+    -Wno-macro-redefined
+    -Wno-pragma-pack
+    -Wno-parentheses-equality
+    -Wno-license-management
+  >
+  $<$<COMPILE_LANGUAGE:CXX>:
+    SHELL:${CXX_CPU}
+    SHELL:${CXX_FLAGS}
+    -Wno-macro-redefined
+    -Wno-pragma-pack
+    -Wno-parentheses-equality
+    -Wno-license-management
   >
 )
 
@@ -64,22 +75,19 @@ include("components.cmake")
 
 target_link_libraries(${CONTEXT} PUBLIC
   ${CONTEXT}_GLOBAL
-  Group_Source1_Source2
-  Group_Source1
-  Group_Main
+  Group_Source
   ARM_CMSIS_CORE_6_0_0
   ARM_Device_Startup_C_Startup_2_2_0
 )
-get_target_property(LINK_LIBRARIES ${CONTEXT} LINK_LIBRARIES)
-set_target_properties(${CONTEXT} PROPERTIES LINK_LIBRARIES "-Wl,--start-group;${LINK_LIBRARIES};-Wl,--end-group")
 
 # Linker options
 target_link_options(${CONTEXT} PUBLIC
   SHELL:${LD_CPU}
   SHELL:${_LS}"${LD_SCRIPT_PP}"
-  --specs=nano.specs
-  --specs=rdimon.specs
-  -Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/GCC/project.elf.map
-  -Wl,--gc-sections
+  --entry=Reset_Handler
+  --map
+  --info summarysizes
+  --summary_stderr
+  --diag_suppress=L6314W
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
