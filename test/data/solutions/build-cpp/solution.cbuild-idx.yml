@@ -1,0 +1,19 @@
+build-idx:
+  generated-by: csolution version 2.3.0-devint0
+  cdefault: ${CMSIS_COMPILER_ROOT}/cdefault.yml
+  csolution: solution.csolution.yml
+  cprojects:
+    - cproject: project/project.cproject.yml
+  cbuilds:
+    - cbuild: project/project.AC6+ARMCM55.cbuild.yml
+      project: project
+      configuration: .AC6+ARMCM55
+    - cbuild: project/project.CLANG+ARMCM55.cbuild.yml
+      project: project
+      configuration: .CLANG+ARMCM55
+    - cbuild: project/project.GCC+ARMCM55.cbuild.yml
+      project: project
+      configuration: .GCC+ARMCM55
+    - cbuild: project/project.IAR+ARMCM55.cbuild.yml
+      project: project
+      configuration: .IAR+ARMCM55
