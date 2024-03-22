@@ -139,21 +139,27 @@ func BuildDependencies(cbuilds []Cbuilds) string {
 	return content
 }
 
-func CMakeTargetIncludeDirectoriesFromFiles(name string, buildFiles BuildFiles) string {
+func CMakeTargetIncludeDirectoriesClassified(name string, includes ScopeMap) string {
 	content := "\ntarget_include_directories(" + name
-	for _, scope := range sortedmap.AsSortedMap(buildFiles.Include) {
-		content += "\n  " + scope.Key
+	scopeIndentation := " "
+	fileIndentation := "\n  "
+	if len(includes) > 1 {
+		scopeIndentation = "\n  "
+		fileIndentation = "\n    "
+	}
+	for _, scope := range sortedmap.AsSortedMap(includes) {
+		content += scopeIndentation + scope.Key
 		for _, language := range sortedmap.AsSortedMap(scope.Value) {
 			if language.Key == "ALL" {
 				for _, file := range language.Value {
-					content += "\n    \"" + file + "\""
+					content += fileIndentation + file
 				}
 			} else {
-				content += "\n    " + "$<$<COMPILE_LANGUAGE:" + language.Key + ">:"
+				content += fileIndentation + "$<$<COMPILE_LANGUAGE:" + language.Key + ">:"
 				for _, file := range language.Value {
-					content += "\n      \"" + file + "\""
+					content += fileIndentation + "  " + file
 				}
-				content += "\n    >"
+				content += fileIndentation + ">"
 			}
 		}
 	}
@@ -161,30 +167,43 @@ func CMakeTargetIncludeDirectoriesFromFiles(name string, buildFiles BuildFiles) 
 	return content
 }
 
-func CMakeTargetIncludeDirectories(name string, scope string, includes []string) string {
-	content := "\ntarget_include_directories(" + name + " " + scope + "\n  "
-	content += ListIncludeDirectories(includes, "\n  ", true)
-	content += "\n)"
-	return content
-}
-
-func CMakeTargetCompileDefinitions(name string, scope string, defines []interface{}) string {
-	content := "\ntarget_compile_definitions(" + name + " " + scope
-	content += "\n  $<$<COMPILE_LANGUAGE:C,CXX>:\n    "
-	content += ListCompileDefinitions(defines, "\n    ")
-	content += "\n  >"
-	content += "\n)"
-	return content
-}
-
-func ListIncludeDirectories(includes []string, delimiter string, quoted bool) string {
-	if quoted {
-		var includesList []string
-		for _, include := range includes {
-			includesList = append(includesList, "\""+include+"\"")
-		}
-		return strings.Join(includesList, delimiter)
+func CMakeTargetIncludeDirectories(name string, parent string, scope string, addPath []string, delPath []string) string {
+	content := "\ntarget_include_directories(" + name + " " + scope
+	if len(addPath) > 0 {
+		content += "\n  " + ListIncludeDirectories(addPath, "\n  ")
 	}
+	if len(parent) > 0 {
+		if len(delPath) > 0 {
+			content += "\n  $<LIST:REMOVE_ITEM,$<TARGET_PROPERTY:" + parent + ",INTERFACE_INCLUDE_DIRECTORIES>,"
+			content += "\n    " + ListIncludeDirectories(delPath, "\n    ")
+			content += "\n  >"
+		} else {
+			content += "\n  $<TARGET_PROPERTY:" + parent + ",INTERFACE_INCLUDE_DIRECTORIES>"
+		}
+	}
+	content += "\n)"
+	return content
+}
+
+func CMakeTargetCompileDefinitions(name string, parent string, scope string, define []interface{}, undefine []string) string {
+	content := "\ntarget_compile_definitions(" + name + " " + scope
+	if len(define) > 0 {
+		content += "\n  $<$<COMPILE_LANGUAGE:C,CXX>:\n    "
+		content += ListCompileDefinitions(define, "\n    ")
+		content += "\n  >"
+	}
+	if len(parent) > 0 {
+		if len(undefine) > 0 {
+			content += "\n  $<LIST:FILTER,$<TARGET_PROPERTY:" + parent + ",INTERFACE_COMPILE_DEFINITIONS>,EXCLUDE,^" + strings.Join(undefine, ".*,^") + ".*>"
+		} else {
+			content += "\n  $<TARGET_PROPERTY:" + parent + ",INTERFACE_COMPILE_DEFINITIONS>"
+		}
+	}
+	content += "\n)"
+	return content
+}
+
+func ListIncludeDirectories(includes []string, delimiter string) string {
 	return strings.Join(includes, delimiter)
 }
 
@@ -256,8 +275,9 @@ func (c *Cbuild) CMakeTargetLinkLibraries(name string, scope string, libraries .
 	return content
 }
 
-func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc, preIncludes []string) string {
+func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc, preIncludes []string, parent string) string {
 	content := "\ntarget_compile_options(" + name + " " + scope
+	content += "\n  $<TARGET_PROPERTY:" + parent + ",INTERFACE_COMPILE_OPTIONS>"
 	optionsMap := make(map[string][]string)
 	c.GetCompileOptionsLanguageMap(misc, &optionsMap)
 	for _, language := range sortedmap.AsSortedMap(optionsMap) {
@@ -429,6 +449,20 @@ func (c *Cbuild) ClassifyFiles(files []Files) BuildFiles {
 	}
 
 	return buildFiles
+}
+
+func AppendGlobalIncludes(includes LanguageMap, elements ScopeMap) LanguageMap {
+	for scope, languages := range elements {
+		if scope != "PRIVATE" {
+			if includes == nil {
+				includes = make(LanguageMap)
+			}
+			for language, paths := range languages {
+				includes[language] = utils.AppendUniquely(includes[language], paths...)
+			}
+		}
+	}
+	return includes
 }
 
 func (c *Cbuild) ProcessorOptions() string {
@@ -616,7 +650,7 @@ func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstrac
 	if hasIncludes || hasDefines || hasMisc || hasAbstractions {
 		content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) + "\" PROPERTIES"
 		if hasIncludes {
-			content += "\n  INCLUDE_DIRECTORIES " + ListIncludeDirectories(AddRootPrefixes(c.ContextRoot, file.AddPath), ";", false)
+			content += "\n  INCLUDE_DIRECTORIES " + ListIncludeDirectories(AddRootPrefixes(c.ContextRoot, file.AddPath), ";")
 		}
 		if hasDefines {
 			content += "\n  COMPILE_DEFINITIONS " + ListCompileDefinitions(file.Define, ";")

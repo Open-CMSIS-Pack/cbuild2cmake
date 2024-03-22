@@ -29,16 +29,14 @@ set_target_properties(${CONTEXT} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})
 add_library(${CONTEXT}_GLOBAL INTERFACE)
 
 # Includes
-add_library(${CONTEXT}_INCLUDES INTERFACE)
-target_include_directories(${CONTEXT}_INCLUDES INTERFACE
-  "${SOLUTION_ROOT}/project/RTE/_CLANG_ARMCM0"
-  "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include"
-  "${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include"
+target_include_directories(${CONTEXT} PUBLIC
+  ${SOLUTION_ROOT}/project/RTE/_CLANG_ARMCM0
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
+  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
 )
 
 # Defines
-add_library(${CONTEXT}_DEFINES INTERFACE)
-target_compile_definitions(${CONTEXT}_DEFINES INTERFACE
+target_compile_definitions(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:C,CXX>:
     ARMCM0
     _RTE_
@@ -46,7 +44,7 @@ target_compile_definitions(${CONTEXT}_DEFINES INTERFACE
 )
 
 # Compile options
-target_compile_options(${CONTEXT}_GLOBAL INTERFACE
+target_compile_options(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:C>:
     SHELL:${CC_CPU}
     SHELL:${CC_FLAGS}
@@ -65,7 +63,6 @@ include("groups.cmake")
 include("components.cmake")
 
 target_link_libraries(${CONTEXT} PUBLIC
-  ${CONTEXT}_GLOBAL
   Group_Source
   ARM_CMSIS_CORE_6_0_0
   ARM_Device_Startup_C_Startup_2_2_0
