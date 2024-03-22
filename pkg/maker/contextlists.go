@@ -24,6 +24,7 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 	cbuild.Toolchain = m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Name
 	outDir := AddRootPrefix(cbuild.ContextRoot, cbuild.BuildDescType.OutputDirs.Outdir)
 	contextDir := path.Join(m.SolutionIntDir, cbuild.BuildDescType.Context)
+	cbuild.IncludeGlobal = make(LanguageMap)
 
 	var cmakeTargetType, outputDirType, linkerVars, linkerOptions string
 	if outputType == "elf" {
@@ -40,20 +41,20 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 		return err
 	}
 
-	// Create components.cmake
-	err = cbuild.CMakeCreateComponents(contextDir)
-	if err != nil {
-		return err
-	}
-
 	// Create groups.cmake
 	err = cbuild.CMakeCreateGroups(contextDir)
 	if err != nil {
 		return err
 	}
 
+	// Create components.cmake
+	err = cbuild.CMakeCreateComponents(contextDir)
+	if err != nil {
+		return err
+	}
+
 	// Libraries
-	libraries := []string{"${CONTEXT}_GLOBAL"}
+	var libraries []string
 	libraries = append(libraries, cbuild.ListGroupsAndComponents()...)
 	libraries = append(libraries, cbuild.BuildDescType.Misc.Library...)
 
@@ -70,6 +71,11 @@ func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
 			systemIncludes += "\nset(CMAKE_" + language + "_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_" + language + "_IMPLICIT_INCLUDE_DIRECTORIES})"
 		}
 	}
+
+	// Global classified includes
+	includeGlobal := make(ScopeMap)
+	includeGlobal["PUBLIC"] = cbuild.IncludeGlobal
+	includeGlobal["PUBLIC"]["ALL"] = utils.AppendUniquely(includeGlobal["PUBLIC"]["ALL"], AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPath)...)
 
 	// Global pre-includes
 	for _, file := range cbuild.BuildDescType.ConstructedFiles {
@@ -110,13 +116,11 @@ set_target_properties(${CONTEXT} PROPERTIES PREFIX "" SUFFIX "` + outputExt + `"
 set_target_properties(${CONTEXT} PROPERTIES ` + outputDirType + ` ${OUT_DIR})
 add_library(${CONTEXT}_GLOBAL INTERFACE)
 
-# Includes
-add_library(${CONTEXT}_INCLUDES INTERFACE)` + CMakeTargetIncludeDirectories("${CONTEXT}_INCLUDES", "INTERFACE", append(cbuild.IncludeGlobal, AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPath)...)) + `
+# Includes` + CMakeTargetIncludeDirectoriesClassified("${CONTEXT}", includeGlobal) + `
 
-# Defines
-add_library(${CONTEXT}_DEFINES INTERFACE)` + CMakeTargetCompileDefinitions("${CONTEXT}_DEFINES", "INTERFACE", cbuild.BuildDescType.Define) + `
+# Defines` + CMakeTargetCompileDefinitions("${CONTEXT}", "", "PUBLIC", cbuild.BuildDescType.Define, []string{}) + `
 
-# Compile options` + cbuild.CMakeTargetCompileOptionsGlobal("${CONTEXT}_GLOBAL", "INTERFACE") + globalCompilerAbstractions + `
+# Compile options` + cbuild.CMakeTargetCompileOptionsGlobal("${CONTEXT}", "PUBLIC") + globalCompilerAbstractions + `
 
 # Add groups and components
 include("groups.cmake")
@@ -153,9 +157,7 @@ include("` + toolchainConfig + `")
 func (c *Cbuild) CMakeCreateGroups(contextDir string) error {
 	content := "# groups.cmake\n"
 	abstractions := CompilerAbstractions{c.BuildDescType.Debug, c.BuildDescType.Optimize, c.BuildDescType.Warnings, c.BuildDescType.LanguageC, c.BuildDescType.LanguageCpp}
-	content += c.CMakeCreateGroupRecursively("", c.BuildDescType.Groups, AddRootPrefixes(c.ContextRoot, c.BuildDescType.AddPath),
-		"${CONTEXT}_INCLUDES", c.BuildDescType.Define, "${CONTEXT}_DEFINES", abstractions, c.BuildDescType.Misc.ASM)
-
+	content += c.CMakeCreateGroupRecursively("", c.BuildDescType.Groups, abstractions, c.BuildDescType.Misc.ASM)
 	filename := path.Join(contextDir, "groups.cmake")
 	err := utils.UpdateFile(filename, content)
 	if err != nil {
@@ -166,8 +168,6 @@ func (c *Cbuild) CMakeCreateGroups(contextDir string) error {
 }
 
 func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
-	parentIncludes []string, parentIncludesInterface string,
-	parentDefines []interface{}, parentDefinesInterface string,
 	parentAbstractions CompilerAbstractions, parentMiscAsm []string) string {
 	var content string
 	for _, group := range groups {
@@ -184,56 +184,22 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 			name = "Group" + name
 			parentName = "${CONTEXT}"
 		}
-		// default private scope
-		scope := "PRIVATE"
-		if len(buildFiles.Source) == 0 {
+		// default scope
+		scope := "PUBLIC"
+		if buildFiles.Interface {
 			scope = "INTERFACE"
-		} else if hasChildren {
-			scope = "PUBLIC"
 		}
 		// add_library
 		content += "\n# group " + group.Group
 		content += CMakeAddLibrary(name, buildFiles)
 		// target_include_directories
 		if len(buildFiles.Include) > 0 {
-			content += CMakeTargetIncludeDirectoriesFromFiles(name, buildFiles)
-			c.IncludeGlobal = append(c.IncludeGlobal, "$<TARGET_PROPERTY:"+name+",INTERFACE_INCLUDE_DIRECTORIES>")
+			content += CMakeTargetIncludeDirectoriesClassified(name, buildFiles.Include)
+			c.IncludeGlobal = AppendGlobalIncludes(c.IncludeGlobal, buildFiles.Include)
 		}
-		includes := parentIncludes
-		includesInterface := parentIncludesInterface
-		if len(group.DelPath) == 0 {
-			if len(group.AddPath) > 0 {
-				includes = append(parentIncludes, AddRootPrefixes(c.ContextRoot, group.AddPath)...)
-				includesInterface = name + "_INCLUDES"
-				content += "\nadd_library(" + includesInterface + " INTERFACE)"
-				content += CMakeTargetIncludeDirectories(includesInterface, "INTERFACE", AddRootPrefixes(c.ContextRoot, group.AddPath))
-				content += c.CMakeTargetLinkLibraries(includesInterface, "INTERFACE", parentIncludesInterface)
-			}
-		} else {
-			includes = append(parentIncludes, AddRootPrefixes(c.ContextRoot, group.AddPath)...)
-			includes = utils.RemoveIncludes(includes, AddRootPrefixes(c.ContextRoot, group.DelPath)...)
-			includesInterface = name + "_INCLUDES"
-			content += "\nadd_library(" + includesInterface + " INTERFACE)"
-			content += CMakeTargetIncludeDirectories(includesInterface, "INTERFACE", includes)
-		}
+		content += CMakeTargetIncludeDirectories(name, parentName, scope, AddRootPrefixes(c.ContextRoot, group.AddPath), AddRootPrefixes(c.ContextRoot, group.DelPath))
 		// target_compile_definitions
-		defines := parentDefines
-		definesInterface := parentDefinesInterface
-		if len(group.Undefine) == 0 {
-			if len(group.Define) > 0 {
-				defines = append(parentDefines, group.Define...)
-				definesInterface = name + "_DEFINES"
-				content += "\nadd_library(" + definesInterface + " INTERFACE)"
-				content += CMakeTargetCompileDefinitions(definesInterface, "INTERFACE", group.Define)
-				content += c.CMakeTargetLinkLibraries(definesInterface, "INTERFACE", parentDefinesInterface)
-			}
-		} else {
-			defines = append(parentDefines, group.Define...)
-			defines = utils.RemoveDefines(defines, group.Undefine...)
-			definesInterface = name + "_DEFINES"
-			content += "\nadd_library(" + definesInterface + " INTERFACE)"
-			content += CMakeTargetCompileDefinitions(definesInterface, "INTERFACE", defines)
-		}
+		content += CMakeTargetCompileDefinitions(name, parentName, scope, group.Define, group.Undefine)
 		// compiler abstractions
 		hasFileAbstractions := HasFileAbstractions(group.Files)
 		groupAbstractions := CompilerAbstractions{group.Debug, group.Optimize, group.Warnings, group.LanguageC, group.LanguageCpp}
@@ -245,22 +211,24 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 				content += c.CMakeTargetCompileOptionsAbstractions(name, abstractions, languages)
 			}
 		}
-		// target_compile_options
-		if !IsCompileMiscEmpty(group.Misc) || len(buildFiles.PreIncludeLocal) > 0 {
-			content += c.CMakeTargetCompileOptions(name, scope, group.Misc, buildFiles.PreIncludeLocal)
-		}
-		// target_link_libraries
-		libraries := []string{"${CONTEXT}_GLOBAL", includesInterface, definesInterface}
-		if !hasFileAbstractions {
+		var libraries []string
+		if !buildFiles.Interface && !hasFileAbstractions {
 			if !AreAbstractionsEmpty(groupAbstractions, languages) {
 				libraries = append(libraries, name+"_ABSTRACTIONS")
 			} else if !AreAbstractionsEmpty(parentAbstractions, languages) {
 				libraries = append(libraries, parentName+"_ABSTRACTIONS")
 			}
 		}
+		// target_compile_options
+		if !buildFiles.Interface || !IsCompileMiscEmpty(group.Misc) || len(buildFiles.PreIncludeLocal) > 0 {
+			content += c.CMakeTargetCompileOptions(name, scope, group.Misc, buildFiles.PreIncludeLocal, parentName)
+		}
+		// target_link_libraries
 		libraries = append(libraries, buildFiles.Library...)
 		libraries = append(libraries, buildFiles.Object...)
-		content += c.CMakeTargetLinkLibraries(name, scope, libraries...)
+		if len(libraries) > 0 {
+			content += c.CMakeTargetLinkLibraries(name, scope, libraries...)
+		}
 		// file properties
 		for _, file := range group.Files {
 			if strings.Contains(file.Category, "source") {
@@ -275,7 +243,7 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 
 		// create children groups recursively
 		if hasChildren {
-			content += c.CMakeCreateGroupRecursively(name, group.Groups, includes, includesInterface, defines, definesInterface, abstractions, miscAsm)
+			content += c.CMakeCreateGroupRecursively(name, group.Groups, abstractions, miscAsm)
 		}
 		c.BuildGroups = append(c.BuildGroups, name)
 	}
@@ -287,50 +255,24 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 	for _, component := range c.BuildDescType.Components {
 		buildFiles := c.ClassifyFiles(component.Files)
 		name := ReplaceDelimiters(component.Component)
-		var scope string
+		// default scope
+		scope := "PUBLIC"
 		if buildFiles.Interface {
 			scope = "INTERFACE"
-		} else {
-			scope = "PRIVATE"
 		}
 		// add_library
 		content += "\n# component " + component.Component
 		content += CMakeAddLibrary(name, buildFiles)
-		libraries := []string{"${CONTEXT}_GLOBAL"}
 		// target_include_directories
 		if len(buildFiles.Include) > 0 {
-			content += CMakeTargetIncludeDirectoriesFromFiles(name, buildFiles)
+			content += CMakeTargetIncludeDirectoriesClassified(name, buildFiles.Include)
+			c.IncludeGlobal = AppendGlobalIncludes(c.IncludeGlobal, buildFiles.Include)
 		}
-		if len(component.DelPath) == 0 {
-			libraries = append(libraries, "${CONTEXT}_INCLUDES")
-			if len(component.AddPath) > 0 {
-				content += "\nadd_library(" + name + "_INCLUDES INTERFACE)"
-				content += CMakeTargetIncludeDirectories(name+"_INCLUDES", "INTERFACE", AddRootPrefixes(c.ContextRoot, component.AddPath))
-				libraries = append(libraries, name+"_INCLUDES")
-			}
-		} else {
-			includes := append(AddRootPrefixes(c.ContextRoot, c.BuildDescType.AddPath), AddRootPrefixes(c.ContextRoot, component.AddPath)...)
-			includes = utils.RemoveIncludes(includes, AddRootPrefixes(c.ContextRoot, component.DelPath)...)
-			content += "\nadd_library(" + name + "_INCLUDES INTERFACE)"
-			content += CMakeTargetIncludeDirectories(name+"_INCLUDES", "INTERFACE", includes)
-			libraries = append(libraries, name+"_INCLUDES")
-		}
+		content += CMakeTargetIncludeDirectories(name, "${CONTEXT}", scope, AddRootPrefixes(c.ContextRoot, component.AddPath), AddRootPrefixes(c.ContextRoot, component.DelPath))
 		// target_compile_definitions
-		if len(component.Undefine) == 0 {
-			libraries = append(libraries, "${CONTEXT}_DEFINES")
-			if len(component.Define) > 0 {
-				content += "\nadd_library(" + name + "_DEFINES INTERFACE)"
-				content += CMakeTargetCompileDefinitions(name+"_DEFINES", "INTERFACE", component.Define)
-				libraries = append(libraries, name+"_DEFINES")
-			}
-		} else {
-			defines := append(c.BuildDescType.Define, component.Define...)
-			defines = utils.RemoveDefines(defines, component.Undefine...)
-			content += "\nadd_library(" + name + "_DEFINES INTERFACE)"
-			content += CMakeTargetCompileDefinitions(name+"_DEFINES", "INTERFACE", defines)
-			libraries = append(libraries, name+"_DEFINES")
-		}
+		content += CMakeTargetCompileDefinitions(name, "${CONTEXT}", scope, component.Define, component.Undefine)
 		// compiler abstractions
+		var libraries []string
 		componentAbstractions := CompilerAbstractions{component.Debug, component.Optimize, component.Warnings, component.LanguageC, component.LanguageCpp}
 		globalAbstractions := CompilerAbstractions{c.BuildDescType.Debug, c.BuildDescType.Optimize, c.BuildDescType.Warnings, c.BuildDescType.LanguageC, c.BuildDescType.LanguageCpp}
 		languages := maps.Keys(buildFiles.Source)
@@ -342,13 +284,15 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 			libraries = append(libraries, "${CONTEXT}_ABSTRACTIONS")
 		}
 		// target_compile_options
-		if !IsCompileMiscEmpty(component.Misc) || len(buildFiles.PreIncludeLocal) > 0 {
-			content += c.CMakeTargetCompileOptions(name, scope, component.Misc, buildFiles.PreIncludeLocal)
+		if !buildFiles.Interface || !IsCompileMiscEmpty(component.Misc) || len(buildFiles.PreIncludeLocal) > 0 {
+			content += c.CMakeTargetCompileOptions(name, scope, component.Misc, buildFiles.PreIncludeLocal, "${CONTEXT}")
 		}
 		// target_link_libraries
 		libraries = append(libraries, buildFiles.Library...)
 		libraries = append(libraries, buildFiles.Object...)
-		content += c.CMakeTargetLinkLibraries(name, scope, libraries...)
+		if len(libraries) > 0 {
+			content += c.CMakeTargetLinkLibraries(name, scope, libraries...)
+		}
 
 		content += "\n"
 	}

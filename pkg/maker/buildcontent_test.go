@@ -120,7 +120,7 @@ func TestBuildContent(t *testing.T) {
 		}
 		var cbuild maker.Cbuild
 		buildFiles := cbuild.ClassifyFiles(files)
-		content := maker.CMakeTargetIncludeDirectoriesFromFiles("TARGET", buildFiles)
+		content := maker.CMakeTargetIncludeDirectoriesClassified("TARGET", buildFiles.Include)
 		assert.Contains(content, "includes")
 		assert.Contains(content, "includes-c")
 	})
@@ -135,7 +135,7 @@ func TestBuildContent(t *testing.T) {
 		var cbuild maker.Cbuild
 		cbuild.Languages = []string{"ASM", "C", "CXX"}
 		preIncludes := []string{"${SOLUTION_ROOT}/project/RTE/class/pre-include.h"}
-		content := cbuild.CMakeTargetCompileOptions("TARGET", "PUBLIC", misc, preIncludes)
+		content := cbuild.CMakeTargetCompileOptions("TARGET", "PUBLIC", misc, preIncludes, "${CONTEXT}")
 		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag")
 		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    -c-flag\n    -c-cpp-flag")
 		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    -cpp-flag\n    -c-cpp-flag")

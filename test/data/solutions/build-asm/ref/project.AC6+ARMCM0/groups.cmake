@@ -4,10 +4,14 @@
 add_library(Group_Source OBJECT
   "${SOLUTION_ROOT}/project/main.c"
 )
-target_link_libraries(Group_Source PRIVATE
-  ${CONTEXT}_GLOBAL
-  ${CONTEXT}_INCLUDES
-  ${CONTEXT}_DEFINES
+target_include_directories(Group_Source PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(Group_Source PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>
+)
+target_compile_options(Group_Source PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_OPTIONS>
 )
 
 # group AC6
@@ -17,10 +21,14 @@ add_library(Group_AC6 OBJECT
   "${SOLUTION_ROOT}/project/AC6/PreProcessed.S"
   "${SOLUTION_ROOT}/project/AC6/Auto.s"
 )
-target_link_libraries(Group_AC6 PRIVATE
-  ${CONTEXT}_GLOBAL
-  ${CONTEXT}_INCLUDES
-  ${CONTEXT}_DEFINES
+target_include_directories(Group_AC6 PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(Group_AC6 PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>
+)
+target_compile_options(Group_AC6 PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_OPTIONS>
 )
 set(COMPILE_DEFINITIONS
   HEXADECIMAL_TEST=11259375
