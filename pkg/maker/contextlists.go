@@ -15,12 +15,13 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-func (m *Maker) CreateContextCMakeLists(index int, cbuild Cbuild) error {
-
+func (m *Maker) CreateContextCMakeLists(index int) error {
+	cbuild := &m.Cbuilds[index]
 	outputByProducts, outputFile, outputType, customCommands := OutputFiles(cbuild.BuildDescType.Output)
 	outputExt := path.Ext(outputFile)
 	outputName := strings.TrimSuffix(outputFile, outputExt)
 	cbuild.ContextRoot, _ = filepath.Rel(m.CbuildIndex.BaseDir, cbuild.BaseDir)
+	cbuild.ContextRoot = filepath.ToSlash(cbuild.ContextRoot)
 	cbuild.Toolchain = m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Name
 	outDir := AddRootPrefix(cbuild.ContextRoot, cbuild.BuildDescType.OutputDirs.Outdir)
 	contextDir := path.Join(m.SolutionIntDir, cbuild.BuildDescType.Context)

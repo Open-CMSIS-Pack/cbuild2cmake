@@ -73,7 +73,7 @@ func (m *Maker) GenerateCMakeLists() error {
 
 	// Create context specific CMake files
 	for index := range m.Cbuilds {
-		err = m.CreateContextCMakeLists(index, m.Cbuilds[index])
+		err = m.CreateContextCMakeLists(index)
 		if err != nil {
 			return err
 		}

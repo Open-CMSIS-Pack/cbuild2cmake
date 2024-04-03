@@ -1,0 +1,6 @@
+build:
+  compiler: AC6@>=6.6.6
+  device: deviceName
+  output:
+    - type: lib
+      file: projectName.lib

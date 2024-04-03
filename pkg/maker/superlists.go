@@ -33,6 +33,7 @@ func (m *Maker) CreateSuperCMakeLists() error {
 			}
 		}
 		cbuildRelativePath, _ := filepath.Rel(m.CbuildIndex.BaseDir, cbuild.BaseDir)
+		cbuildRelativePath = filepath.ToSlash(cbuildRelativePath)
 		output := AddRootPrefix(cbuildRelativePath, path.Join(cbuild.BuildDescType.OutputDirs.Outdir, outputFile))
 		outputs += "  \"" + output + "\"\n"
 	}
