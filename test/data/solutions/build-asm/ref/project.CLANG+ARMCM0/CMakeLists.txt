@@ -46,16 +46,16 @@ target_compile_definitions(${CONTEXT} PUBLIC
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:ASM>:
-    SHELL:${ASM_CPU}
-    SHELL:${ASM_FLAGS}
+    "SHELL:${ASM_CPU}"
+    "SHELL:${ASM_FLAGS}"
   >
   $<$<COMPILE_LANGUAGE:C>:
-    SHELL:${CC_CPU}
-    SHELL:${CC_FLAGS}
-    -std=gnu11
-    -fomit-frame-pointer
-    -ffunction-sections
-    -fdata-sections
+    "SHELL:${CC_CPU}"
+    "SHELL:${CC_FLAGS}"
+    "SHELL:-std=gnu11"
+    "SHELL:-fomit-frame-pointer"
+    "SHELL:-ffunction-sections"
+    "SHELL:-fdata-sections"
   >
 )
 
@@ -72,12 +72,12 @@ target_link_libraries(${CONTEXT} PUBLIC
 
 # Linker options
 target_link_options(${CONTEXT} PUBLIC
-  SHELL:${LD_CPU}
-  SHELL:${_LS}"${LD_SCRIPT_PP}"
-  -lcrt0-semihost
-  -lsemihost
-  -Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/CLANG/project.elf.map
-  -Wl,--gc-sections
+  "SHELL:${LD_CPU}"
+  "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
+  "SHELL:-lcrt0-semihost"
+  "SHELL:-lsemihost"
+  "SHELL:-Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/CLANG/project.elf.map"
+  "SHELL:-Wl,--gc-sections"
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
 

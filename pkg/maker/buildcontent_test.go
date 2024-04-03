@@ -136,10 +136,10 @@ func TestBuildContent(t *testing.T) {
 		cbuild.Languages = []string{"ASM", "C", "CXX"}
 		preIncludes := []string{"${SOLUTION_ROOT}/project/RTE/class/pre-include.h"}
 		content := cbuild.CMakeTargetCompileOptions("TARGET", "PUBLIC", misc, preIncludes, "${CONTEXT}")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    -c-flag\n    -c-cpp-flag")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    -cpp-flag\n    -c-cpp-flag")
-		assert.Contains(content, "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/class/pre-include.h\"")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    \"SHELL:-asm-flag\"")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    \"SHELL:-c-flag\"\n    \"SHELL:-c-cpp-flag\"")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    \"SHELL:-cpp-flag\"\n    \"SHELL:-c-cpp-flag\"")
+		assert.Contains(content, "\"SHELL:${_PI}\\\"${SOLUTION_ROOT}/project/RTE/class/pre-include.h\\\"\"")
 	})
 
 	t.Run("test language specific compile options", func(t *testing.T) {
@@ -148,7 +148,7 @@ func TestBuildContent(t *testing.T) {
 		}
 		var cbuild maker.Cbuild
 		content := cbuild.LanguageSpecificCompileOptions("ASM", misc.ASM...)
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    -asm-flag")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    \"SHELL:-asm-flag\"")
 	})
 
 	t.Run("test add context language", func(t *testing.T) {
@@ -300,9 +300,9 @@ func TestBuildContent(t *testing.T) {
 		assert.Contains(content, "cbuild_set_options_flags(ASM \"speed\" \"on\" \"all\" \"\" ASM_OPTIONS_FLAGS_NAME)")
 		assert.Contains(content, "cbuild_set_options_flags(CC \"speed\" \"on\" \"all\" \"c90\" CC_OPTIONS_FLAGS_NAME")
 		assert.Contains(content, "cbuild_set_options_flags(CXX \"speed\" \"on\" \"all\" \"c++98\" CXX_OPTIONS_FLAGS_NAME)")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    SHELL:${ASM_OPTIONS_FLAGS_NAME}\n  >")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    SHELL:${CC_OPTIONS_FLAGS_NAME}\n  >")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    SHELL:${CXX_OPTIONS_FLAGS_NAME}\n  >")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    \"SHELL:${ASM_OPTIONS_FLAGS_NAME}\"\n  >")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    \"SHELL:${CC_OPTIONS_FLAGS_NAME}\"\n  >")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    \"SHELL:${CXX_OPTIONS_FLAGS_NAME}\"\n  >")
 	})
 
 	t.Run("test get file options", func(t *testing.T) {
