@@ -50,14 +50,14 @@ target_compile_definitions(${CONTEXT} PUBLIC
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:C>:
-    SHELL:${CC_CPU}
-    SHELL:${CC_FLAGS}
-    --dlib_config DLib_Config_Full.h
+    "SHELL:${CC_CPU}"
+    "SHELL:${CC_FLAGS}"
+    "SHELL:--dlib_config DLib_Config_Full.h"
   >
   $<$<COMPILE_LANGUAGE:CXX>:
-    SHELL:${CXX_CPU}
-    SHELL:${CXX_FLAGS}
-    --dlib_config DLib_Config_Full.h
+    "SHELL:${CXX_CPU}"
+    "SHELL:${CXX_FLAGS}"
+    "SHELL:--dlib_config DLib_Config_Full.h"
   >
 )
 
@@ -73,10 +73,10 @@ target_link_libraries(${CONTEXT} PUBLIC
 
 # Linker options
 target_link_options(${CONTEXT} PUBLIC
-  SHELL:${LD_CPU}
-  SHELL:${_LS}"${LD_SCRIPT_PP}"
-  --semihosting
-  --map=${SOLUTION_ROOT}/out/project/ARMCM55/IAR/project.out.map
+  "SHELL:${LD_CPU}"
+  "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
+  "SHELL:--semihosting"
+  "SHELL:--map=${SOLUTION_ROOT}/out/project/ARMCM55/IAR/project.out.map"
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
 

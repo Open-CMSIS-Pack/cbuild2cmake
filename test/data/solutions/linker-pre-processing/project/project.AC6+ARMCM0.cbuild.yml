@@ -29,9 +29,12 @@ build:
       - -Wno-parentheses-equality
       - -Wno-license-management
     Link:
+      - --info summarysizes
+      - --info sizes
+      - --info totals
+      - --info unused
       - --entry=Reset_Handler
       - --map
-      - --info summarysizes
       - --summary_stderr
       - --diag_suppress=L6314W
   define:

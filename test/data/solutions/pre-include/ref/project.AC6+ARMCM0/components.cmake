@@ -50,7 +50,7 @@ target_compile_definitions(ARM_TestClass_TestLocal_1_0_0 PUBLIC
 )
 target_compile_options(ARM_TestClass_TestLocal_1_0_0 PUBLIC
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_OPTIONS>
-  SHELL:${_PI}"${SOLUTION_ROOT}/pack/Files/header2.h"
-  SHELL:${_PI}"${SOLUTION_ROOT}/project/RTE/TestClass/config-header2.h"
-  SHELL:${_PI}"${SOLUTION_ROOT}/project/RTE/_AC6_ARMCM0/Pre_Include_TestClass_TestLocal.h"
+  "SHELL:${_PI}\"${SOLUTION_ROOT}/pack/Files/header2.h\""
+  "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/TestClass/config-header2.h\""
+  "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/_AC6_ARMCM0/Pre_Include_TestClass_TestLocal.h\""
 )

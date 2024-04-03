@@ -45,17 +45,17 @@ target_compile_definitions(${CONTEXT} PUBLIC
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:C>:
-    SHELL:${CC_CPU}
-    SHELL:${CC_FLAGS}
-    -std=gnu11
-    -masm-syntax-unified
-    -fomit-frame-pointer
-    -ffunction-sections
-    -fdata-sections
+    "SHELL:${CC_CPU}"
+    "SHELL:${CC_FLAGS}"
+    "SHELL:-std=gnu11"
+    "SHELL:-masm-syntax-unified"
+    "SHELL:-fomit-frame-pointer"
+    "SHELL:-ffunction-sections"
+    "SHELL:-fdata-sections"
   >
-  SHELL:${_PI}"${SOLUTION_ROOT}/pack/Files/header1.h"
-  SHELL:${_PI}"${SOLUTION_ROOT}/project/RTE/TestClass/config-header1.h"
-  SHELL:${_PI}"${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0/Pre_Include_Global.h"
+  "SHELL:${_PI}\"${SOLUTION_ROOT}/pack/Files/header1.h\""
+  "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/TestClass/config-header1.h\""
+  "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0/Pre_Include_Global.h\""
 )
 
 # Add groups and components
@@ -74,11 +74,11 @@ set_target_properties(${CONTEXT} PROPERTIES LINK_LIBRARIES "-Wl,--start-group;${
 
 # Linker options
 target_link_options(${CONTEXT} PUBLIC
-  SHELL:${LD_CPU}
-  SHELL:${_LS}"${LD_SCRIPT_PP}"
-  --specs=nano.specs
-  --specs=rdimon.specs
-  -Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/GCC/project.elf.map
-  -Wl,--gc-sections
+  "SHELL:${LD_CPU}"
+  "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
+  "SHELL:--specs=nano.specs"
+  "SHELL:--specs=rdimon.specs"
+  "SHELL:-Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/GCC/project.elf.map"
+  "SHELL:-Wl,--gc-sections"
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})

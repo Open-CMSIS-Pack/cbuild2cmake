@@ -45,18 +45,18 @@ target_compile_definitions(${CONTEXT} PUBLIC
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:ASM>:
-    SHELL:${ASM_CPU}
-    SHELL:${ASM_FLAGS}
-    -masm=auto
+    "SHELL:${ASM_CPU}"
+    "SHELL:${ASM_FLAGS}"
+    "SHELL:-masm=auto"
   >
   $<$<COMPILE_LANGUAGE:C>:
-    SHELL:${CC_CPU}
-    SHELL:${CC_FLAGS}
-    -std=gnu11
-    -Wno-macro-redefined
-    -Wno-pragma-pack
-    -Wno-parentheses-equality
-    -Wno-license-management
+    "SHELL:${CC_CPU}"
+    "SHELL:${CC_FLAGS}"
+    "SHELL:-std=gnu11"
+    "SHELL:-Wno-macro-redefined"
+    "SHELL:-Wno-pragma-pack"
+    "SHELL:-Wno-parentheses-equality"
+    "SHELL:-Wno-license-management"
   >
 )
 
@@ -73,12 +73,12 @@ target_link_libraries(${CONTEXT} PUBLIC
 
 # Linker options
 target_link_options(${CONTEXT} PUBLIC
-  SHELL:${LD_CPU}
-  SHELL:${_LS}"${LD_SCRIPT_PP}"
-  --entry=Reset_Handler
-  --map
-  --info summarysizes
-  --summary_stderr
-  --diag_suppress=L6314W
+  "SHELL:${LD_CPU}"
+  "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
+  "SHELL:--entry=Reset_Handler"
+  "SHELL:--map"
+  "SHELL:--info summarysizes"
+  "SHELL:--summary_stderr"
+  "SHELL:--diag_suppress=L6314W"
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})

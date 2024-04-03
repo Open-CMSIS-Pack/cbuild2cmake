@@ -45,17 +45,17 @@ target_compile_definitions(${CONTEXT} PUBLIC
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:C>:
-    SHELL:${CC_CPU}
-    SHELL:${CC_FLAGS}
-    -std=gnu11
-    -Wno-macro-redefined
-    -Wno-pragma-pack
-    -Wno-parentheses-equality
-    -Wno-license-management
+    "SHELL:${CC_CPU}"
+    "SHELL:${CC_FLAGS}"
+    "SHELL:-std=gnu11"
+    "SHELL:-Wno-macro-redefined"
+    "SHELL:-Wno-pragma-pack"
+    "SHELL:-Wno-parentheses-equality"
+    "SHELL:-Wno-license-management"
   >
-  SHELL:${_PI}"${SOLUTION_ROOT}/pack/Files/header1.h"
-  SHELL:${_PI}"${SOLUTION_ROOT}/project/RTE/TestClass/config-header1.h"
-  SHELL:${_PI}"${SOLUTION_ROOT}/project/RTE/_AC6_ARMCM0/Pre_Include_Global.h"
+  "SHELL:${_PI}\"${SOLUTION_ROOT}/pack/Files/header1.h\""
+  "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/TestClass/config-header1.h\""
+  "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/_AC6_ARMCM0/Pre_Include_Global.h\""
 )
 
 # Add groups and components
@@ -72,12 +72,12 @@ target_link_libraries(${CONTEXT} PUBLIC
 
 # Linker options
 target_link_options(${CONTEXT} PUBLIC
-  SHELL:${LD_CPU}
-  SHELL:${_LS}"${LD_SCRIPT_PP}"
-  --entry=Reset_Handler
-  --map
-  --info summarysizes
-  --summary_stderr
-  --diag_suppress=L6314W
+  "SHELL:${LD_CPU}"
+  "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
+  "SHELL:--entry=Reset_Handler"
+  "SHELL:--map"
+  "SHELL:--info summarysizes"
+  "SHELL:--summary_stderr"
+  "SHELL:--diag_suppress=L6314W"
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})

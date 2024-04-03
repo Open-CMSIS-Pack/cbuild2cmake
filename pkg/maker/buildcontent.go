@@ -238,8 +238,8 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 		if language == "C" {
 			prefix = "CC"
 		}
-		optionsMap[language] = append(optionsMap[language], "SHELL:${"+prefix+"_CPU}")
-		optionsMap[language] = append(optionsMap[language], "SHELL:${"+prefix+"_FLAGS}")
+		optionsMap[language] = append(optionsMap[language], "${"+prefix+"_CPU}")
+		optionsMap[language] = append(optionsMap[language], "${"+prefix+"_FLAGS}")
 		if len(c.BuildDescType.Processor.Trustzone) > 0 {
 			optionsMap[language] = append(optionsMap[language], "${"+prefix+"_SECURE}")
 		}
@@ -260,7 +260,7 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 	}
 	// pre-includes global
 	for _, preInclude := range c.PreIncludeGlobal {
-		content += "\n  SHELL:${_PI}\"" + preInclude + "\""
+		content += "\n  " + AddShellPrefix("${_PI}\""+preInclude+"\"")
 	}
 	content += "\n)"
 	return content
@@ -284,7 +284,7 @@ func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc,
 		content += c.LanguageSpecificCompileOptions(language.Key, language.Value...)
 	}
 	for _, preInclude := range preIncludes {
-		content += "\n  SHELL:${_PI}\"" + preInclude + "\""
+		content += "\n  " + AddShellPrefix("${_PI}\""+preInclude+"\"")
 	}
 	content += "\n)"
 	return content
@@ -302,7 +302,7 @@ func (c *Cbuild) CMakeTargetCompileOptionsAbstractions(name string, abstractions
 			content += "\ncbuild_set_options_flags(" + prefix
 			content += c.SetOptionsFlags(abstractions, language)
 			content += " " + prefix + "_OPTIONS_FLAGS_" + name + ")"
-			options += c.LanguageSpecificCompileOptions(language, "SHELL:${"+prefix+"_OPTIONS_FLAGS_"+name+"}")
+			options += c.LanguageSpecificCompileOptions(language, "${"+prefix+"_OPTIONS_FLAGS_"+name+"}")
 		}
 	}
 	if len(content) > 0 {
@@ -379,10 +379,14 @@ func GetFileOptions(file Files, hasAbstractions bool, delimiter string) string {
 func (c *Cbuild) LanguageSpecificCompileOptions(language string, options ...string) string {
 	content := "\n  " + "$<$<COMPILE_LANGUAGE:" + language + ">:"
 	for _, option := range options {
-		content += "\n    " + c.AdjustRelativePath(option)
+		content += "\n    " + AddShellPrefix(c.AdjustRelativePath(option))
 	}
 	content += "\n  >"
 	return content
+}
+
+func AddShellPrefix(input string) string {
+	return "\"SHELL:" + strings.ReplaceAll(input, "\"", "\\\"") + "\""
 }
 
 func AddRootPrefix(base string, input string) string {
@@ -685,9 +689,11 @@ func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 		linkerVars += ListCompileDefinitions(c.BuildDescType.Linker.Define, "\n  ")
 		linkerVars += "\n)"
 	}
-	linkerOptions += "\n# Linker options\ntarget_link_options(${CONTEXT} PUBLIC\n  SHELL:${LD_CPU}\n  SHELL:${_LS}\"${LD_SCRIPT_PP}\""
+	linkerOptions += "\n# Linker options\ntarget_link_options(${CONTEXT} PUBLIC\n  " +
+		AddShellPrefix("${LD_CPU}") + "\n  " +
+		AddShellPrefix("${_LS}\"${LD_SCRIPT_PP}\"")
 	if len(c.BuildDescType.Processor.Trustzone) > 0 {
-		linkerOptions += "\n  SHELL:${LD_SECURE}"
+		linkerOptions += "\n  " + AddShellPrefix("${LD_SECURE}")
 	}
 	options := c.BuildDescType.Misc.Link
 	for _, language := range c.Languages {
@@ -699,7 +705,7 @@ func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 		}
 	}
 	for _, option := range options {
-		linkerOptions += "\n  " + c.AdjustRelativePath(option)
+		linkerOptions += "\n  " + AddShellPrefix(c.AdjustRelativePath(option))
 	}
 	linkerOptions += "\n)"
 	linkerOptions += "\nset_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})"
