@@ -3,7 +3,7 @@
 | __Name__ | __Version__ | __Licence__ |
 |----------|-------------|-------------|
 | github.com/Masterminds/semver/v3 | v3.2.1  | [MIT](https://github.com/Masterminds/semver/blob/v3.2.1/LICENSE.txt) |
-| github.com/Open-CMSIS-Pack/cbuild/v2/pkg/utils | v2.2.2-dev0  | [Apache-2.0](https://github.com/Open-CMSIS-Pack/cbuild/blob/v2.2.2-dev0/LICENSE) |
+| github.com/Open-CMSIS-Pack/cbuild/v2/pkg/utils | v2.3.0-dev0  | [Apache-2.0](https://github.com/Open-CMSIS-Pack/cbuild/blob/v2.3.0-dev0/LICENSE) |
 | github.com/gobs/sortedmap | v1.0.0  | [MIT](https://github.com/gobs/sortedmap/blob/v1.0.0/LICENSE) |
 | github.com/sirupsen/logrus | v1.9.3  | [MIT](https://github.com/sirupsen/logrus/blob/v1.9.3/LICENSE) |
 | github.com/spf13/cobra | v1.8.0  | [Apache-2.0](https://github.com/spf13/cobra/blob/v1.8.0/LICENSE.txt) |
