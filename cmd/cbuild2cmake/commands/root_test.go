@@ -187,4 +187,16 @@ set(OUTPUTS
 		// check golden references
 		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
 	})
+
+	t.Run("test language and scope", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		testCaseRoot := testRoot + "/run/solutions/language-scope"
+		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
+		err := cmd.Execute()
+		assert.Nil(err)
+
+		// check golden references
+		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
+	})
 }

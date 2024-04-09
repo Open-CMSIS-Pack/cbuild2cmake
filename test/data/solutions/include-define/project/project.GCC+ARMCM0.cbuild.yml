@@ -1,5 +1,5 @@
 build:
-  generated-by: csolution version 2.2.1
+  generated-by: csolution version 0.0.0+g447ad5d7
   solution: ../solution.csolution.yml
   project: project.cproject.yml
   context: project.GCC+ARMCM0
@@ -55,6 +55,12 @@ build:
       del-path:
         - inc1
       files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
+          category: include
+          version: 6.0.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include/tz_context.h
+          category: header
+          version: 6.0.0
         - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Template/ARMv8-M/main_s.c
           category: sourceC
           attr: template
@@ -65,6 +71,9 @@ build:
           attr: template
           version: 1.1.1
           select: RTOS Context Management (TrustZone for ARMv8-M)
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Documentation/html/Core/index.html
+          category: doc
+          version: 6.0.0
     - component: ARM::Device:Startup&C Startup@2.2.0
       condition: ARMCM0 CMSIS
       from-pack: ARM::Cortex_DFP@1.0.0
@@ -74,6 +83,9 @@ build:
       add-path:
         - inc2
       files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include/ARMCM0.h
+          category: header
+          version: 2.2.0
         - file: RTE/Device/ARMCM0/ARMCM0_gcc.ld
           category: linkerScript
           attr: config
