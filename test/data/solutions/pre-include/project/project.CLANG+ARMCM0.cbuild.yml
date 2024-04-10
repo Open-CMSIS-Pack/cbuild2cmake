@@ -1,5 +1,5 @@
 build:
-  generated-by: csolution version 2.2.1
+  generated-by: csolution version 0.0.0+g447ad5d7
   solution: ../solution.csolution.yml
   project: project.cproject.yml
   context: project.CLANG+ARMCM0
@@ -50,11 +50,34 @@ build:
       condition: ARMv6_7_8-M Device
       from-pack: ARM::CMSIS@6.0.0
       selected-by: ARM::CMSIS:CORE
+      files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
+          category: include
+          version: 6.0.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include/tz_context.h
+          category: header
+          version: 6.0.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Template/ARMv8-M/main_s.c
+          category: sourceC
+          attr: template
+          version: 1.1.1
+          select: Secure mode 'main' module for ARMv8-M
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Template/ARMv8-M/tz_context.c
+          category: sourceC
+          attr: template
+          version: 1.1.1
+          select: RTOS Context Management (TrustZone for ARMv8-M)
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Documentation/html/Core/index.html
+          category: doc
+          version: 6.0.0
     - component: ARM::Device:Startup&C Startup@2.2.0
       condition: ARMCM0 CMSIS
       from-pack: ARM::Cortex_DFP@1.0.0
       selected-by: ARM::Device:Startup&C Startup
       files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include/ARMCM0.h
+          category: header
+          version: 2.2.0
         - file: RTE/Device/ARMCM0/startup_ARMCM0.c
           category: sourceC
           attr: config
@@ -68,10 +91,11 @@ build:
       from-pack: ARM::PreIncludeTestPack@0.0.1
       selected-by: ARM::TestClass:TestGlobal
       files:
-        - file: ../pack/Files/test1.c
-          category: source
         - file: ../pack/Files/header1.h
           category: preIncludeGlobal
+          version: 1.0.0
+        - file: ../pack/Files/test1.c
+          category: source
           version: 1.0.0
         - file: RTE/TestClass/config-header1.h
           category: preIncludeGlobal
@@ -82,10 +106,11 @@ build:
       from-pack: ARM::PreIncludeTestPack@0.0.1
       selected-by: ARM::TestClass:TestLocal
       files:
-        - file: ../pack/Files/test2.c
-          category: source
         - file: ../pack/Files/header2.h
           category: preIncludeLocal
+          version: 1.0.0
+        - file: ../pack/Files/test2.c
+          category: source
           version: 1.0.0
         - file: RTE/TestClass/config-header2.h
           category: preIncludeLocal
