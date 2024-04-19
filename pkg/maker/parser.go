@@ -23,6 +23,7 @@ type CbuildIndex struct {
 		Csolution   string      `yaml:"csolution"`
 		Cprojects   []Cprojects `yaml:"cprojects"`
 		Cbuilds     []Cbuilds   `yaml:"cbuilds"`
+		Executes    []Executes  `yaml:"executes"`
 	} `yaml:"build-idx"`
 	BaseDir string
 }
@@ -101,6 +102,15 @@ type Components struct {
 	Files       []Files       `yaml:"files"`
 	Generator   Generator     `yaml:"generator"`
 	FromPack    string        `yaml:"from-pack"`
+}
+
+type Executes struct {
+	Execute   string                 `yaml:"execute"`
+	Run       string                 `yaml:"run"`
+	Always    map[string]interface{} `yaml:"always,inline"`
+	Input     []string               `yaml:"input"`
+	Output    []string               `yaml:"output"`
+	DependsOn []string               `yaml:"depends-on"`
 }
 
 type Files struct {

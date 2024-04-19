@@ -326,15 +326,19 @@ func TestBuildContent(t *testing.T) {
 	})
 
 	t.Run("test build dependencies", func(t *testing.T) {
-		var cbuilds = []maker.Cbuilds{
+		var m maker.Maker
+		m.CbuildIndex.BuildIdx.Cbuilds = []maker.Cbuilds{
 			{
 				Project:       "project",
-				Configuration: ".build+target",
+				Configuration: ".debug+target",
 				DependsOn:     []string{"dependentContext"},
 			},
 		}
-		content := maker.BuildDependencies(cbuilds)
-		assert.Contains(content, "ExternalProject_Add_StepDependencies(project.build+target build\n  dependentContext-build\n)")
+		m.Vars.Contexts = []string{
+			"project.debug+target",
+		}
+		content := m.BuildDependencies()
+		assert.Contains(content, "add_dependencies(project.debug+target-build\n  dependentContext\n)")
 	})
 
 	t.Run("test linker options", func(t *testing.T) {

@@ -9,6 +9,8 @@ package maker
 import (
 	"path"
 	"regexp"
+	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/utils"
@@ -122,19 +124,35 @@ func OutputFiles(outputList []Output) (outputByProducts string, outputFile strin
 	return outputByProducts, outputFile, outputType, customCommands
 }
 
-func BuildDependencies(cbuilds []Cbuilds) string {
+func (m *Maker) AddStepSuffix(name string) string {
+	if slices.Contains(m.Contexts, name) {
+		name += "-build"
+	}
+	return name
+}
+
+func (m *Maker) CMakeTargetAddDependencies(name string, dependencies []string) string {
 	var content string
-	for _, cbuild := range cbuilds {
-		if len(cbuild.DependsOn) > 0 {
-			content += "\n\nExternalProject_Add_StepDependencies(" + cbuild.Project + cbuild.Configuration + " build"
-			for _, dependency := range cbuild.DependsOn {
-				content += "\n  " + dependency + "-build"
-			}
-			content += "\n)"
+	if len(dependencies) > 0 {
+		content += "\nadd_dependencies(" + m.AddStepSuffix(name)
+		for _, dependency := range dependencies {
+			content += "\n  " + m.AddStepSuffix(dependency)
 		}
+		content += "\n)"
+	}
+	return content
+}
+
+func (m *Maker) BuildDependencies() string {
+	var content string
+	for _, cbuild := range m.CbuildIndex.BuildIdx.Cbuilds {
+		content += m.CMakeTargetAddDependencies(cbuild.Project+cbuild.Configuration, cbuild.DependsOn)
+	}
+	for _, item := range m.CbuildIndex.BuildIdx.Executes {
+		content += m.CMakeTargetAddDependencies(item.Execute, item.DependsOn)
 	}
 	if len(content) > 0 {
-		content = "\n# Build dependencies" + content
+		content = "\n\n# Build dependencies" + content
 	}
 	return content
 }
@@ -726,4 +744,55 @@ func (c *Cbuild) AdjustRelativePath(option string) string {
 		option = strings.Replace(option, relativePath, AddRootPrefix(c.ContextRoot, relativePath), 1)
 	}
 	return option
+}
+
+func QuoteArguments(cmd string) string {
+	pattern := regexp.MustCompile(`(\${INPUT(_\d)?}|\${OUTPUT(_\d)?})`)
+	return pattern.ReplaceAllString(cmd, "\"${1}\"")
+}
+
+func ListExecutesIOs(io string, list []string, run string) string {
+	content := "\nset(" + io
+	var listItems string
+	for index, input := range list {
+		content += "\n  " + AddRootPrefix("", input)
+		if strings.Contains(run, "${"+io+"_"+strconv.Itoa(index)+"}") {
+			listItems += "\nlist(GET " + io + " " + strconv.Itoa(index) + " " + io + "_" + strconv.Itoa(index) + ")"
+		}
+	}
+	content += "\n)"
+	content += listItems
+	return content
+}
+
+func ExecutesCommands(executes []Executes) string {
+	var content string
+	for _, item := range executes {
+		content += "\n\n# Execute: " + item.Execute
+		customTarget := "\nadd_custom_target(" + item.Execute + " ALL"
+		runAlways := item.Always != nil
+		if runAlways {
+			customTarget += "\n  COMMAND " + QuoteArguments(item.Run) + "\n)"
+		} else {
+			customTarget += " DEPENDS ${OUTPUT})"
+		}
+		customCommand := "\nadd_custom_command(OUTPUT ${OUTPUT}"
+		if len(item.Input) > 0 {
+			ListExecutesIOs("INPUT", item.Input, item.Run)
+			customCommand += " DEPENDS ${INPUT}"
+		}
+		if !runAlways && len(item.Output) == 0 {
+			item.Output = append(item.Output, "${CMAKE_CURRENT_BINARY_DIR}/"+item.Execute+".stamp")
+			customCommand += "\n  COMMAND ${CMAKE_COMMAND} -E touch \"" + item.Execute + ".stamp\""
+		}
+		if len(item.Output) > 0 {
+			ListExecutesIOs("OUTPUT", item.Output, item.Run)
+		}
+		content += customTarget
+		if !runAlways {
+			customCommand += "\n  COMMAND " + QuoteArguments(item.Run) + "\n)"
+			content += customCommand
+		}
+	}
+	return content
 }

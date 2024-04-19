@@ -22,6 +22,7 @@ func (m *Maker) CreateSuperCMakeLists() error {
 
 	var contexts, dirs, outputs string
 	for _, cbuild := range m.Cbuilds {
+		m.Contexts = append(m.Contexts, cbuild.BuildDescType.Context)
 		contexts = contexts + "  \"" + cbuild.BuildDescType.Context + "\"\n"
 		dirs = dirs + "  \"${CMAKE_CURRENT_SOURCE_DIR}/" + cbuild.BuildDescType.Context + "\"\n"
 
@@ -113,7 +114,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
   )
   ExternalProject_Add_StepTargets(${CONTEXT} database)
 
-endforeach()` + BuildDependencies(m.CbuildIndex.BuildIdx.Cbuilds) + `
+endforeach()` + ExecutesCommands(m.CbuildIndex.BuildIdx.Executes) + m.BuildDependencies() + `
 `
 	superCMakeLists := path.Join(m.SolutionIntDir, "CMakeLists.txt")
 	err := utils.UpdateFile(superCMakeLists, content)
