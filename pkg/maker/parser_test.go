@@ -158,4 +158,12 @@ func TestParser(t *testing.T) {
 		err := m.ParseCbuildFiles()
 		assert.Error(err)
 	})
+
+	t.Run("test parsing cbuild-set.yml", func(t *testing.T) {
+		data, err := m.ParseCbuildSetFile(testRoot + "/run/generic/solutionName0.cbuild-set.yml")
+		assert.Nil(err)
+		assert.Equal("csolution version 2.4.0", data.BuildSet.GeneratedBy)
+		assert.Equal("AC6", data.BuildSet.Compiler)
+		assert.Equal("projectName.BuildType0+TargetType0", data.BuildSet.Contexts[0].Context)
+	})
 }

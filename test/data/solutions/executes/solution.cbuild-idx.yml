@@ -10,13 +10,11 @@ build-idx:
       configuration: .Debug+ARMCM0
       depends-on:
         - Generate_Project_Sources
-        - Run_Always
     - cbuild: project/project.Release+ARMCM0.cbuild.yml
       project: project
       configuration: .Release+ARMCM0
       depends-on:
         - Generate_Project_Sources
-        - Run_Always
   executes:
     - execute: Archive_Artifacts
       run: ${CMAKE_COMMAND} -DINPUT=${INPUT} -DOUTPUT=${OUTPUT} -P ${INPUT_0}
