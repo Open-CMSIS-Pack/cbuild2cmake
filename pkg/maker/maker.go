@@ -31,6 +31,7 @@ type Options struct {
 type Vars struct {
 	CbuildIndex              CbuildIndex
 	Cbuilds                  []Cbuild
+	Contexts                 []string
 	EnvVars                  utils.EnvVars
 	ToolchainConfigs         map[*semver.Version]Toolchain
 	RegisteredToolchains     map[*semver.Version]Toolchain

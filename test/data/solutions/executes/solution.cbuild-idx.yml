@@ -1,0 +1,57 @@
+build-idx:
+  generated-by: csolution version 0.0.0+gdf212332
+  cdefault: ${CMSIS_COMPILER_ROOT}/cdefault.yml
+  csolution: solution.csolution.yml
+  cprojects:
+    - cproject: project/project.cproject.yml
+  cbuilds:
+    - cbuild: project/project.Debug+ARMCM0.cbuild.yml
+      project: project
+      configuration: .Debug+ARMCM0
+      depends-on:
+        - Generate_Project_Sources
+        - Run_Always
+    - cbuild: project/project.Release+ARMCM0.cbuild.yml
+      project: project
+      configuration: .Release+ARMCM0
+      depends-on:
+        - Generate_Project_Sources
+        - Run_Always
+  executes:
+    - execute: Archive_Artifacts
+      run: ${CMAKE_COMMAND} -DINPUT=${INPUT} -DOUTPUT=${OUTPUT} -P ${INPUT_0}
+      input:
+        - script/archive.cmake
+        - out/project/ARMCM0/Release/project.axf
+        - out/project/ARMCM0/Release/project.axf.signed
+      output:
+        - artifacts.zip
+      depends-on:
+        - project.Release+ARMCM0
+        - project.Release+ARMCM0-Sign_Artifact
+    - execute: Generate_Project_Sources
+      run: ${CMAKE_COMMAND} -DINPUT_1=${INPUT_1} -DOUTPUT_0=${OUTPUT_0} -DOUTPUT_1=${OUTPUT_1} -P ${INPUT_0}
+      input:
+        - script/generate-sources.cmake
+        - project/source.c.template
+      output:
+        - project/source0.c
+        - project/source1.c
+    - execute: Run_After_Archiving
+      run: ${CMAKE_COMMAND} -E echo "Archive has been updated"
+      input:
+        - artifacts.zip
+      depends-on:
+        - Archive_Artifacts
+    - execute: Run_Always
+      run: ${CMAKE_COMMAND} -E echo "Execute Run Always"
+      always: 
+    - execute: project.Release+ARMCM0-Sign_Artifact
+      run: ${CMAKE_COMMAND} -DINPUT=${INPUT} -DOUTPUT=${OUTPUT} -P ${INPUT_0}
+      input:
+        - script/sign.cmake
+        - out/project/ARMCM0/Release/project.axf
+      output:
+        - out/project/ARMCM0/Release/project.axf.signed
+      depends-on:
+        - project.Release+ARMCM0
