@@ -139,11 +139,9 @@ add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
 # Build dependencies
 add_dependencies(project.Debug+ARMCM0-build
   Generate_Project_Sources
-  Run_Always
 )
 add_dependencies(project.Release+ARMCM0-build
   Generate_Project_Sources
-  Run_Always
 )
 add_dependencies(Archive_Artifacts
   project.Release+ARMCM0-build

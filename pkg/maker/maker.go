@@ -22,14 +22,15 @@ type Params struct {
 }
 
 type Options struct {
-	Quiet   bool
-	Debug   bool
-	Verbose bool
-	Clean   bool
+	Quiet         bool
+	Debug         bool
+	Verbose       bool
+	UseContextSet bool
 }
 
 type Vars struct {
 	CbuildIndex              CbuildIndex
+	CbuildSet                CbuildSet
 	Cbuilds                  []Cbuild
 	Contexts                 []string
 	EnvVars                  utils.EnvVars

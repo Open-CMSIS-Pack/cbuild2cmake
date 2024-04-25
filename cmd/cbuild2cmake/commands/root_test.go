@@ -62,6 +62,13 @@ func TestCommands(t *testing.T) {
 		assert.Error(err)
 	})
 
+	t.Run("missing cbuild-set.yml", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		cmd.SetArgs([]string{cbuildIdxFile, "--context-set"})
+		err := cmd.Execute()
+		assert.Error(err)
+	})
+
 	t.Run("test minimal cbuild-idx", func(t *testing.T) {
 		cmd := commands.NewRootCmd()
 		cmd.SetArgs([]string{cbuildIdxFile})
@@ -205,6 +212,18 @@ set(OUTPUTS
 		testCaseRoot := testRoot + "/run/solutions/executes"
 		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
 		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
+		err := cmd.Execute()
+		assert.Nil(err)
+
+		// check golden references
+		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
+	})
+
+	t.Run("test build-set", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		testCaseRoot := testRoot + "/run/solutions/build-set"
+		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug", "--context-set"})
 		err := cmd.Execute()
 		assert.Nil(err)
 

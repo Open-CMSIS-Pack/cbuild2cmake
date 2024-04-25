@@ -146,6 +146,9 @@ func (m *Maker) CMakeTargetAddDependencies(name string, dependencies []string) s
 func (m *Maker) BuildDependencies() string {
 	var content string
 	for _, cbuild := range m.CbuildIndex.BuildIdx.Cbuilds {
+		if m.Options.UseContextSet && !slices.Contains(m.Contexts, cbuild.Project+cbuild.Configuration) {
+			continue
+		}
 		content += m.CMakeTargetAddDependencies(cbuild.Project+cbuild.Configuration, cbuild.DependsOn)
 	}
 	for _, item := range m.CbuildIndex.BuildIdx.Executes {
@@ -778,7 +781,7 @@ func ExecutesCommands(executes []Executes) string {
 		}
 		customCommand := "\nadd_custom_command(OUTPUT ${OUTPUT}"
 		if len(item.Input) > 0 {
-			ListExecutesIOs("INPUT", item.Input, item.Run)
+			content += ListExecutesIOs("INPUT", item.Input, item.Run)
 			customCommand += " DEPENDS ${INPUT}"
 		}
 		if !runAlways && len(item.Output) == 0 {
@@ -786,7 +789,7 @@ func ExecutesCommands(executes []Executes) string {
 			customCommand += "\n  COMMAND ${CMAKE_COMMAND} -E touch \"" + item.Execute + ".stamp\""
 		}
 		if len(item.Output) > 0 {
-			ListExecutesIOs("OUTPUT", item.Output, item.Run)
+			content += ListExecutesIOs("OUTPUT", item.Output, item.Run)
 		}
 		content += customTarget
 		if !runAlways {

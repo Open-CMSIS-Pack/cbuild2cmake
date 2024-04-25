@@ -93,13 +93,13 @@ func NewRootCmd() *cobra.Command {
 			quiet, _ := cmd.Flags().GetBool("quiet")
 			debug, _ := cmd.Flags().GetBool("debug")
 			verbose, _ := cmd.Flags().GetBool("verbose")
-			clean, _ := cmd.Flags().GetBool("clean")
+			useContextSet, _ := cmd.Flags().GetBool("context-set")
 
 			options := maker.Options{
-				Quiet:   quiet,
-				Debug:   debug,
-				Verbose: verbose,
-				Clean:   clean,
+				Quiet:         quiet,
+				Debug:         debug,
+				Verbose:       verbose,
+				UseContextSet: useContextSet,
 			}
 
 			configs, _ := utils.GetInstallConfigs()
@@ -133,7 +133,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.Flags().BoolP("quiet", "q", false, "Suppress output messages except build invocations")
 	rootCmd.Flags().BoolP("debug", "d", false, "Enable debug messages")
 	rootCmd.Flags().BoolP("verbose", "v", false, "Enable verbose messages from toolchain builds")
-	rootCmd.Flags().BoolP("clean", "C", false, "Remove intermediate and output directories")
+	rootCmd.Flags().BoolP("context-set", "S", false, "Select the context names from cbuild-set.yml")
 
 	rootCmd.SetFlagErrorFunc(FlagErrorFunc)
 	return rootCmd

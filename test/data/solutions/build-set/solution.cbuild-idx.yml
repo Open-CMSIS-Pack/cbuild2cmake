@@ -1,0 +1,13 @@
+build-idx:
+  generated-by: csolution version 2.4.0
+  cdefault: ${CMSIS_COMPILER_ROOT}/cdefault.yml
+  csolution: solution.csolution.yml
+  cprojects:
+    - cproject: project/project.cproject.yml
+  cbuilds:
+    - cbuild: project/project.Debug+ARMCM0.cbuild.yml
+      project: project
+      configuration: .Debug+ARMCM0
+    - cbuild: project/project.Release+ARMCM0.cbuild.yml
+      project: project
+      configuration: .Release+ARMCM0

@@ -22,7 +22,6 @@ func (m *Maker) CreateSuperCMakeLists() error {
 
 	var contexts, dirs, outputs string
 	for _, cbuild := range m.Cbuilds {
-		m.Contexts = append(m.Contexts, cbuild.BuildDescType.Context)
 		contexts = contexts + "  \"" + cbuild.BuildDescType.Context + "\"\n"
 		dirs = dirs + "  \"${CMAKE_CURRENT_SOURCE_DIR}/" + cbuild.BuildDescType.Context + "\"\n"
 

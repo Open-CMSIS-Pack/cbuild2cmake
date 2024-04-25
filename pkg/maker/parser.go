@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 
 	"gopkg.in/yaml.v3"
 
@@ -26,6 +27,14 @@ type CbuildIndex struct {
 		Executes    []Executes  `yaml:"executes"`
 	} `yaml:"build-idx"`
 	BaseDir string
+}
+
+type CbuildSet struct {
+	BuildSet struct {
+		GeneratedBy string     `yaml:"generated-by"`
+		Contexts    []Contexts `yaml:"contexts"`
+		Compiler    string     `yaml:"compiler"`
+	} `yaml:"cbuild-set"`
 }
 
 type Cbuild struct {
@@ -77,6 +86,10 @@ type Cbuilds struct {
 
 type Clayers struct {
 	Clayer string `yaml:"clayer"`
+}
+
+type Contexts struct {
+	Context string `yaml:"context"`
 }
 
 type Cprojects struct {
@@ -209,6 +222,15 @@ func (m *Maker) ParseCbuildIndexFile(cbuildIndexFile string) (data CbuildIndex, 
 	return
 }
 
+func (m *Maker) ParseCbuildSetFile(cbuildSetFile string) (data CbuildSet, err error) {
+	yfile, err := os.ReadFile(cbuildSetFile)
+	if err != nil {
+		return
+	}
+	err = yaml.Unmarshal(yfile, &data)
+	return
+}
+
 func (m *Maker) ParseCbuildFile(cbuildFile string) (data Cbuild, err error) {
 	yfile, err := os.ReadFile(cbuildFile)
 	if err != nil {
@@ -228,8 +250,25 @@ func (m *Maker) ParseCbuildFiles() error {
 	cbuildIndex.BaseDir = filepath.ToSlash(cbuildIndex.BaseDir)
 	m.CbuildIndex = cbuildIndex
 
+	// Parse cbuild-set file
+	if m.Options.UseContextSet {
+		cbuildSetFile, _ := filepath.Abs(m.Params.InputFile[:len(m.Params.InputFile)-len(".cbuild-idx.yml")] + ".cbuild-set.yml")
+		cbuildSetFile = filepath.ToSlash(cbuildSetFile)
+		cbuildSet, err := m.ParseCbuildSetFile(cbuildSetFile)
+		if err != nil {
+			return err
+		}
+		for _, item := range cbuildSet.BuildSet.Contexts {
+			m.Contexts = append(m.Contexts, item.Context)
+		}
+		m.CbuildSet = cbuildSet
+	}
+
 	// Parse cbuild files
 	for _, cbuildRef := range m.CbuildIndex.BuildIdx.Cbuilds {
+		if m.Options.UseContextSet && !slices.Contains(m.Contexts, cbuildRef.Project+cbuildRef.Configuration) {
+			continue
+		}
 		cbuildFile := path.Join(m.CbuildIndex.BaseDir, cbuildRef.Cbuild)
 		if _, err := os.Stat(cbuildFile); os.IsNotExist(err) {
 			log.Warn("file " + cbuildFile + " was not found")
@@ -238,6 +277,9 @@ func (m *Maker) ParseCbuildFiles() error {
 		cbuild, err := m.ParseCbuildFile(cbuildFile)
 		if err != nil {
 			return err
+		}
+		if !m.Options.UseContextSet {
+			m.Contexts = append(m.Contexts, cbuild.BuildDescType.Context)
 		}
 		cbuild.BaseDir, _ = filepath.Abs(path.Dir(cbuildFile))
 		cbuild.BaseDir = filepath.ToSlash(cbuild.BaseDir)
