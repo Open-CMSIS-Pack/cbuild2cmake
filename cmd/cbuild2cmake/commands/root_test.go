@@ -132,7 +132,36 @@ set(OUTPUTS
 )`)
 
 		// check golden references
-		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp")
+		assert.Nil(err)
+		assert.False(mismatch)
+	})
+
+	t.Run("test build-set", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		testCaseRoot := testRoot + "/run/solutions/build-set"
+		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug", "--context-set"})
+		err := cmd.Execute()
+		assert.Nil(err)
+
+		// check super CMakeLists contents
+		content, err := utils.ReadFileContent(testCaseRoot + "/tmp/CMakeLists.txt")
+		assert.Nil(err)
+
+		content = strings.ReplaceAll(content, "\r\n", "\n")
+		assert.Contains(content, `
+set(CONTEXTS
+  "project.Release+ARMCM0"
+)`)
+		assert.Contains(content, `
+set(DIRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/project.Release+ARMCM0"
+)`)
+		assert.Contains(content, `
+set(OUTPUTS
+  "${SOLUTION_ROOT}/out/project/ARMCM0/Release/project.axf"
+)`)
 	})
 
 	t.Run("test build asm", func(t *testing.T) {
@@ -144,7 +173,9 @@ set(OUTPUTS
 		assert.Nil(err)
 
 		// check golden references
-		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp")
+		assert.Nil(err)
+		assert.False(mismatch)
 	})
 
 	t.Run("test build cpp", func(t *testing.T) {
@@ -156,7 +187,9 @@ set(OUTPUTS
 		assert.Nil(err)
 
 		// check golden references
-		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp")
+		assert.Nil(err)
+		assert.False(mismatch)
 	})
 
 	t.Run("test linker preprocessing", func(t *testing.T) {
@@ -168,7 +201,9 @@ set(OUTPUTS
 		assert.Nil(err)
 
 		// check golden references
-		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp")
+		assert.Nil(err)
+		assert.False(mismatch)
 	})
 
 	t.Run("test global and local pre-includes", func(t *testing.T) {
@@ -180,7 +215,9 @@ set(OUTPUTS
 		assert.Nil(err)
 
 		// check golden references
-		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp")
+		assert.Nil(err)
+		assert.False(mismatch)
 	})
 
 	t.Run("test add-path, del-path, define, undefine", func(t *testing.T) {
@@ -192,7 +229,9 @@ set(OUTPUTS
 		assert.Nil(err)
 
 		// check golden references
-		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp")
+		assert.Nil(err)
+		assert.False(mismatch)
 	})
 
 	t.Run("test language and scope", func(t *testing.T) {
@@ -204,7 +243,9 @@ set(OUTPUTS
 		assert.Nil(err)
 
 		// check golden references
-		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp")
+		assert.Nil(err)
+		assert.False(mismatch)
 	})
 
 	t.Run("test executes", func(t *testing.T) {
@@ -215,19 +256,42 @@ set(OUTPUTS
 		err := cmd.Execute()
 		assert.Nil(err)
 
-		// check golden references
-		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
-	})
-
-	t.Run("test build-set", func(t *testing.T) {
-		cmd := commands.NewRootCmd()
-		testCaseRoot := testRoot + "/run/solutions/build-set"
-		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
-		cmd.SetArgs([]string{cbuildIdxFile, "--debug", "--context-set"})
-		err := cmd.Execute()
+		// check super CMakeLists contents
+		content, err := utils.ReadFileContent(testCaseRoot + "/tmp/CMakeLists.txt")
 		assert.Nil(err)
 
-		// check golden references
-		assert.Nil(inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp"))
+		content = strings.ReplaceAll(content, "\r\n", "\n")
+		assert.Contains(content, `
+# Execute: project.Release+ARMCM0-Sign_Artifact
+set(INPUT
+  ${SOLUTION_ROOT}/script/sign.cmake
+  ${SOLUTION_ROOT}/out/project/ARMCM0/Release/project.axf
+)
+list(GET INPUT 0 INPUT_0)
+set(OUTPUT
+  ${SOLUTION_ROOT}/out/project/ARMCM0/Release/project.axf.signed
+)
+add_custom_target(project.Release+ARMCM0-Sign_Artifact ALL DEPENDS ${OUTPUT})
+add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
+  COMMAND ${CMAKE_COMMAND} -DINPUT="${INPUT}" -DOUTPUT="${OUTPUT}" -P "${INPUT_0}"
+)`)
+		assert.Contains(content, `
+# Build dependencies
+add_dependencies(project.Debug+ARMCM0-build
+  Generate_Project_Sources
+)
+add_dependencies(project.Release+ARMCM0-build
+  Generate_Project_Sources
+)
+add_dependencies(Archive_Artifacts
+  project.Release+ARMCM0-build
+  project.Release+ARMCM0-Sign_Artifact
+)
+add_dependencies(Run_After_Archiving
+  Archive_Artifacts
+)
+add_dependencies(project.Release+ARMCM0-Sign_Artifact
+  project.Release+ARMCM0-build
+)`)
 	})
 }

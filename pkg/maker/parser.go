@@ -73,6 +73,7 @@ type Cbuild struct {
 	Languages        []string
 	PreIncludeGlobal []string
 	IncludeGlobal    LanguageMap
+	UserIncGlobal    LanguageMap
 	BuildGroups      []string
 	Toolchain        string
 }

@@ -120,7 +120,7 @@ func TestBuildContent(t *testing.T) {
 		}
 		var cbuild maker.Cbuild
 		buildFiles := cbuild.ClassifyFiles(files)
-		content := maker.CMakeTargetIncludeDirectoriesClassified("TARGET", buildFiles.Include)
+		content := maker.CMakeTargetIncludeDirectories("TARGET", buildFiles.Include)
 		assert.Contains(content, "includes")
 		assert.Contains(content, "includes-c")
 	})

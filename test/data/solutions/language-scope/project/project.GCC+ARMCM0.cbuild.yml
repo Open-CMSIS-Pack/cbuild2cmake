@@ -119,7 +119,7 @@ build:
           version: 0.9.9
         - file: ../pack/LanguageAndScope/Public
           category: include
-          language: c-cpp
+          language: c
           scope: public
           version: 0.9.9
         - file: ../pack/LanguageAndScope/Visible/Visible.h

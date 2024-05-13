@@ -16,6 +16,15 @@ project:
     - group: Source1
       files:
         - file: source1.c
+        - file: source3.c
+          add-path:
+            - ./inc3
+          define:
+            - DEF3
+          del-path:
+            - ./inc1
+          undefine:
+            - DEF1
       add-path:
         - ./inc1
       define:
@@ -40,10 +49,6 @@ project:
             - ./inc2
           define:
             - DEF2
-          del-path:
-            - ./not-supported
-          undefine:
-            - not-supported
 
     - group: Headers
       files:
