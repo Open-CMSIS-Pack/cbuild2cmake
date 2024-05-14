@@ -58,8 +58,10 @@ include("groups.cmake")
 include("components.cmake")
 
 target_link_libraries(${CONTEXT} PUBLIC
+  Group_Source1_source3_c
   Group_Source1_Source2
   Group_Source1
+  Group_Main___main_c
   Group_Main
   Group_Headers
   ARM_CMSIS_CORE_6_0_0

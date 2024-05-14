@@ -15,13 +15,13 @@ import (
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/utils"
 	sortedmap "github.com/gobs/sortedmap"
-	log "github.com/sirupsen/logrus"
 )
 
 type BuildFiles struct {
 	Interface       bool
 	Include         ScopeMap
 	Source          LanguageMap
+	Custom          LanguageMap
 	Library         []string
 	Object          []string
 	PreIncludeLocal []string
@@ -105,6 +105,10 @@ func CMakeAddLibrary(name string, buildFiles BuildFiles) string {
 	return content
 }
 
+func (c *Cbuild) CMakeAddLibraryCustomFile(name string, file Files) string {
+	return "\nadd_library(" + name + " OBJECT\n  \"" + AddRootPrefix(c.ContextRoot, file.File) + "\"\n)"
+}
+
 func OutputFiles(outputList []Output) (outputByProducts string, outputFile string, outputType string, customCommands string) {
 	for _, output := range outputList {
 		switch output.Type {
@@ -160,7 +164,10 @@ func (m *Maker) BuildDependencies() string {
 	return content
 }
 
-func CMakeTargetIncludeDirectoriesClassified(name string, includes ScopeMap) string {
+func CMakeTargetIncludeDirectories(name string, includes ScopeMap) string {
+	if len(includes) == 0 {
+		return ""
+	}
 	content := "\ntarget_include_directories(" + name
 	scopeIndentation := " "
 	fileIndentation := "\n  "
@@ -182,24 +189,6 @@ func CMakeTargetIncludeDirectoriesClassified(name string, includes ScopeMap) str
 				}
 				content += fileIndentation + ">"
 			}
-		}
-	}
-	content += "\n)"
-	return content
-}
-
-func CMakeTargetIncludeDirectories(name string, parent string, scope string, addPath []string, delPath []string) string {
-	content := "\ntarget_include_directories(" + name + " " + scope
-	if len(addPath) > 0 {
-		content += "\n  " + ListIncludeDirectories(addPath, "\n  ")
-	}
-	if len(parent) > 0 {
-		if len(delPath) > 0 {
-			content += "\n  $<LIST:REMOVE_ITEM,$<TARGET_PROPERTY:" + parent + ",INTERFACE_INCLUDE_DIRECTORIES>,"
-			content += "\n    " + ListIncludeDirectories(delPath, "\n    ")
-			content += "\n  >"
-		} else {
-			content += "\n  $<TARGET_PROPERTY:" + parent + ",INTERFACE_INCLUDE_DIRECTORIES>"
 		}
 	}
 	content += "\n)"
@@ -429,9 +418,10 @@ func (c *Cbuild) ClassifyFiles(files []Files) BuildFiles {
 	var buildFiles BuildFiles
 	buildFiles.Include = make(ScopeMap)
 	buildFiles.Source = make(LanguageMap)
+	buildFiles.Custom = make(LanguageMap)
 	buildFiles.Interface = true
 	for _, file := range files {
-		if strings.Contains(file.Category, "source") && file.Attr != "template" {
+		if strings.Contains(file.Category, "source") && file.Attr != "template" && !HasFileCustomOptions(file) {
 			buildFiles.Interface = false
 			break
 		}
@@ -461,7 +451,11 @@ func (c *Cbuild) ClassifyFiles(files []Files) BuildFiles {
 		case "source", "sourceAsm", "sourceC", "sourceCpp":
 			language := GetLanguage(file)
 			c.AddContextLanguage(language)
-			buildFiles.Source[language] = append(buildFiles.Source[language], AddRootPrefix(c.ContextRoot, file.File))
+			if HasFileCustomOptions(file) {
+				buildFiles.Custom[language] = append(buildFiles.Custom[language], AddRootPrefix(c.ContextRoot, file.File))
+			} else {
+				buildFiles.Source[language] = append(buildFiles.Source[language], AddRootPrefix(c.ContextRoot, file.File))
+			}
 		case "library":
 			buildFiles.Library = append(buildFiles.Library, AddRootPrefix(c.ContextRoot, file.File))
 		case "object":
@@ -474,6 +468,22 @@ func (c *Cbuild) ClassifyFiles(files []Files) BuildFiles {
 	}
 
 	return buildFiles
+}
+
+func (c *Cbuild) MergeIncludes(includes ScopeMap, scope string, parent string, addPaths []string, delPaths []string) ScopeMap {
+	if _, ok := includes[scope]; !ok {
+		includes[scope] = make(LanguageMap)
+	}
+	includes[scope]["ALL"] = utils.AppendUniquely(AddRootPrefixes(c.ContextRoot, addPaths), includes[scope]["ALL"]...)
+	if len(parent) > 0 {
+		if len(delPaths) > 0 {
+			includes[scope]["ALL"] = utils.AppendUniquely(includes[scope]["ALL"], "$<LIST:REMOVE_ITEM,$<TARGET_PROPERTY:"+
+				parent+",INTERFACE_INCLUDE_DIRECTORIES>,"+ListIncludeDirectories(AddRootPrefixes(c.ContextRoot, delPaths), ",")+">")
+		} else {
+			includes[scope]["ALL"] = utils.AppendUniquely(includes[scope]["ALL"], "$<TARGET_PROPERTY:"+parent+",INTERFACE_INCLUDE_DIRECTORIES>")
+		}
+	}
+	return includes
 }
 
 func AppendGlobalIncludes(includes LanguageMap, elements ScopeMap) LanguageMap {
@@ -608,6 +618,14 @@ func HasFileAbstractions(files []Files) bool {
 	return hasFileAbstractions
 }
 
+func HasFileCustomOptions(file Files) bool {
+	if GetLanguage(file) != "ASM" &&
+		(len(file.AddPath) > 0 || len(file.Define) > 0 || len(file.DelPath) > 0 || len(file.Undefine) > 0) {
+		return true
+	}
+	return false
+}
+
 func (c *Cbuild) CompilerAbstractions(abstractions CompilerAbstractions, language string) string {
 	languageStandard := map[string]string{
 		"C":   abstractions.LanguageC,
@@ -639,25 +657,18 @@ func (c *Cbuild) CompilerAbstractions(abstractions CompilerAbstractions, languag
 
 func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstractions, parentMiscAsm []string) string {
 	var content string
-	// del-path and undefine are currently not supported at file level
-	if len(file.DelPath) > 0 {
-		log.Warn("del-path is not supported for file " + AddRootPrefix(c.ContextRoot, file.File))
-	}
-	if len(file.Undefine) > 0 {
-		log.Warn("undefine is not supported for file " + AddRootPrefix(c.ContextRoot, file.File))
-	}
 	// file build options
-	hasIncludes := len(file.AddPath) > 0
-	hasDefines := len(file.Define) > 0
+	language := GetLanguage(file)
+	hasIncludes := len(file.AddPath) > 0 && language == "ASM"
+	hasDefines := len(file.Define) > 0 && language == "ASM"
 	hasMisc := !IsCompileMiscEmpty(file.Misc)
 	// file compiler abstractions
-	language := GetLanguage(file)
 	hasAbstractions := !IsAbstractionEmpty(abstractions, language)
 	if hasAbstractions {
 		content += c.CompilerAbstractions(abstractions, language)
 	}
 	// handle specific asm defines
-	if language == "ASM" && hasDefines {
+	if hasDefines {
 		flags := utils.AppendUniquely(parentMiscAsm, file.Misc.ASM...)
 		if (c.Toolchain == "AC6" || c.Toolchain == "GCC") && path.Ext(file.File) != ".S" && !strings.Contains(utils.FindLast(flags, "-x"), "assembler-with-cpp") {
 			syntax := "AS_GNU"

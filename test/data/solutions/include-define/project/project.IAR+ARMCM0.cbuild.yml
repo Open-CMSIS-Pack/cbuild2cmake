@@ -1,5 +1,5 @@
 build:
-  generated-by: csolution version 0.0.0+g447ad5d7
+  generated-by: csolution version 2.4.0-devint1
   solution: ../solution.csolution.yml
   project: project.cproject.yml
   context: project.IAR+ARMCM0
@@ -97,6 +97,16 @@ build:
       files:
         - file: source1.c
           category: sourceC
+        - file: source3.c
+          category: sourceC
+          define:
+            - DEF3
+          undefine:
+            - DEF1
+          add-path:
+            - inc3
+          del-path:
+            - inc1
       groups:
         - group: Source2
           define:
@@ -116,12 +126,8 @@ build:
           category: sourceC
           define:
             - DEF2
-          undefine:
-            - not-supported
           add-path:
             - inc2
-          del-path:
-            - not-supported
     - group: Headers
       files:
         - file: ./inc3/inc.h
