@@ -158,7 +158,7 @@ include("` + toolchainConfig + `")
 func (c *Cbuild) CMakeCreateGroups(contextDir string) error {
 	content := "# groups.cmake\n"
 	abstractions := CompilerAbstractions{c.BuildDescType.Debug, c.BuildDescType.Optimize, c.BuildDescType.Warnings, c.BuildDescType.LanguageC, c.BuildDescType.LanguageCpp}
-	content += c.CMakeCreateGroupRecursively("", c.BuildDescType.Groups, abstractions, c.BuildDescType.Misc.ASM)
+	content += c.CMakeCreateGroupRecursively("", c.BuildDescType.Groups, abstractions, c.BuildDescType.DefineAsm, c.BuildDescType.Misc.ASM)
 	filename := path.Join(contextDir, "groups.cmake")
 	err := utils.UpdateFile(filename, content)
 	if err != nil {
@@ -169,7 +169,7 @@ func (c *Cbuild) CMakeCreateGroups(contextDir string) error {
 }
 
 func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
-	parentAbstractions CompilerAbstractions, parentMiscAsm []string) string {
+	parentAbstractions CompilerAbstractions, parentDefineAsm []interface{}, parentMiscAsm []string) string {
 	var content string
 	for _, group := range groups {
 		miscAsm := utils.AppendUniquely(parentMiscAsm, group.Misc.ASM...)
@@ -201,6 +201,7 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 		content += CMakeTargetIncludeDirectories(name, c.MergeIncludes(buildFiles.Include, scope, parentName, group.AddPath, group.DelPath))
 		// target_compile_definitions
 		content += CMakeTargetCompileDefinitions(name, parentName, scope, group.Define, group.Undefine)
+		group.DefineAsm = utils.AppendDefines(group.DefineAsm, parentDefineAsm)
 		// compiler abstractions
 		hasFileAbstractions := HasFileAbstractions(group.Files)
 		groupAbstractions := CompilerAbstractions{group.Debug, group.Optimize, group.Warnings, group.LanguageC, group.LanguageCpp}
@@ -241,24 +242,32 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 					content += c.CMakeAddLibraryCustomFile(fileTargetName, file)
 					// target_include_directories
 					content += CMakeTargetIncludeDirectories(fileTargetName, c.MergeIncludes(ScopeMap{}, "PUBLIC", name, file.AddPath, file.DelPath))
-					// target_compile_definitions
-					content += CMakeTargetCompileDefinitions(fileTargetName, name, "PUBLIC", file.Define, file.Undefine)
+					// target_compile_definitions (except asm)
+					if GetLanguage(file) != "ASM" {
+						content += CMakeTargetCompileDefinitions(fileTargetName, name, "PUBLIC", file.Define, file.Undefine)
+					}
 					// target_compile_options
 					content += c.CMakeTargetCompileOptions(fileTargetName, "PUBLIC", Misc{}, []string{}, name)
 				}
-				// file properties
+				// asm defines are set in file properties
+				if GetLanguage(file) == "ASM" {
+					file.DefineAsm = utils.AppendDefines(file.DefineAsm, group.DefineAsm)
+					file.DefineAsm = utils.AppendDefines(file.Define, file.DefineAsm)
+					content += c.SetFileAsmDefines(file, miscAsm)
+				}
+				// file compile options and abstractions
 				fileAbstractions := CompilerAbstractions{file.Debug, file.Optimize, file.Warnings, file.LanguageC, file.LanguageCpp}
 				if hasFileAbstractions {
 					fileAbstractions = InheritCompilerAbstractions(abstractions, fileAbstractions)
 				}
-				content += c.CMakeSetFileProperties(file, fileAbstractions, miscAsm)
+				content += c.CMakeSetFileProperties(file, fileAbstractions)
 			}
 		}
 		content += "\n"
 
 		// create children groups recursively
 		if hasChildren {
-			content += c.CMakeCreateGroupRecursively(name, group.Groups, abstractions, miscAsm)
+			content += c.CMakeCreateGroupRecursively(name, group.Groups, abstractions, group.DefineAsm, miscAsm)
 		}
 		c.BuildGroups = append(c.BuildGroups, name)
 	}
@@ -285,6 +294,7 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 		content += CMakeTargetIncludeDirectories(name, c.MergeIncludes(buildFiles.Include, scope, "${CONTEXT}", component.AddPath, component.DelPath))
 		// target_compile_definitions
 		content += CMakeTargetCompileDefinitions(name, "${CONTEXT}", scope, component.Define, component.Undefine)
+		component.DefineAsm = utils.AppendDefines(component.DefineAsm, c.BuildDescType.DefineAsm)
 		// compiler abstractions
 		var libraries []string
 		componentAbstractions := CompilerAbstractions{component.Debug, component.Optimize, component.Warnings, component.LanguageC, component.LanguageCpp}
@@ -307,7 +317,13 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 		if len(libraries) > 0 {
 			content += c.CMakeTargetLinkLibraries(name, scope, libraries...)
 		}
-
+		// asm defines are set in file properties
+		for _, file := range component.Files {
+			if strings.Contains(file.Category, "source") && GetLanguage(file) == "ASM" {
+				file.DefineAsm = utils.AppendDefines(file.DefineAsm, component.DefineAsm)
+				content += c.SetFileAsmDefines(file, utils.AppendUniquely(c.BuildDescType.Misc.ASM, component.Misc.ASM...))
+			}
+		}
 		content += "\n"
 	}
 

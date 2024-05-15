@@ -34,6 +34,7 @@ set(COMPILE_DEFINITIONS
   HEXADECIMAL_TEST=11259375
   DECIMAL_TEST=1234567890
   STRING_TEST="String0"
+  GROUP_ASM_AC6_DEF
 )
 cbuild_set_defines(AS_ARM COMPILE_DEFINITIONS)
 set_source_files_properties("${SOLUTION_ROOT}/project/AC6/AsmArm.s" PROPERTIES
@@ -41,19 +42,21 @@ set_source_files_properties("${SOLUTION_ROOT}/project/AC6/AsmArm.s" PROPERTIES
 )
 set(COMPILE_DEFINITIONS
   GAS_DEF
+  GROUP_ASM_AC6_DEF
 )
 cbuild_set_defines(AS_GNU COMPILE_DEFINITIONS)
 set_source_files_properties("${SOLUTION_ROOT}/project/AC6/GnuSyntax.s" PROPERTIES
   COMPILE_FLAGS "${COMPILE_DEFINITIONS}"
 )
 set_source_files_properties("${SOLUTION_ROOT}/project/AC6/GnuSyntax.s" PROPERTIES
-  COMPILE_OPTIONS -masm=gnu
+  COMPILE_OPTIONS "-masm=gnu"
 )
 set_source_files_properties("${SOLUTION_ROOT}/project/AC6/PreProcessed.S" PROPERTIES
-  COMPILE_DEFINITIONS PRE_PROCESSED_DEF
+  COMPILE_DEFINITIONS "PRE_PROCESSED_DEF;GROUP_ASM_AC6_DEF"
 )
 set(COMPILE_DEFINITIONS
   AUTO_DEF
+  GROUP_ASM_AC6_DEF
 )
 cbuild_set_defines(AS_ARM COMPILE_DEFINITIONS)
 set_source_files_properties("${SOLUTION_ROOT}/project/AC6/Auto.s" PROPERTIES

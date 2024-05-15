@@ -86,6 +86,8 @@ build:
         - file: ./main.c
           category: sourceC
     - group: IAR
+      define-asm:
+        - GROUP_ASM_IAR_DEF
       files:
         - file: ./IAR/Asm.s
           category: sourceAsm
