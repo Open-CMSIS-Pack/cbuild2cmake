@@ -98,6 +98,8 @@ build:
         - file: ./main.c
           category: sourceC
     - group: GCC-CLANG
+      define-asm:
+        - GROUP_ASM_GCC_CLANG_DEF
       files:
         - file: ./GCC/GAS.s
           category: sourceAsm

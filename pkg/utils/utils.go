@@ -42,6 +42,10 @@ func RemoveIncludes(includes []string, delpaths ...string) []string {
 	return includes
 }
 
+func AppendDefines(defines []interface{}, elements []interface{}) []interface{} {
+	return append(defines, elements...)
+}
+
 func RemoveDefines(defines []interface{}, undefines ...string) []interface{} {
 	for _, undefine := range undefines {
 		for index, define := range defines {

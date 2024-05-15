@@ -619,8 +619,8 @@ func HasFileAbstractions(files []Files) bool {
 }
 
 func HasFileCustomOptions(file Files) bool {
-	if GetLanguage(file) != "ASM" &&
-		(len(file.AddPath) > 0 || len(file.Define) > 0 || len(file.DelPath) > 0 || len(file.Undefine) > 0) {
+	if len(file.AddPath) > 0 || len(file.DelPath) > 0 ||
+		(GetLanguage(file) != "ASM" && (len(file.Define) > 0 || len(file.Undefine) > 0)) {
 		return true
 	}
 	return false
@@ -655,20 +655,27 @@ func (c *Cbuild) CompilerAbstractions(abstractions CompilerAbstractions, languag
 	return content
 }
 
-func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstractions, parentMiscAsm []string) string {
+func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstractions) string {
 	var content string
 	// file build options
 	language := GetLanguage(file)
-	hasIncludes := len(file.AddPath) > 0 && language == "ASM"
-	hasDefines := len(file.Define) > 0 && language == "ASM"
 	hasMisc := !IsCompileMiscEmpty(file.Misc)
 	// file compiler abstractions
 	hasAbstractions := !IsAbstractionEmpty(abstractions, language)
 	if hasAbstractions {
 		content += c.CompilerAbstractions(abstractions, language)
 	}
-	// handle specific asm defines
-	if hasDefines {
+	// set file properties
+	if hasMisc || hasAbstractions {
+		content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) +
+			"\" PROPERTIES\n  COMPILE_OPTIONS \"" + GetFileOptions(file, hasAbstractions, ";") + "\"\n)"
+	}
+	return content
+}
+
+func (c *Cbuild) SetFileAsmDefines(file Files, parentMiscAsm []string) string {
+	var content string
+	if len(file.DefineAsm) > 0 {
 		flags := utils.AppendUniquely(parentMiscAsm, file.Misc.ASM...)
 		if (c.Toolchain == "AC6" || c.Toolchain == "GCC") && path.Ext(file.File) != ".S" && !strings.Contains(utils.FindLast(flags, "-x"), "assembler-with-cpp") {
 			syntax := "AS_GNU"
@@ -676,25 +683,14 @@ func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstrac
 			if c.Toolchain == "AC6" && (strings.Contains(masm, "armasm") || strings.Contains(masm, "auto")) {
 				syntax = "AS_ARM"
 			}
-			content += "\nset(COMPILE_DEFINITIONS\n  " + ListCompileDefinitions(file.Define, "\n  ") + "\n)"
+			content += "\nset(COMPILE_DEFINITIONS\n  " + ListCompileDefinitions(file.DefineAsm, "\n  ") + "\n)"
 			content += "\ncbuild_set_defines(" + syntax + " COMPILE_DEFINITIONS)"
-			content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) + "\" PROPERTIES\n  COMPILE_FLAGS \"${COMPILE_DEFINITIONS}\"\n)"
-			hasDefines = false
+			content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) +
+				"\" PROPERTIES\n  COMPILE_FLAGS \"${COMPILE_DEFINITIONS}\"\n)"
+		} else {
+			content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) +
+				"\" PROPERTIES\n  COMPILE_DEFINITIONS \"" + ListCompileDefinitions(file.DefineAsm, ";") + "\"\n)"
 		}
-	}
-	// set file properties
-	if hasIncludes || hasDefines || hasMisc || hasAbstractions {
-		content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) + "\" PROPERTIES"
-		if hasIncludes {
-			content += "\n  INCLUDE_DIRECTORIES " + ListIncludeDirectories(AddRootPrefixes(c.ContextRoot, file.AddPath), ";")
-		}
-		if hasDefines {
-			content += "\n  COMPILE_DEFINITIONS " + ListCompileDefinitions(file.Define, ";")
-		}
-		if hasMisc || hasAbstractions {
-			content += "\n  COMPILE_OPTIONS " + GetFileOptions(file, hasAbstractions, ";")
-		}
-		content += "\n)"
 	}
 	return content
 }

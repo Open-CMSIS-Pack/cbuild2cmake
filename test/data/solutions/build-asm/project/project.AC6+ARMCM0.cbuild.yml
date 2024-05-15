@@ -101,6 +101,8 @@ build:
         - file: ./main.c
           category: sourceC
     - group: AC6
+      define-asm:
+        - GROUP_ASM_AC6_DEF
       files:
         - file: ./AC6/AsmArm.s
           category: sourceAsm

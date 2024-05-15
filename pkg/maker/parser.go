@@ -58,6 +58,7 @@ type Cbuild struct {
 		LanguageCpp      string        `yaml:"language-CPP"`
 		Misc             Misc          `yaml:"misc"`
 		Define           []interface{} `yaml:"define"`
+		DefineAsm        []interface{} `yaml:"define-asm"`
 		AddPath          []string      `yaml:"add-path"`
 		OutputDirs       OutputDirs    `yaml:"output-dirs"`
 		Output           []Output      `yaml:"output"`
@@ -109,6 +110,7 @@ type Components struct {
 	LanguageC   string        `yaml:"language-C"`
 	LanguageCpp string        `yaml:"language-CPP"`
 	Define      []interface{} `yaml:"define"`
+	DefineAsm   []interface{} `yaml:"define-asm"`
 	Undefine    []string      `yaml:"undefine"`
 	AddPath     []string      `yaml:"add-path"`
 	DelPath     []string      `yaml:"del-path"`
@@ -140,6 +142,7 @@ type Files struct {
 	LanguageC   string        `yaml:"language-C"`
 	LanguageCpp string        `yaml:"language-CPP"`
 	Define      []interface{} `yaml:"define"`
+	DefineAsm   []interface{} `yaml:"define-asm"`
 	Undefine    []string      `yaml:"undefine"`
 	AddPath     []string      `yaml:"add-path"`
 	DelPath     []string      `yaml:"del-path"`
@@ -163,6 +166,7 @@ type Groups struct {
 	LanguageC   string        `yaml:"language-C"`
 	LanguageCpp string        `yaml:"language-CPP"`
 	Define      []interface{} `yaml:"define"`
+	DefineAsm   []interface{} `yaml:"define-asm"`
 	Undefine    []string      `yaml:"undefine"`
 	AddPath     []string      `yaml:"add-path"`
 	DelPath     []string      `yaml:"del-path"`
