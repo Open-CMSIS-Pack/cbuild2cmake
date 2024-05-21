@@ -782,7 +782,8 @@ func ExecutesCommands(executes []Executes) string {
 		customTarget := "\nadd_custom_target(" + item.Execute + " ALL"
 		runAlways := item.Always != nil
 		if runAlways {
-			customTarget += "\n  COMMAND " + QuoteArguments(item.Run) + "\n)"
+			customTarget += "\n  COMMAND " + QuoteArguments(item.Run)
+			customTarget += "\n  COMMENT " + item.Execute + "\n)"
 		} else {
 			customTarget += " DEPENDS ${OUTPUT})"
 		}
@@ -800,7 +801,8 @@ func ExecutesCommands(executes []Executes) string {
 		}
 		content += customTarget
 		if !runAlways {
-			customCommand += "\n  COMMAND " + QuoteArguments(item.Run) + "\n)"
+			customCommand += "\n  COMMAND " + QuoteArguments(item.Run)
+			customCommand += "\n  COMMENT " + item.Execute + "\n)"
 			content += customCommand
 		}
 	}
