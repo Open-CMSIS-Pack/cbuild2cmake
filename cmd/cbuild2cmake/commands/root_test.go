@@ -274,6 +274,7 @@ set(OUTPUT
 add_custom_target(project.Release+ARMCM0-Sign_Artifact ALL DEPENDS ${OUTPUT})
 add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
   COMMAND ${CMAKE_COMMAND} -DINPUT="${INPUT}" -DOUTPUT="${OUTPUT}" -P "${INPUT_0}"
+  COMMENT project.Release+ARMCM0-Sign_Artifact
 )`)
 		assert.Contains(content, `
 # Build dependencies
