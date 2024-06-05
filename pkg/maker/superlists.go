@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strconv"
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/utils"
 	log "github.com/sirupsen/logrus"
@@ -20,22 +21,25 @@ func (m *Maker) CreateSuperCMakeLists() error {
 	reg := regexp.MustCompile(`(.*)\.csolution.ya?ml`)
 	csolution = reg.ReplaceAllString(csolution, "$1")
 
-	var contexts, dirs, outputs string
-	for _, cbuild := range m.Cbuilds {
+	var contexts, dirs, contextOutputs string
+	for i, cbuild := range m.Cbuilds {
 		contexts = contexts + "  \"" + cbuild.BuildDescType.Context + "\"\n"
 		dirs = dirs + "  \"${CMAKE_CURRENT_SOURCE_DIR}/" + cbuild.BuildDescType.Context + "\"\n"
 
+		var contextOutputsName = "OUTPUTS_" + strconv.Itoa(i+1)
+		contextOutputs += "set(" + contextOutputsName + "\n"
+
 		var outputFile string
 		for _, output := range cbuild.BuildDescType.Output {
-			if output.Type == "elf" || output.Type == "lib" {
-				outputFile = output.File
-				break
-			}
+			outputFile = output.File
+
+			cbuildRelativePath, _ := filepath.Rel(m.CbuildIndex.BaseDir, cbuild.BaseDir)
+			cbuildRelativePath = filepath.ToSlash(cbuildRelativePath)
+			output := AddRootPrefix(cbuildRelativePath, path.Join(cbuild.BuildDescType.OutputDirs.Outdir, outputFile))
+			contextOutputs += "  \"" + output + "\"\n"
 		}
-		cbuildRelativePath, _ := filepath.Rel(m.CbuildIndex.BaseDir, cbuild.BaseDir)
-		cbuildRelativePath = filepath.ToSlash(cbuildRelativePath)
-		output := AddRootPrefix(cbuildRelativePath, path.Join(cbuild.BuildDescType.OutputDirs.Outdir, outputFile))
-		outputs += "  \"" + output + "\"\n"
+
+		contextOutputs += ")\n"
 	}
 
 	solutionRoot, _ := filepath.EvalSymlinks(m.CbuildIndex.BaseDir)
@@ -70,8 +74,7 @@ math(EXPR CONTEXTS_LENGTH "${CONTEXTS_LENGTH}-1")
 set(DIRS
 ` + dirs + `)
 
-set(OUTPUTS
-` + outputs + `)
+` + contextOutputs + `
 
 set(ARGS
   "-DSOLUTION_ROOT=${SOLUTION_ROOT}"
@@ -85,7 +88,6 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
   math(EXPR N "${INDEX}+1")
   list(GET CONTEXTS ${INDEX} CONTEXT)
   list(GET DIRS ${INDEX} DIR)
-  list(GET OUTPUTS ${INDEX} OUTPUT)
 
   # Create external project, set configure and build steps
   ExternalProject_Add(${CONTEXT}
@@ -97,7 +99,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
     BUILD_COMMAND     ${CMAKE_COMMAND} --build <BINARY_DIR>` + verbosity + `
     BUILD_ALWAYS      TRUE
-    BUILD_BYPRODUCTS  ${OUTPUT}
+    BUILD_BYPRODUCTS  ${OUTPUTS_${N}}
   )
   ExternalProject_Add_StepTargets(${CONTEXT} build configure)
 

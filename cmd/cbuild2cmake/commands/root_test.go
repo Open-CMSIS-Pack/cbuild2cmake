@@ -124,10 +124,16 @@ set(DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/project.IAR+ARMCM0"
 )`)
 		assert.Contains(content, `
-set(OUTPUTS
+set(OUTPUTS_1
   "${SOLUTION_ROOT}/out/project/ARMCM0/AC6/project.axf"
+)
+set(OUTPUTS_2
   "${SOLUTION_ROOT}/out/project/ARMCM0/CLANG/project.elf"
+)
+set(OUTPUTS_3
   "${SOLUTION_ROOT}/out/project/ARMCM0/GCC/project.elf"
+)
+set(OUTPUTS_4
   "${SOLUTION_ROOT}/out/project/ARMCM0/IAR/project.out"
 )`)
 
@@ -159,7 +165,7 @@ set(DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/project.Release+ARMCM0"
 )`)
 		assert.Contains(content, `
-set(OUTPUTS
+set(OUTPUTS_1
   "${SOLUTION_ROOT}/out/project/ARMCM0/Release/project.axf"
 )`)
 	})
