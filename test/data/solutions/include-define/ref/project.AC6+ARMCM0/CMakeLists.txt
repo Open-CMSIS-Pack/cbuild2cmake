@@ -15,7 +15,7 @@ set(FPU NO_FPU)
 include("toolchain.cmake")
 
 # Setup project
-project(${CONTEXT} LANGUAGES C)
+project(${CONTEXT} LANGUAGES ASM C)
 
 # Compilation database
 add_custom_target(database COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" "${OUT_DIR}")
@@ -29,6 +29,9 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 
 # Includes
 target_include_directories(${CONTEXT} PUBLIC
+  $<$<COMPILE_LANGUAGE:ASM>:
+    ${SOLUTION_ROOT}/project/target
+  >
   ${SOLUTION_ROOT}/project/inc3
   ${SOLUTION_ROOT}/project/RTE/_AC6_ARMCM0
   ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
@@ -45,6 +48,11 @@ target_compile_definitions(${CONTEXT} PUBLIC
 
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
+  $<$<COMPILE_LANGUAGE:ASM>:
+    "SHELL:${ASM_CPU}"
+    "SHELL:${ASM_FLAGS}"
+    "SHELL:-masm=auto"
+  >
   $<$<COMPILE_LANGUAGE:C>:
     "SHELL:${CC_CPU}"
     "SHELL:${CC_FLAGS}"
@@ -61,10 +69,11 @@ include("groups.cmake")
 include("components.cmake")
 
 target_link_libraries(${CONTEXT} PUBLIC
+  Group_Source1_asm_s
   Group_Source1_source3_c
   Group_Source1_Source2
   Group_Source1
-  Group_Main___main_c
+  Group_Main_main_c
   Group_Main
   Group_Headers
   ARM_CMSIS_CORE_6_0_0

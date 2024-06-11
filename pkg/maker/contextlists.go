@@ -80,7 +80,12 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 	// Global classified includes
 	includeGlobal := make(ScopeMap)
 	includeGlobal["PUBLIC"] = AppendGlobalIncludes(cbuild.UserIncGlobal, constructedFiles.Include)
-	includeGlobal["PUBLIC"]["ALL"] = utils.AppendUniquely(includeGlobal["PUBLIC"]["ALL"], AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPath)...)
+	if len(cbuild.BuildDescType.AddPath) > 0 {
+		includeGlobal["PUBLIC"]["C,CXX"] = utils.AppendUniquely(includeGlobal["PUBLIC"]["C,CXX"], AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPath)...)
+	}
+	if len(cbuild.BuildDescType.AddPathAsm) > 0 {
+		includeGlobal["PUBLIC"]["ASM"] = utils.AppendUniquely(includeGlobal["PUBLIC"]["ASM"], AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPathAsm)...)
+	}
 	for language, paths := range cbuild.IncludeGlobal {
 		includeGlobal["PUBLIC"][language] = utils.AppendUniquely(includeGlobal["PUBLIC"][language], paths...)
 	}
@@ -198,7 +203,7 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 		if len(buildFiles.Include) > 0 {
 			c.UserIncGlobal = AppendGlobalIncludes(c.UserIncGlobal, buildFiles.Include)
 		}
-		content += CMakeTargetIncludeDirectories(name, c.MergeIncludes(buildFiles.Include, scope, parentName, group.AddPath, group.DelPath))
+		content += CMakeTargetIncludeDirectories(name, c.MergeIncludes(buildFiles.Include, scope, parentName, group.AddPath, group.AddPathAsm, group.DelPath))
 		// target_compile_definitions
 		content += CMakeTargetCompileDefinitions(name, parentName, scope, group.Define, group.Undefine)
 		group.DefineAsm = utils.AppendDefines(group.DefineAsm, parentDefineAsm)
@@ -241,7 +246,7 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 					content += "\n\n# file " + file.File
 					content += c.CMakeAddLibraryCustomFile(fileTargetName, file)
 					// target_include_directories
-					content += CMakeTargetIncludeDirectories(fileTargetName, c.MergeIncludes(ScopeMap{}, "PUBLIC", name, file.AddPath, file.DelPath))
+					content += CMakeTargetIncludeDirectories(fileTargetName, c.MergeIncludes(ScopeMap{}, "PUBLIC", name, file.AddPath, file.AddPathAsm, file.DelPath))
 					// target_compile_definitions (except asm)
 					if GetLanguage(file) != "ASM" {
 						content += CMakeTargetCompileDefinitions(fileTargetName, name, "PUBLIC", file.Define, file.Undefine)
@@ -291,7 +296,7 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 		if len(buildFiles.Include) > 0 {
 			c.IncludeGlobal = AppendGlobalIncludes(c.IncludeGlobal, buildFiles.Include)
 		}
-		content += CMakeTargetIncludeDirectories(name, c.MergeIncludes(buildFiles.Include, scope, "${CONTEXT}", component.AddPath, component.DelPath))
+		content += CMakeTargetIncludeDirectories(name, c.MergeIncludes(buildFiles.Include, scope, "${CONTEXT}", component.AddPath, component.AddPathAsm, component.DelPath))
 		// target_compile_definitions
 		content += CMakeTargetCompileDefinitions(name, "${CONTEXT}", scope, component.Define, component.Undefine)
 		component.DefineAsm = utils.AppendDefines(component.DefineAsm, c.BuildDescType.DefineAsm)

@@ -30,15 +30,15 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 
 # Includes
 target_include_directories(${CONTEXT} PUBLIC
-  ${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0
-  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
-  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
   $<$<COMPILE_LANGUAGE:C>:
     ${SOLUTION_ROOT}/pack/LanguageAndScope/Public
   >
   $<$<COMPILE_LANGUAGE:C,CXX>:
     ${SOLUTION_ROOT}/pack/LanguageAndScope/Visible
   >
+  ${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
+  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
 )
 
 # Defines

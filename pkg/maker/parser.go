@@ -60,6 +60,7 @@ type Cbuild struct {
 		Define           []interface{} `yaml:"define"`
 		DefineAsm        []interface{} `yaml:"define-asm"`
 		AddPath          []string      `yaml:"add-path"`
+		AddPathAsm       []string      `yaml:"add-path-asm"`
 		OutputDirs       OutputDirs    `yaml:"output-dirs"`
 		Output           []Output      `yaml:"output"`
 		Components       []Components  `yaml:"components"`
@@ -113,6 +114,7 @@ type Components struct {
 	DefineAsm   []interface{} `yaml:"define-asm"`
 	Undefine    []string      `yaml:"undefine"`
 	AddPath     []string      `yaml:"add-path"`
+	AddPathAsm  []string      `yaml:"add-path-asm"`
 	DelPath     []string      `yaml:"del-path"`
 	Misc        Misc          `yaml:"misc"`
 	Files       []Files       `yaml:"files"`
@@ -145,6 +147,7 @@ type Files struct {
 	DefineAsm   []interface{} `yaml:"define-asm"`
 	Undefine    []string      `yaml:"undefine"`
 	AddPath     []string      `yaml:"add-path"`
+	AddPathAsm  []string      `yaml:"add-path-asm"`
 	DelPath     []string      `yaml:"del-path"`
 	Misc        Misc          `yaml:"misc"`
 }
@@ -169,6 +172,7 @@ type Groups struct {
 	DefineAsm   []interface{} `yaml:"define-asm"`
 	Undefine    []string      `yaml:"undefine"`
 	AddPath     []string      `yaml:"add-path"`
+	AddPathAsm  []string      `yaml:"add-path-asm"`
 	DelPath     []string      `yaml:"del-path"`
 	Misc        Misc          `yaml:"misc"`
 }

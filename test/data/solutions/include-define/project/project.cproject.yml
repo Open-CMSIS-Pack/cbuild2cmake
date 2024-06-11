@@ -9,12 +9,20 @@ project:
     - component: ARM::Device:Startup&C Startup
       add-path:
         - ./inc2
+      add-path-asm:
+        - ./component
       define:
         - DEF2: 1
 
   groups:
     - group: Source1
+      add-path-asm:
+        - ./group
       files:
+        - file: asm.s
+          for-context: [.AC6, .GCC, .CLANG]
+          add-path-asm:
+            - ./file
         - file: source1.c
         - file: source3.c
           add-path:

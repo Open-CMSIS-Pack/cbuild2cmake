@@ -89,6 +89,22 @@ func ReplaceDelimiters(identifier string) string {
 	return pattern.ReplaceAllString(identifier, "_")
 }
 
+func MergeLanguageCommonIncludes(languages LanguageMap) LanguageMap {
+	intersection := utils.Intersection(languages["C"], languages["CXX"])
+	if len(intersection) > 0 {
+		languages["C,CXX"] = utils.AppendUniquely(languages["C,CXX"], intersection...)
+		languages["C"] = utils.RemoveIncludes(languages["C"], intersection...)
+		languages["CXX"] = utils.RemoveIncludes(languages["CXX"], intersection...)
+	}
+	intersection = utils.Intersection(languages["ASM"], languages["C,CXX"])
+	if len(intersection) > 0 {
+		languages["ALL"] = utils.AppendUniquely(languages["ALL"], intersection...)
+		languages["ASM"] = utils.RemoveIncludes(languages["ASM"], intersection...)
+		languages["C,CXX"] = utils.RemoveIncludes(languages["C,CXX"], intersection...)
+	}
+	return languages
+}
+
 func CMakeAddLibrary(name string, buildFiles BuildFiles) string {
 	content := "\nadd_library(" + name
 	if buildFiles.Interface {
@@ -177,19 +193,23 @@ func CMakeTargetIncludeDirectories(name string, includes ScopeMap) string {
 	}
 	for _, scope := range sortedmap.AsSortedMap(includes) {
 		content += scopeIndentation + scope.Key
-		for _, language := range sortedmap.AsSortedMap(scope.Value) {
+		var allLanguagesContent, specificLanguageContent string
+		for _, language := range sortedmap.AsSortedMap(MergeLanguageCommonIncludes(scope.Value)) {
 			if language.Key == "ALL" {
 				for _, file := range language.Value {
-					content += fileIndentation + file
+					allLanguagesContent += fileIndentation + file
 				}
 			} else {
-				content += fileIndentation + "$<$<COMPILE_LANGUAGE:" + language.Key + ">:"
-				for _, file := range language.Value {
-					content += fileIndentation + "  " + file
+				if len(language.Value) > 0 {
+					specificLanguageContent += fileIndentation + "$<$<COMPILE_LANGUAGE:" + language.Key + ">:"
+					for _, file := range language.Value {
+						specificLanguageContent += fileIndentation + "  " + file
+					}
+					specificLanguageContent += fileIndentation + ">"
 				}
-				content += fileIndentation + ">"
 			}
 		}
+		content += specificLanguageContent + allLanguagesContent
 	}
 	content += "\n)"
 	return content
@@ -470,11 +490,16 @@ func (c *Cbuild) ClassifyFiles(files []Files) BuildFiles {
 	return buildFiles
 }
 
-func (c *Cbuild) MergeIncludes(includes ScopeMap, scope string, parent string, addPaths []string, delPaths []string) ScopeMap {
+func (c *Cbuild) MergeIncludes(includes ScopeMap, scope string, parent string, addPaths []string, addPathsAsm []string, delPaths []string) ScopeMap {
 	if _, ok := includes[scope]; !ok {
 		includes[scope] = make(LanguageMap)
 	}
-	includes[scope]["ALL"] = utils.AppendUniquely(AddRootPrefixes(c.ContextRoot, addPaths), includes[scope]["ALL"]...)
+	if len(addPaths) > 0 {
+		includes[scope]["C,CXX"] = utils.AppendUniquely(AddRootPrefixes(c.ContextRoot, addPaths), includes[scope]["C,CXX"]...)
+	}
+	if len(addPathsAsm) > 0 {
+		includes[scope]["ASM"] = utils.AppendUniquely(AddRootPrefixes(c.ContextRoot, addPathsAsm), includes[scope]["ASM"]...)
+	}
 	if len(parent) > 0 {
 		if len(delPaths) > 0 {
 			includes[scope]["ALL"] = utils.AppendUniquely(includes[scope]["ALL"], "$<LIST:REMOVE_ITEM,$<TARGET_PROPERTY:"+
@@ -619,7 +644,7 @@ func HasFileAbstractions(files []Files) bool {
 }
 
 func HasFileCustomOptions(file Files) bool {
-	if len(file.AddPath) > 0 || len(file.DelPath) > 0 ||
+	if len(file.AddPath) > 0 || len(file.AddPathAsm) > 0 || len(file.DelPath) > 0 ||
 		(GetLanguage(file) != "ASM" && (len(file.Define) > 0 || len(file.Undefine) > 0)) {
 		return true
 	}
