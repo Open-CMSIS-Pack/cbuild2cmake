@@ -43,6 +43,10 @@ build:
     - RTE/_AC6_ARMCM0
     - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
     - ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
+  add-path-asm:
+    - RTE/_AC6_ARMCM0
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
+    - ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
   output-dirs:
     intdir: ../tmp/project/ARMCM0/AC6
     outdir: ../out/project/ARMCM0/AC6

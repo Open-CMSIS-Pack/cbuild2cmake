@@ -382,4 +382,21 @@ func TestBuildContent(t *testing.T) {
 		adjustedOption = cbuild.AdjustRelativePath("-map=../../out/file.map")
 		assert.Equal("-map=${SOLUTION_ROOT}/out/file.map", adjustedOption)
 	})
+
+	t.Run("merge common language includes", func(t *testing.T) {
+		languages := maker.LanguageMap{
+			"C":   []string{"inc-C", "inc-C-CXX", "inc-ASM-C-CXX"},
+			"CXX": []string{"inc-CXX", "inc-C-CXX", "inc-ASM-C-CXX"},
+			"ASM": []string{"inc-ASM", "inc-ASM-C-CXX"},
+		}
+		commonlanguages := maker.LanguageMap{
+			"C":     []string{"inc-C"},
+			"CXX":   []string{"inc-CXX"},
+			"ASM":   []string{"inc-ASM"},
+			"ALL":   []string{"inc-ASM-C-CXX"},
+			"C,CXX": []string{"inc-C-CXX"},
+		}
+		assert.Equal(commonlanguages, maker.MergeLanguageCommonIncludes(languages))
+	})
+
 }

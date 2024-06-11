@@ -32,6 +32,20 @@ func FindLast(list []string, substr string) string {
 	return ""
 }
 
+func Intersection(slice1, slice2 []string) []string {
+	var intersection []string
+	hash := make(map[string]bool)
+	for _, element := range slice1 {
+		hash[element] = true
+	}
+	for _, element := range slice2 {
+		if hash[element] {
+			intersection = AppendUniquely(intersection, element)
+		}
+	}
+	return intersection
+}
+
 func RemoveIncludes(includes []string, delpaths ...string) []string {
 	for _, delpath := range delpaths {
 		index := slices.Index(includes, delpath)

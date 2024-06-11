@@ -16,7 +16,12 @@ add_library(ARM_Device_Startup_C_Startup_2_2_0 OBJECT
   "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/system_ARMCM0.c"
 )
 target_include_directories(ARM_Device_Startup_C_Startup_2_2_0 PUBLIC
-  ${SOLUTION_ROOT}/project/inc2
+  $<$<COMPILE_LANGUAGE:ASM>:
+    ${SOLUTION_ROOT}/project/component
+  >
+  $<$<COMPILE_LANGUAGE:C,CXX>:
+    ${SOLUTION_ROOT}/project/inc2
+  >
   ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
 )

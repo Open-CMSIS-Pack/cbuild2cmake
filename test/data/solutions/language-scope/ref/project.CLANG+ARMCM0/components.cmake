@@ -38,13 +38,13 @@ target_include_directories(ARM_RteTest_LanguageAndScope_0_9_9
       ${SOLUTION_ROOT}/pack/LanguageAndScope/Private
     >
   PUBLIC
-    $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
     $<$<COMPILE_LANGUAGE:C>:
       ${SOLUTION_ROOT}/pack/LanguageAndScope/Public
     >
     $<$<COMPILE_LANGUAGE:C,CXX>:
       ${SOLUTION_ROOT}/pack/LanguageAndScope/Visible
     >
+    $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(ARM_RteTest_LanguageAndScope_0_9_9 PUBLIC
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>

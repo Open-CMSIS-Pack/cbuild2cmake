@@ -32,6 +32,14 @@ build:
   define:
     - ARMCM0
     - _RTE_
+  define-asm:
+    - ARMCM0
+    - _RTE_
+  add-path-asm:
+    - target
+    - RTE/_CLANG_ARMCM0
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
+    - ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
   add-path:
     - RTE/_CLANG_ARMCM0
     - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
@@ -80,6 +88,8 @@ build:
         - DEF2: 1
       add-path:
         - inc2
+      add-path-asm:
+        - component
       files:
         - file: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include/ARMCM0.h
           category: header
@@ -101,7 +111,13 @@ build:
         - DEF1: 1
       add-path:
         - inc1
+      add-path-asm:
+        - group
       files:
+        - file: asm.s
+          category: sourceAsm
+          add-path-asm:
+            - file
         - file: source1.c
           category: sourceC
         - file: source3.c
@@ -129,7 +145,7 @@ build:
               category: sourceC
     - group: Main
       files:
-        - file: ./main.c
+        - file: main.c
           category: sourceC
           define:
             - DEF2
@@ -137,7 +153,7 @@ build:
             - inc2
     - group: Headers
       files:
-        - file: ./inc3/inc.h
+        - file: inc3/inc.h
           category: header
   constructed-files:
     - file: RTE/_CLANG_ARMCM0/RTE_Components.h

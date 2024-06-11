@@ -41,6 +41,11 @@ build:
     - RTE/_GCC_ARMCM55
     - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
     - ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM55/Include
+  add-path-asm:
+    - RTE/Device/ARMCM55
+    - RTE/_GCC_ARMCM55
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
+    - ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM55/Include
   output-dirs:
     intdir: ../tmp/project/ARMCM55/GCC
     outdir: ../out/project/ARMCM55/GCC
