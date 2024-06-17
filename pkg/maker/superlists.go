@@ -45,9 +45,11 @@ func (m *Maker) CreateSuperCMakeLists() error {
 	solutionRoot, _ := filepath.EvalSymlinks(m.CbuildIndex.BaseDir)
 	solutionRoot = filepath.ToSlash(solutionRoot)
 
-	var verbosity string
+	var verbosity, logConfigure string
 	if m.Options.Debug || m.Options.Verbose {
 		verbosity = " --verbose"
+	} else {
+		logConfigure = "\n    LOG_CONFIGURE     ON"
 	}
 
 	// Write content
@@ -97,9 +99,10 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     INSTALL_COMMAND   ""
     TEST_COMMAND      ""
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
-    BUILD_COMMAND     ${CMAKE_COMMAND} --build <BINARY_DIR>` + verbosity + `
+    BUILD_COMMAND     ${CMAKE_COMMAND} -E echo "Building CMake target '${CONTEXT}'"
+    COMMAND           ${CMAKE_COMMAND} --build <BINARY_DIR>` + verbosity + `
     BUILD_ALWAYS      TRUE
-    BUILD_BYPRODUCTS  ${OUTPUTS_${N}}
+    BUILD_BYPRODUCTS  ${OUTPUTS_${N}}` + logConfigure + `
   )
   ExternalProject_Add_StepTargets(${CONTEXT} build configure)
 
