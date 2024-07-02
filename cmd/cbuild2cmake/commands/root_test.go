@@ -337,11 +337,17 @@ add_dependencies(Archive_Artifacts
   project.Release+ARMCM0-build
   project.Release+ARMCM0-Sign_Artifact
 )
+add_dependencies(project.Release+ARMCM0-executes
+  Archive_Artifacts
+)
 add_dependencies(Run_After_Archiving
   Archive_Artifacts
 )
 add_dependencies(project.Release+ARMCM0-Sign_Artifact
   project.Release+ARMCM0-build
+)
+add_dependencies(project.Release+ARMCM0-executes
+  project.Release+ARMCM0-Sign_Artifact
 )`)
 	})
 }
