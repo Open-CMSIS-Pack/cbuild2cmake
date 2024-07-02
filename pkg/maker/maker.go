@@ -38,7 +38,7 @@ type Vars struct {
 	RegisteredToolchains     map[*semver.Version]Toolchain
 	SelectedToolchainVersion []*semver.Version
 	SelectedToolchainConfig  []string
-	SolutionIntDir           string
+	SolutionTmpDir           string
 }
 
 type Maker struct {
@@ -67,7 +67,10 @@ func (m *Maker) GenerateCMakeLists() error {
 	}
 
 	// Create super project CMakeLists.txt
-	m.SolutionIntDir = path.Join(m.CbuildIndex.BaseDir, "tmp")
+	if len(m.CbuildIndex.BuildIdx.TmpDir) == 0 {
+		m.CbuildIndex.BuildIdx.TmpDir = "tmp"
+	}
+	m.SolutionTmpDir = path.Join(m.CbuildIndex.BaseDir, m.CbuildIndex.BuildIdx.TmpDir)
 	err = m.CreateSuperCMakeLists()
 	if err != nil {
 		return err

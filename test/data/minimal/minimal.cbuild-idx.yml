@@ -1,6 +1,7 @@
 build-idx:
   generated-by: csolution version 2.2.1
   csolution: minimal.csolution.yml
+  tmpdir: custom/tmp/path
   cprojects:
     - cproject: minimal.cproject.yml
   cbuilds:

@@ -25,6 +25,7 @@ func TestParser(t *testing.T) {
 		assert.Equal("csolution version 2.2.1", data.BuildIdx.GeneratedBy)
 		assert.Equal("cdefault.yml", data.BuildIdx.Cdefault)
 		assert.Equal("solutionName.csolution.yml", data.BuildIdx.Csolution)
+		assert.Equal("custom/tmp/path", data.BuildIdx.TmpDir)
 		assert.Equal("projectName.cproject.yml", data.BuildIdx.Cprojects[0].Cproject)
 		assert.Equal("layerName.clayer.yml", data.BuildIdx.Cprojects[0].Clayers[0].Clayer)
 		assert.Equal("projectName.BuildType0+TargetType0.cbuild.yml", data.BuildIdx.Cbuilds[0].Cbuild)
