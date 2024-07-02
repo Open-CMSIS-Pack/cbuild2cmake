@@ -120,12 +120,12 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
 endforeach()` + ExecutesCommands(m.CbuildIndex.BuildIdx.Executes) + m.BuildDependencies() + `
 `
-	superCMakeLists := path.Join(m.SolutionIntDir, "CMakeLists.txt")
+	superCMakeLists := path.Join(m.SolutionTmpDir, "CMakeLists.txt")
 	err := utils.UpdateFile(superCMakeLists, content)
 	if err != nil {
 		return err
 	}
 
-	log.Info("CMakeLists were successfully generated in the " + m.SolutionIntDir + " directory")
+	log.Info("CMakeLists were successfully generated in the " + m.SolutionTmpDir + " directory")
 	return nil
 }

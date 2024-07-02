@@ -24,7 +24,7 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 	cbuild.ContextRoot = filepath.ToSlash(cbuild.ContextRoot)
 	cbuild.Toolchain = m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Name
 	outDir := AddRootPrefix(cbuild.ContextRoot, cbuild.BuildDescType.OutputDirs.Outdir)
-	contextDir := path.Join(m.SolutionIntDir, cbuild.BuildDescType.Context)
+	contextDir := path.Join(m.SolutionTmpDir, cbuild.BuildDescType.Context)
 	cbuild.IncludeGlobal = make(LanguageMap)
 	cbuild.UserIncGlobal = make(LanguageMap)
 

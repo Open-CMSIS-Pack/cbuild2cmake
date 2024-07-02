@@ -74,6 +74,7 @@ func TestCommands(t *testing.T) {
 		cmd.SetArgs([]string{cbuildIdxFile})
 		err := cmd.Execute()
 		assert.Nil(err)
+		assert.FileExists(testRoot + "/run/minimal/custom/tmp/path/CMakeLists.txt")
 	})
 
 	t.Run("test quiet verbosity level", func(t *testing.T) {

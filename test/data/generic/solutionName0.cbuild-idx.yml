@@ -2,6 +2,7 @@ build-idx:
   generated-by: csolution version 2.2.1
   cdefault: cdefault.yml
   csolution: solutionName.csolution.yml
+  tmpdir: custom/tmp/path
   cprojects:
     - cproject: projectName.cproject.yml
       clayers:
