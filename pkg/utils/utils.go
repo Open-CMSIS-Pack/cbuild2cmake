@@ -23,6 +23,15 @@ func AppendUniquely(list []string, elements ...string) []string {
 	return list
 }
 
+func PrependUniquely(list []string, elements ...string) []string {
+	for _, element := range elements {
+		if !slices.Contains(list, element) {
+			list = append([]string{element}, list...)
+		}
+	}
+	return list
+}
+
 func FindLast(list []string, substr string) string {
 	for i := len(list) - 1; i >= 0; i-- {
 		if strings.Contains(list[i], substr) {

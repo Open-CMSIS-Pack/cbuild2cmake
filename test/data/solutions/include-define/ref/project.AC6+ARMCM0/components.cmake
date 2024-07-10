@@ -3,8 +3,8 @@
 # component ARM::CMSIS:CORE@6.0.0
 add_library(ARM_CMSIS_CORE_6_0_0 INTERFACE)
 target_include_directories(ARM_CMSIS_CORE_6_0_0 INTERFACE
-  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
   $<LIST:REMOVE_ITEM,$<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>,${SOLUTION_ROOT}/project/inc1>
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
 )
 target_compile_definitions(ARM_CMSIS_CORE_6_0_0 INTERFACE
   $<LIST:FILTER,$<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>,EXCLUDE,^DEF1.*>
@@ -16,6 +16,7 @@ add_library(ARM_Device_Startup_C_Startup_2_2_0 OBJECT
   "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/system_ARMCM0.c"
 )
 target_include_directories(ARM_Device_Startup_C_Startup_2_2_0 PUBLIC
+  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
   $<$<COMPILE_LANGUAGE:ASM>:
     ${SOLUTION_ROOT}/project/component
   >
@@ -23,7 +24,6 @@ target_include_directories(ARM_Device_Startup_C_Startup_2_2_0 PUBLIC
     ${SOLUTION_ROOT}/project/inc2
   >
   ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
-  $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(ARM_Device_Startup_C_Startup_2_2_0 PUBLIC
   $<$<COMPILE_LANGUAGE:C,CXX>:

@@ -161,7 +161,7 @@ build:
             - inc2
     - group: Headers
       files:
-        - file: inc3/inc.h
+        - file: inc1/inc.h
           category: header
   constructed-files:
     - file: RTE/_AC6_ARMCM0/RTE_Components.h

@@ -60,4 +60,4 @@ project:
 
     - group: Headers
       files:
-        - file: ./inc3/inc.h
+        - file: ./inc1/inc.h
