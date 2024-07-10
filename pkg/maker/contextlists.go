@@ -79,14 +79,24 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 
 	// Global classified includes
 	includeGlobal := make(ScopeMap)
-	includeGlobal["PUBLIC"] = AppendGlobalIncludes(cbuild.UserIncGlobal, constructedFiles.Include)
+	includeGlobal["PUBLIC"] = AppendGlobalIncludes(make(LanguageMap), constructedFiles.Include)
+
+	// Merge common add-path and add-path-asm
 	if len(cbuild.BuildDescType.AddPath) > 0 {
 		includeGlobal["PUBLIC"]["C,CXX"] = utils.AppendUniquely(includeGlobal["PUBLIC"]["C,CXX"], AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPath)...)
 	}
 	if len(cbuild.BuildDescType.AddPathAsm) > 0 {
 		includeGlobal["PUBLIC"]["ASM"] = utils.AppendUniquely(includeGlobal["PUBLIC"]["ASM"], AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPathAsm)...)
 	}
+	includeGlobal["PUBLIC"] = MergeLanguageCommonIncludes(includeGlobal["PUBLIC"])
+
+	// Global component includes
 	for language, paths := range cbuild.IncludeGlobal {
+		includeGlobal["PUBLIC"][language] = utils.AppendUniquely(includeGlobal["PUBLIC"][language], paths...)
+	}
+
+	// Global user includes
+	for language, paths := range cbuild.UserIncGlobal {
 		includeGlobal["PUBLIC"][language] = utils.AppendUniquely(includeGlobal["PUBLIC"][language], paths...)
 	}
 

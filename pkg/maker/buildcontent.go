@@ -102,6 +102,10 @@ func MergeLanguageCommonIncludes(languages LanguageMap) LanguageMap {
 		languages["ASM"] = utils.RemoveIncludes(languages["ASM"], intersection...)
 		languages["C,CXX"] = utils.RemoveIncludes(languages["C,CXX"], intersection...)
 	}
+	languages["C"] = utils.RemoveIncludes(languages["C"], utils.Intersection(languages["ALL"], languages["C"])...)
+	languages["CXX"] = utils.RemoveIncludes(languages["CXX"], utils.Intersection(languages["ALL"], languages["CXX"])...)
+	languages["C,CXX"] = utils.RemoveIncludes(languages["C,CXX"], utils.Intersection(languages["ALL"], languages["C,CXX"])...)
+	languages["ASM"] = utils.RemoveIncludes(languages["ASM"], utils.Intersection(languages["ALL"], languages["ASM"])...)
 	return languages
 }
 
@@ -197,7 +201,11 @@ func CMakeTargetIncludeDirectories(name string, includes ScopeMap) string {
 		for _, language := range sortedmap.AsSortedMap(MergeLanguageCommonIncludes(scope.Value)) {
 			if language.Key == "ALL" {
 				for _, file := range language.Value {
-					allLanguagesContent += fileIndentation + file
+					if strings.Contains(file, "$<TARGET_PROPERTY:") {
+						content += fileIndentation + file
+					} else {
+						allLanguagesContent += fileIndentation + file
+					}
 				}
 			} else {
 				if len(language.Value) > 0 {
@@ -467,7 +475,11 @@ func (c *Cbuild) ClassifyFiles(files []Files) BuildFiles {
 			if _, ok := buildFiles.Include[scope]; !ok {
 				buildFiles.Include[scope] = make(LanguageMap)
 			}
-			buildFiles.Include[scope][language] = utils.AppendUniquely(buildFiles.Include[scope][language], AddRootPrefix(c.ContextRoot, includePath))
+			if file.Attr == "config" {
+				buildFiles.Include[scope][language] = utils.PrependUniquely(buildFiles.Include[scope][language], AddRootPrefix(c.ContextRoot, includePath))
+			} else {
+				buildFiles.Include[scope][language] = utils.AppendUniquely(buildFiles.Include[scope][language], AddRootPrefix(c.ContextRoot, includePath))
+			}
 		case "source", "sourceAsm", "sourceC", "sourceCpp":
 			language := GetLanguage(file)
 			c.AddContextLanguage(language)
@@ -502,10 +514,10 @@ func (c *Cbuild) MergeIncludes(includes ScopeMap, scope string, parent string, a
 	}
 	if len(parent) > 0 {
 		if len(delPaths) > 0 {
-			includes[scope]["ALL"] = utils.AppendUniquely(includes[scope]["ALL"], "$<LIST:REMOVE_ITEM,$<TARGET_PROPERTY:"+
+			includes[scope]["ALL"] = utils.PrependUniquely(includes[scope]["ALL"], "$<LIST:REMOVE_ITEM,$<TARGET_PROPERTY:"+
 				parent+",INTERFACE_INCLUDE_DIRECTORIES>,"+ListIncludeDirectories(AddRootPrefixes(c.ContextRoot, delPaths), ",")+">")
 		} else {
-			includes[scope]["ALL"] = utils.AppendUniquely(includes[scope]["ALL"], "$<TARGET_PROPERTY:"+parent+",INTERFACE_INCLUDE_DIRECTORIES>")
+			includes[scope]["ALL"] = utils.PrependUniquely(includes[scope]["ALL"], "$<TARGET_PROPERTY:"+parent+",INTERFACE_INCLUDE_DIRECTORIES>")
 		}
 	}
 	return includes

@@ -32,10 +32,10 @@ target_include_directories(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:ASM>:
     ${SOLUTION_ROOT}/project/target
   >
-  ${SOLUTION_ROOT}/project/inc3
   ${SOLUTION_ROOT}/project/RTE/_AC6_ARMCM0
   ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
   ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
+  ${SOLUTION_ROOT}/project/inc1
 )
 
 # Defines

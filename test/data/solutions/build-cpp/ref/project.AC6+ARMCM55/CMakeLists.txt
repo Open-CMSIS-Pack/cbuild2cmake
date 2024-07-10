@@ -33,9 +33,9 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 # Includes
 target_include_directories(${CONTEXT} PUBLIC
   ${SOLUTION_ROOT}/project/RTE/_AC6_ARMCM55
+  ${SOLUTION_ROOT}/project/RTE/Device/ARMCM55
   ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
   ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM55/Include
-  ${SOLUTION_ROOT}/project/RTE/Device/ARMCM55
 )
 
 # Defines
