@@ -96,10 +96,17 @@ func TestBuildContent(t *testing.T) {
 			Attr:     "template",
 		}
 		files = append(files, template)
+		config := maker.Files{
+			File:     "./configs/config.h",
+			Category: "header",
+			Attr:     "config",
+		}
+		files = append(files, config)
 		buildFiles = cbuild.ClassifyFiles(files)
 		assert.False(buildFiles.Interface)
-		assert.Equal("${SOLUTION_ROOT}/project/headers", buildFiles.Include["PUBLIC"]["ALL"][0])
-		assert.Equal("${SOLUTION_ROOT}/project/includes", buildFiles.Include["PUBLIC"]["ALL"][1])
+		assert.Equal("${SOLUTION_ROOT}/project/configs", buildFiles.Include["PUBLIC"]["ALL"][0])
+		assert.Equal("${SOLUTION_ROOT}/project/headers", buildFiles.Include["PUBLIC"]["ALL"][1])
+		assert.Equal("${SOLUTION_ROOT}/project/includes", buildFiles.Include["PUBLIC"]["ALL"][2])
 		assert.Equal("${SOLUTION_ROOT}/project/source.c", buildFiles.Source["C"][0])
 		assert.Equal("${SOLUTION_ROOT}/project/lib.a", buildFiles.Library[0])
 		assert.Equal("${SOLUTION_ROOT}/project/obj.o", buildFiles.Object[0])
