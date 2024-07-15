@@ -291,14 +291,15 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 	// add global misc options
 	c.GetCompileOptionsLanguageMap(c.BuildDescType.Misc, &optionsMap)
 
+	// pre-includes global
+	for _, preInclude := range c.PreIncludeGlobal {
+		optionsMap["C,CXX"] = append(optionsMap["C,CXX"], "${_PI}\""+preInclude+"\"")
+	}
+
 	// target compile options
 	content := "\ntarget_compile_options(" + name + " " + scope
 	for _, language := range sortedmap.AsSortedMap(optionsMap) {
 		content += c.LanguageSpecificCompileOptions(language.Key, language.Value...)
-	}
-	// pre-includes global
-	for _, preInclude := range c.PreIncludeGlobal {
-		content += "\n  " + AddShellPrefix("${_PI}\""+preInclude+"\"")
 	}
 	content += "\n)"
 	return content
@@ -318,11 +319,11 @@ func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc,
 	content += "\n  $<TARGET_PROPERTY:" + parent + ",INTERFACE_COMPILE_OPTIONS>"
 	optionsMap := make(map[string][]string)
 	c.GetCompileOptionsLanguageMap(misc, &optionsMap)
+	for _, preInclude := range preIncludes {
+		optionsMap["C,CXX"] = append(optionsMap["C,CXX"], "${_PI}\""+preInclude+"\"")
+	}
 	for _, language := range sortedmap.AsSortedMap(optionsMap) {
 		content += c.LanguageSpecificCompileOptions(language.Key, language.Value...)
-	}
-	for _, preInclude := range preIncludes {
-		content += "\n  " + AddShellPrefix("${_PI}\""+preInclude+"\"")
 	}
 	content += "\n)"
 	return content

@@ -53,9 +53,11 @@ target_compile_options(${CONTEXT} PUBLIC
     "SHELL:-Wno-parentheses-equality"
     "SHELL:-Wno-license-management"
   >
-  "SHELL:${_PI}\"${SOLUTION_ROOT}/pack/Files/header1.h\""
-  "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/TestClass/config-header1.h\""
-  "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/_AC6_ARMCM0/Pre_Include_Global.h\""
+  $<$<COMPILE_LANGUAGE:C,CXX>:
+    "SHELL:${_PI}\"${SOLUTION_ROOT}/pack/Files/header1.h\""
+    "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/TestClass/config-header1.h\""
+    "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/_AC6_ARMCM0/Pre_Include_Global.h\""
+  >
 )
 
 # Add groups and components

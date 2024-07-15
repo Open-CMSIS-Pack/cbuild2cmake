@@ -50,9 +50,11 @@ target_compile_options(${CONTEXT} PUBLIC
     "SHELL:${CC_FLAGS}"
     "SHELL:--dlib_config DLib_Config_Full.h"
   >
-  "SHELL:${_PI}\"${SOLUTION_ROOT}/pack/Files/header1.h\""
-  "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/TestClass/config-header1.h\""
-  "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/_IAR_ARMCM0/Pre_Include_Global.h\""
+  $<$<COMPILE_LANGUAGE:C,CXX>:
+    "SHELL:${_PI}\"${SOLUTION_ROOT}/pack/Files/header1.h\""
+    "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/TestClass/config-header1.h\""
+    "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/_IAR_ARMCM0/Pre_Include_Global.h\""
+  >
 )
 
 # Add groups and components
