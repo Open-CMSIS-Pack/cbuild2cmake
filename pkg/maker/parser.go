@@ -75,6 +75,7 @@ type Cbuild struct {
 	ContextRoot      string
 	Languages        []string
 	PreIncludeGlobal []string
+	LibraryGlobal    []string
 	IncludeGlobal    LanguageMap
 	UserIncGlobal    LanguageMap
 	BuildGroups      []string

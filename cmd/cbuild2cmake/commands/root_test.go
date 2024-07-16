@@ -255,6 +255,20 @@ set(OUTPUTS_1
 		assert.False(mismatch)
 	})
 
+	t.Run("test library rtos", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		testCaseRoot := testRoot + "/run/solutions/library-rtos"
+		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
+		err := cmd.Execute()
+		assert.Nil(err)
+
+		// check golden references
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp")
+		assert.Nil(err)
+		assert.False(mismatch)
+	})
+
 	t.Run("test executes", func(t *testing.T) {
 		cmd := commands.NewRootCmd()
 		testCaseRoot := testRoot + "/run/solutions/executes"
