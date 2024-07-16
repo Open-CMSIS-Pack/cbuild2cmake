@@ -1,0 +1,218 @@
+build:
+  generated-by: csolution version 2.5.0
+  solution: ../solution.csolution.yml
+  project: project.cproject.yml
+  context: project.GCC+ARMCM0
+  compiler: GCC
+  device: ARMCM0
+  device-pack: ARM::Cortex_DFP@1.1.0
+  processor:
+    fpu: off
+    core: Cortex-M0
+  packs:
+    - pack: ARM::CMSIS-RTX@5.9.0
+      path: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0
+    - pack: ARM::CMSIS@6.1.0
+      path: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0
+    - pack: ARM::Cortex_DFP@1.1.0
+      path: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0
+  misc:
+    C:
+      - -std=gnu11
+      - -masm-syntax-unified
+      - -fomit-frame-pointer
+      - -ffunction-sections
+      - -fdata-sections
+    CPP:
+      - -masm-syntax-unified
+      - -fomit-frame-pointer
+      - -ffunction-sections
+      - -fdata-sections
+    Library:
+      - -lm
+      - -lc
+    Link:
+      - --specs=nano.specs
+      - --specs=rdimon.specs
+      - -Wl,-Map=../out/project/ARMCM0/GCC/project.elf.map
+      - -Wl,--gc-sections
+  define:
+    - ARMCM0
+    - _RTE_
+  define-asm:
+    - ARMCM0
+    - _RTE_
+  add-path:
+    - RTE/CMSIS
+    - RTE/_GCC_ARMCM0
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Include
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include
+    - ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include
+  add-path-asm:
+    - RTE/CMSIS
+    - RTE/_GCC_ARMCM0
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Include
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include
+    - ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include
+  output-dirs:
+    intdir: ../tmp
+    outdir: ../out/project/ARMCM0/GCC
+    rtedir: RTE
+  output:
+    - type: elf
+      file: project.elf
+  components:
+    - component: ARM::CMSIS:CORE@6.1.0
+      condition: ARMv6_7_8-M Device
+      from-pack: ARM::CMSIS@6.1.0
+      selected-by: ARM::CMSIS:CORE
+      files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include
+          category: include
+          version: 6.1.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include/tz_context.h
+          category: header
+          version: 6.1.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Template/ARMv8-M/main_s.c
+          category: sourceC
+          attr: template
+          version: 1.1.1
+          select: Secure mode 'main' module for ARMv8-M
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Template/ARMv8-M/tz_context.c
+          category: sourceC
+          attr: template
+          version: 1.1.1
+          select: RTOS Context Management (TrustZone for ARMv8-M)
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Documentation/html/Core/index.html
+          category: doc
+          version: 6.1.0
+    - component: ARM::CMSIS:OS Tick:SysTick@1.0.5
+      condition: OS Tick SysTick
+      from-pack: ARM::CMSIS@6.1.0
+      selected-by: ARM::CMSIS:OS Tick
+      files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include/os_tick.h
+          category: api
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Source/os_systick.c
+          category: sourceC
+          version: 1.0.5
+    - component: ARM::CMSIS:RTOS2:Keil RTX5&Library@5.9.0
+      condition: RTX5
+      from-pack: ARM::CMSIS-RTX@5.9.0
+      selected-by: ARM::CMSIS:RTOS2:Keil RTX5&Library
+      files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include/cmsis_os2.h
+          category: api
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Documentation/index.html
+          category: doc
+          version: 5.9.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Include/rtx_os.h
+          category: header
+          version: 5.9.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Library/GCC/libRTX_V6M.a
+          category: library
+          version: 5.9.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/RTX5.scvd
+          category: other
+          version: 5.9.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Source/rtx_lib.c
+          category: source
+          version: 5.9.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Template/Events.c
+          category: source
+          attr: template
+          version: 2.0.0
+          select: RTX Events
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Template/MemPool.c
+          category: source
+          attr: template
+          version: 2.0.0
+          select: RTX Memory Pool
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Template/MsgQueue.c
+          category: source
+          attr: template
+          version: 2.0.0
+          select: RTX Message Queue
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Template/Mutex.c
+          category: source
+          attr: template
+          version: 2.0.0
+          select: RTX Mutex
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Template/Semaphore.c
+          category: source
+          attr: template
+          version: 2.0.0
+          select: RTX Semaphore
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Template/Thread.c
+          category: source
+          attr: template
+          version: 2.0.0
+          select: RTX Thread
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Template/Timer.c
+          category: source
+          attr: template
+          version: 2.0.1
+          select: RTX Timer
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Template/main.c
+          category: source
+          attr: template
+          version: 2.1.0
+          select: RTX 'main' function
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Template/svc_user.c
+          category: source
+          attr: template
+          version: 1.0.0
+          select: RTX SVC User Table
+        - file: RTE/CMSIS/RTX_Config.c
+          category: source
+          attr: config
+          version: 5.2.0
+        - file: RTE/CMSIS/RTX_Config.h
+          category: header
+          attr: config
+          version: 5.6.0
+    - component: ARM::Device:Startup&C Startup@2.2.0
+      condition: ARMCM0 CMSIS
+      from-pack: ARM::Cortex_DFP@1.1.0
+      selected-by: ARM::Device:Startup&C Startup
+      files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include/ARMCM0.h
+          category: header
+          version: 2.2.0
+        - file: RTE/Device/ARMCM0/ARMCM0_gcc.ld
+          category: linkerScript
+          attr: config
+          version: 2.2.0
+        - file: RTE/Device/ARMCM0/startup_ARMCM0.c
+          category: sourceC
+          attr: config
+          version: 2.0.3
+        - file: RTE/Device/ARMCM0/system_ARMCM0.c
+          category: sourceC
+          attr: config
+          version: 1.0.0
+  linker:
+    script: RTE/Device/ARMCM0/ARMCM0_gcc.ld
+  groups:
+    - group: Source
+      files:
+        - file: main.c
+          category: sourceC
+  constructed-files:
+    - file: RTE/_GCC_ARMCM0/RTE_Components.h
+      category: header
+  licenses:
+    - license: Apache-2.0
+      packs:
+        - pack: ARM::CMSIS-RTX@5.9.0
+        - pack: ARM::CMSIS@6.1.0
+        - pack: ARM::Cortex_DFP@1.1.0
+      components:
+        - component: ::CMSIS:OS Tick(API)
+        - component: ::CMSIS:RTOS2(API)
+        - component: ARM::CMSIS:CORE@6.1.0
+        - component: ARM::CMSIS:OS Tick:SysTick@1.0.5
+        - component: ARM::CMSIS:RTOS2:Keil RTX5&Library@5.9.0
+        - component: ARM::Device:Startup&C Startup@2.2.0

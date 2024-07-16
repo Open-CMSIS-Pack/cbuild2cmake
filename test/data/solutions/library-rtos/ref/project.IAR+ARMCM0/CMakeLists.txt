@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(CONTEXT project.GCC+ARMCM0)
+set(CONTEXT project.IAR+ARMCM0)
 set(TARGET ${CONTEXT})
-set(OUT_DIR "${SOLUTION_ROOT}/out/project/ARMCM0/GCC")
+set(OUT_DIR "${SOLUTION_ROOT}/out/project/ARMCM0/IAR")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(LD_SCRIPT "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/ARMCM0_gcc.ld")
-set(LD_SCRIPT_PP ${LD_SCRIPT})
+set(LD_SCRIPT "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/iar_linker_script.icf.src")
+set(LD_REGIONS "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/regions_ARMCM0.h")
+set(LD_SCRIPT_PP "${CMAKE_CURRENT_BINARY_DIR}/iar_linker_script.icf")
 
 # Processor Options
 set(CPU Cortex-M0)
@@ -23,15 +24,18 @@ set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}
 
 # Setup context
 add_executable(${CONTEXT})
-set_target_properties(${CONTEXT} PROPERTIES PREFIX "" SUFFIX ".elf" OUTPUT_NAME "project")
+set_target_properties(${CONTEXT} PROPERTIES PREFIX "" SUFFIX ".out" OUTPUT_NAME "project")
 set_target_properties(${CONTEXT} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})
 add_library(${CONTEXT}_GLOBAL INTERFACE)
 
 # Includes
 target_include_directories(${CONTEXT} PUBLIC
-  ${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0
-  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
-  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
+  ${SOLUTION_ROOT}/project/RTE/_IAR_ARMCM0
+  ${SOLUTION_ROOT}/project/RTE/CMSIS
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Include
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include
+  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include
 )
 
 # Defines
@@ -47,16 +51,7 @@ target_compile_options(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:C>:
     "SHELL:${CC_CPU}"
     "SHELL:${CC_FLAGS}"
-    "SHELL:-std=gnu11"
-    "SHELL:-masm-syntax-unified"
-    "SHELL:-fomit-frame-pointer"
-    "SHELL:-ffunction-sections"
-    "SHELL:-fdata-sections"
-  >
-  $<$<COMPILE_LANGUAGE:C,CXX>:
-    "SHELL:${_PI}\"${SOLUTION_ROOT}/pack/Files/header1.h\""
-    "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/TestClass/config-header1.h\""
-    "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0/Pre_Include_Global.h\""
+    "SHELL:--dlib_config DLib_Config_Full.h"
   >
 )
 
@@ -66,19 +61,20 @@ include("components.cmake")
 
 target_link_libraries(${CONTEXT} PUBLIC
   Group_Source
-  ARM_CMSIS_CORE_6_0_0
+  ARM_CMSIS_CORE_6_1_0
+  ARM_CMSIS_OS_Tick_SysTick_1_0_5
+  ARM_CMSIS_RTOS2_Keil_RTX5_Library_5_9_0
   ARM_Device_Startup_C_Startup_2_2_0
-  ARM_TestClass_TestGlobal_1_0_0
-  ARM_TestClass_TestLocal_1_0_0
 )
 
 # Linker options
 target_link_options(${CONTEXT} PUBLIC
   "SHELL:${LD_CPU}"
   "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
-  "SHELL:--specs=nano.specs"
-  "SHELL:--specs=rdimon.specs"
-  "SHELL:-Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/GCC/project.elf.map"
-  "SHELL:-Wl,--gc-sections"
+  "SHELL:--semihosting"
+  "SHELL:--map=${SOLUTION_ROOT}/out/project/ARMCM0/IAR/project.out.map"
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
+
+# Linker script pre-processing
+add_custom_command(TARGET ${CONTEXT} PRE_LINK COMMAND ${CPP} ARGS ${CPP_ARGS_LD_SCRIPT} BYPRODUCTS ${LD_SCRIPT_PP})

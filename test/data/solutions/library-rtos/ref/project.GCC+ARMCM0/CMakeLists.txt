@@ -30,8 +30,11 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 # Includes
 target_include_directories(${CONTEXT} PUBLIC
   ${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0
-  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
-  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
+  ${SOLUTION_ROOT}/project/RTE/CMSIS
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Include
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include
+  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include
 )
 
 # Defines
@@ -53,11 +56,6 @@ target_compile_options(${CONTEXT} PUBLIC
     "SHELL:-ffunction-sections"
     "SHELL:-fdata-sections"
   >
-  $<$<COMPILE_LANGUAGE:C,CXX>:
-    "SHELL:${_PI}\"${SOLUTION_ROOT}/pack/Files/header1.h\""
-    "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/TestClass/config-header1.h\""
-    "SHELL:${_PI}\"${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0/Pre_Include_Global.h\""
-  >
 )
 
 # Add groups and components
@@ -66,10 +64,15 @@ include("components.cmake")
 
 target_link_libraries(${CONTEXT} PUBLIC
   Group_Source
-  ARM_CMSIS_CORE_6_0_0
+  ARM_CMSIS_CORE_6_1_0
+  ARM_CMSIS_OS_Tick_SysTick_1_0_5
+  ARM_CMSIS_RTOS2_Keil_RTX5_Library_5_9_0
   ARM_Device_Startup_C_Startup_2_2_0
-  ARM_TestClass_TestGlobal_1_0_0
-  ARM_TestClass_TestLocal_1_0_0
+  -Wl,--start-group
+  -lm
+  -lc
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Library/GCC/libRTX_V6M.a
+  -Wl,--end-group
 )
 
 # Linker options

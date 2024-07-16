@@ -58,7 +58,7 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 	// Libraries
 	var libraries []string
 	libraries = append(libraries, cbuild.ListGroupsAndComponents()...)
-	libraries = append(libraries, cbuild.BuildDescType.Misc.Library...)
+	libraries = append(libraries, cbuild.GetLinkLibraries()...)
 
 	// Linker options
 	if outputType == "elf" {
@@ -141,7 +141,7 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 # Add groups and components
 include("groups.cmake")
 include("components.cmake")
-` + cbuild.CMakeTargetLinkLibraries("${CONTEXT}", "PUBLIC", libraries...) + RescanLinkLibraries("${CONTEXT}", cbuild.Toolchain) + `
+` + cbuild.CMakeTargetLinkLibraries("${CONTEXT}", "PUBLIC", libraries...) + `
 ` + linkerOptions + customCommands + `
 `
 	// Update CMakeLists.txt
@@ -242,6 +242,7 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 		}
 		// target_link_libraries
 		libraries = append(libraries, buildFiles.Library...)
+		c.LibraryGlobal = append(c.LibraryGlobal, buildFiles.Library...)
 		libraries = append(libraries, buildFiles.Object...)
 		if len(libraries) > 0 {
 			content += c.CMakeTargetLinkLibraries(name, scope, libraries...)
@@ -328,6 +329,7 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 		}
 		// target_link_libraries
 		libraries = append(libraries, buildFiles.Library...)
+		c.LibraryGlobal = append(c.LibraryGlobal, buildFiles.Library...)
 		libraries = append(libraries, buildFiles.Object...)
 		if len(libraries) > 0 {
 			content += c.CMakeTargetLinkLibraries(name, scope, libraries...)
@@ -351,11 +353,13 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 	return err
 }
 
-func RescanLinkLibraries(name string, compiler string) string {
-	var content string
-	if compiler == "GCC" {
-		content += "\nget_target_property(LINK_LIBRARIES " + name + " LINK_LIBRARIES)"
-		content += "\nset_target_properties(" + name + " PROPERTIES LINK_LIBRARIES \"-Wl,--start-group;${LINK_LIBRARIES};-Wl,--end-group\")"
+func (c *Cbuild) GetLinkLibraries() (libraries []string) {
+	libraries = c.BuildDescType.Misc.Library
+	// rescan libraries: special handling for GCC
+	if c.Toolchain == "GCC" && (len(c.BuildDescType.Misc.Library)+len(c.LibraryGlobal)) > 1 {
+		libraries = append(libraries, c.LibraryGlobal...)
+		libraries = append([]string{"-Wl,--start-group"}, libraries...)
+		libraries = append(libraries, "-Wl,--end-group")
 	}
-	return content
+	return
 }
