@@ -23,9 +23,20 @@ func TestToolchain(t *testing.T) {
 	assert := assert.New(t)
 	var m maker.Maker
 
-	// Update environment variables
+	// Clear environment variables
 	m.EnvVars = utils.UpdateEnvVars(m.InstallConfigs.BinPath, m.InstallConfigs.EtcPath)
 	inittest.ClearToolchainRegistration()
+
+	t.Run("test missing environment variables", func(t *testing.T) {
+		inittest.ClearToolchainRegistration()
+		m.Cbuilds = make([]maker.Cbuild, 1)
+		m.Cbuilds[0].BuildDescType.Compiler = "AC6@>=6.22.0"
+		err := m.ProcessToolchain()
+		assert.Error(err)
+		assert.ErrorContains(err, "compiler registration environment variable missing, format: AC6_TOOLCHAIN_<major>_<minor>_<patch>")
+	})
+
+	// Update environment variables
 	absTestRoot, _ := filepath.Abs(testRoot)
 	absTestRoot = filepath.ToSlash(absTestRoot)
 	os.Setenv("AC6_TOOLCHAIN_6_19_0", path.Join(absTestRoot, "run/path/to/ac619/bin"))

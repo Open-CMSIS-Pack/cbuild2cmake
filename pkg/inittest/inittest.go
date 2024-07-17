@@ -48,13 +48,13 @@ func TestInitialization(testRoot string) {
 func ClearToolchainRegistration() {
 	// Unset environment variables
 	systemEnvVars := os.Environ()
-	pattern := regexp.MustCompile(`(\w+)_TOOLCHAIN_(\d+)_(\d+)_(\d+)=(.*)`)
+	pattern := regexp.MustCompile(`((\w+)_TOOLCHAIN_(\d+)_(\d+)_(\d+))=(.*)`)
 	for _, systemEnvVar := range systemEnvVars {
 		matched := pattern.FindAllStringSubmatch(systemEnvVar, -1)
 		if matched == nil {
 			continue
 		}
-		os.Unsetenv(systemEnvVar)
+		os.Unsetenv(matched[0][1])
 	}
 }
 

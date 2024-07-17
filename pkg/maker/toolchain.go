@@ -119,6 +119,10 @@ func (m *Maker) ProcessToolchain() error {
 				registeredVersions = append(registeredVersions, version)
 			}
 		}
+		if len(registeredVersions) == 0 {
+			err := errors.New("compiler registration environment variable missing, format: " + contextToolchain + "_TOOLCHAIN_<major>_<minor>_<patch>")
+			return err
+		}
 		sort.Sort(sort.Reverse(semver.Collection(registeredVersions)))
 
 		// Get latest compatible registered version
