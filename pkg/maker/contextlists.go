@@ -124,7 +124,10 @@ include("toolchain.cmake")
 project(${CONTEXT} LANGUAGES ` + strings.Join(cbuild.Languages, " ") + `)
 
 # Compilation database
-add_custom_target(database COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" "${OUT_DIR}")` + systemIncludes + `
+add_custom_target(database
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${OUT_DIR}"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" "${OUT_DIR}"
+)` + systemIncludes + `
 
 # Setup context
 ` + cmakeTargetType + `(${CONTEXT})
