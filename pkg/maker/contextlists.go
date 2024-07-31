@@ -108,7 +108,7 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 	}
 
 	// Create CMakeLists content
-	content := `cmake_minimum_required(VERSION 3.22)
+	content := `cmake_minimum_required(VERSION 3.27)
 
 set(CONTEXT ` + cbuild.BuildDescType.Context + `)
 set(TARGET ${CONTEXT})
