@@ -85,7 +85,7 @@ func GetScope(file Files) string {
 }
 
 func ReplaceDelimiters(identifier string) string {
-	pattern := regexp.MustCompile(`::|:|&|@>=|@|\.|/| `)
+	pattern := regexp.MustCompile(`::|:|&|@>=|@|\.|/|\(|\)| `)
 	return pattern.ReplaceAllString(identifier, "_")
 }
 
