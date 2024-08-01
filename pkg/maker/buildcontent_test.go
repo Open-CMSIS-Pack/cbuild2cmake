@@ -13,6 +13,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestReplaceDelimiters(t *testing.T) {
+	assert := assert.New(t)
+
+	t.Run("test replace delimiters", func(t *testing.T) {
+		assert.Equal("Cvendor_Cbundle_Cclass_Cgroup_Cvariant_Cversion", maker.ReplaceDelimiters("Cvendor&Cbundle::Cclass:Cgroup&Cvariant@Cversion"))
+		assert.Equal("ARM_CMSIS_CORE_A", maker.ReplaceDelimiters("ARM::CMSIS.CORE A"))
+		assert.Equal("AC6_6_16_0", maker.ReplaceDelimiters("AC6@>=6.16.0"))
+		assert.Equal("path_with_spaces", maker.ReplaceDelimiters("path/with spaces"))
+		assert.Equal("Handlers__GCC_", maker.ReplaceDelimiters("Handlers (GCC)"))
+	})
+}
+
 func TestBuildContent(t *testing.T) {
 	assert := assert.New(t)
 
