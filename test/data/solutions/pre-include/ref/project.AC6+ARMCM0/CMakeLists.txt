@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.27)
 
 set(CONTEXT project.AC6+ARMCM0)
 set(TARGET ${CONTEXT})
