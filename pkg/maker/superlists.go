@@ -49,7 +49,8 @@ func (m *Maker) CreateSuperCMakeLists() error {
 	if m.Options.Debug || m.Options.Verbose {
 		verbosity = " --verbose"
 	} else {
-		logConfigure = "\n    LOG_CONFIGURE     ON"
+		logConfigure = "\n    LOG_CONFIGURE         ON"
+		logConfigure += "\n    LOG_OUTPUT_ON_FAILURE ON"
 	}
 
 	// Write content
@@ -93,16 +94,16 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
   # Create external project, set configure and build steps
   ExternalProject_Add(${CONTEXT}
-    PREFIX            ${DIR}
-    SOURCE_DIR        ${DIR}
-    BINARY_DIR        ${N}
-    INSTALL_COMMAND   ""
-    TEST_COMMAND      ""
-    CONFIGURE_COMMAND ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
-    BUILD_COMMAND     ${CMAKE_COMMAND} -E echo "Building CMake target '${CONTEXT}'"
-    COMMAND           ${CMAKE_COMMAND} --build <BINARY_DIR>` + verbosity + `
-    BUILD_ALWAYS      TRUE
-    BUILD_BYPRODUCTS  ${OUTPUTS_${N}}` + logConfigure + `
+    PREFIX                ${DIR}
+    SOURCE_DIR            ${DIR}
+    BINARY_DIR            ${N}
+    INSTALL_COMMAND       ""
+    TEST_COMMAND          ""
+    CONFIGURE_COMMAND     ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
+    BUILD_COMMAND         ${CMAKE_COMMAND} -E echo "Building CMake target '${CONTEXT}'"
+    COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR>` + verbosity + `
+    BUILD_ALWAYS          TRUE
+    BUILD_BYPRODUCTS      ${OUTPUTS_${N}}` + logConfigure + `
   )
   ExternalProject_Add_StepTargets(${CONTEXT} build configure)
 
