@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.27)
 
+# Roots
+include("../roots.cmake")
+
 set(CONTEXT project.AC6+ARMCM0)
 set(TARGET ${CONTEXT})
 set(OUT_DIR "${SOLUTION_ROOT}/out/project/ARMCM0/AC6")

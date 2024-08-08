@@ -53,6 +53,12 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		logConfigure += "\n    LOG_OUTPUT_ON_FAILURE ON"
 	}
 
+	// Create roots.cmake
+	err := m.CMakeCreateRoots(solutionRoot)
+	if err != nil {
+		return err
+	}
+
 	// Write content
 	content :=
 		`cmake_minimum_required(VERSION 3.22)
@@ -61,12 +67,7 @@ include(ExternalProject)
 project("` + csolution + `" NONE)
 
 # Roots
-set(CMSIS_PACK_ROOT "` + m.EnvVars.PackRoot + `")
-cmake_path(ABSOLUTE_PATH CMSIS_PACK_ROOT NORMALIZE OUTPUT_VARIABLE CMSIS_PACK_ROOT)
-set(CMSIS_COMPILER_ROOT "` + m.EnvVars.CompilerRoot + `")
-cmake_path(ABSOLUTE_PATH CMSIS_COMPILER_ROOT NORMALIZE OUTPUT_VARIABLE CMSIS_COMPILER_ROOT)
-set(SOLUTION_ROOT "` + solutionRoot + `")
-cmake_path(ABSOLUTE_PATH SOLUTION_ROOT NORMALIZE OUTPUT_VARIABLE SOLUTION_ROOT)
+include("roots.cmake")
 
 # Context specific lists
 set(CONTEXTS
@@ -122,11 +123,31 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 endforeach()` + ExecutesCommands(m.CbuildIndex.BuildIdx.Executes) + m.BuildDependencies() + `
 `
 	superCMakeLists := path.Join(m.SolutionTmpDir, "CMakeLists.txt")
-	err := utils.UpdateFile(superCMakeLists, content)
+	err = utils.UpdateFile(superCMakeLists, content)
 	if err != nil {
 		return err
 	}
 
 	log.Info("CMakeLists were successfully generated in the " + m.SolutionTmpDir + " directory")
 	return nil
+}
+
+func (m *Maker) CMakeCreateRoots(solutionRoot string) error {
+	content :=
+		`# roots.cmake
+set(CMSIS_PACK_ROOT "` + m.EnvVars.PackRoot + `" CACHE PATH "CMSIS pack root")
+cmake_path(ABSOLUTE_PATH CMSIS_PACK_ROOT NORMALIZE OUTPUT_VARIABLE CMSIS_PACK_ROOT)
+set(CMSIS_COMPILER_ROOT "` + m.EnvVars.CompilerRoot + `" CACHE PATH "CMSIS compiler root")
+cmake_path(ABSOLUTE_PATH CMSIS_COMPILER_ROOT NORMALIZE OUTPUT_VARIABLE CMSIS_COMPILER_ROOT)
+set(SOLUTION_ROOT "` + solutionRoot + `" CACHE PATH "CMSIS solution root")
+cmake_path(ABSOLUTE_PATH SOLUTION_ROOT NORMALIZE OUTPUT_VARIABLE SOLUTION_ROOT)
+`
+
+	filename := path.Join(m.SolutionTmpDir, "roots.cmake")
+	err := utils.UpdateFile(filename, content)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
