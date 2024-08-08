@@ -110,6 +110,9 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 	// Create CMakeLists content
 	content := `cmake_minimum_required(VERSION 3.27)
 
+# Roots
+include("../roots.cmake")
+
 set(CONTEXT ` + cbuild.BuildDescType.Context + `)
 set(TARGET ${CONTEXT})
 set(OUT_DIR "` + outDir + `")
