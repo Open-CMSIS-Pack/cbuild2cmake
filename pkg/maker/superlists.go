@@ -105,6 +105,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR>` + verbosity + `
     BUILD_ALWAYS          TRUE
     BUILD_BYPRODUCTS      ${OUTPUTS_${N}}` + logConfigure + `
+    USES_TERMINAL_BUILD   ON
   )
   ExternalProject_Add_StepTargets(${CONTEXT} build configure)
 
