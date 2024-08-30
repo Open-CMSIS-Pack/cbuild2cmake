@@ -561,8 +561,9 @@ func (c *Cbuild) ProcessorOptions() string {
 	}
 
 	var SecureMap = map[string]string{
-		"secure":     "Secure",
-		"non-secure": "Non-secure",
+		"secure":      "Secure",
+		"secure-only": "Secure-only",
+		"non-secure":  "Non-secure",
 	}
 	secure := SecureMap[c.BuildDescType.Processor.Trustzone]
 	if len(secure) > 0 {
