@@ -1,0 +1,11 @@
+build-idx:
+  generated-by: csolution version 0.0.0
+  cdefault: ${CMSIS_COMPILER_ROOT}/cdefault.yml
+  csolution: solution.csolution.yml
+  tmpdir: tmp
+  cprojects:
+    - cproject: project/project X.cproject.yml
+  cbuilds:
+    - cbuild: project/project X.AC6 X+ARMCM0 X.cbuild.yml
+      project: project X
+      configuration: .AC6 X+ARMCM0 X

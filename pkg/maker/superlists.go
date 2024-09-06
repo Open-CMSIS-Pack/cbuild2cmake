@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/utils"
 	log "github.com/sirupsen/logrus"
@@ -23,7 +24,7 @@ func (m *Maker) CreateSuperCMakeLists() error {
 
 	var contexts, dirs, contextOutputs string
 	for i, cbuild := range m.Cbuilds {
-		contexts = contexts + "  \"" + cbuild.BuildDescType.Context + "\"\n"
+		contexts = contexts + "  \"" + strings.ReplaceAll(cbuild.BuildDescType.Context, " ", "_") + "\"\n"
 		dirs = dirs + "  \"${CMAKE_CURRENT_SOURCE_DIR}/" + cbuild.BuildDescType.Context + "\"\n"
 
 		var contextOutputsName = "OUTPUTS_" + strconv.Itoa(i+1)
@@ -61,7 +62,7 @@ func (m *Maker) CreateSuperCMakeLists() error {
 
 	// Write content
 	content :=
-		`cmake_minimum_required(VERSION 3.22)
+		`cmake_minimum_required(VERSION 3.27)
 include(ExternalProject)
 	
 project("` + csolution + `" NONE)
