@@ -113,7 +113,7 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 # Roots
 include("../roots.cmake")
 
-set(CONTEXT ` + cbuild.BuildDescType.Context + `)
+set(CONTEXT ` + strings.ReplaceAll(cbuild.BuildDescType.Context, " ", "_") + `)
 set(TARGET ${CONTEXT})
 set(OUT_DIR "` + outDir + `")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)` + outputByProducts + linkerVars + `
