@@ -8,6 +8,7 @@ package maker
 
 import (
 	"path"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"strconv"
@@ -429,7 +430,7 @@ func AddShellPrefix(input string) string {
 }
 
 func AddRootPrefix(base string, input string) string {
-	if !strings.HasPrefix(input, "${") {
+	if !strings.HasPrefix(input, "${") && !filepath.IsAbs(input) {
 		return "${SOLUTION_ROOT}/" + path.Join(base, input)
 	}
 	return input

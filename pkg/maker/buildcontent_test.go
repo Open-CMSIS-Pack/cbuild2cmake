@@ -7,6 +7,7 @@
 package maker_test
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/maker"
@@ -416,6 +417,21 @@ func TestBuildContent(t *testing.T) {
 			"C,CXX": []string{"inc-C-CXX"},
 		}
 		assert.Equal(commonlanguages, maker.MergeLanguageCommonIncludes(languages))
+	})
+
+	t.Run("add root prefixes", func(t *testing.T) {
+		absTestRoot, _ := filepath.Abs(testRoot)
+		testData := []string{
+			"relative/path",
+			"${CMSIS_PACK_ROOT}/Pack/Name/0.0.0",
+			absTestRoot + "/absolute/path",
+		}
+		expectedData := []string{
+			"${SOLUTION_ROOT}/relative/path",
+			"${CMSIS_PACK_ROOT}/Pack/Name/0.0.0",
+			absTestRoot + "/absolute/path",
+		}
+		assert.Equal(expectedData, maker.AddRootPrefixes("", testData))
 	})
 
 }
