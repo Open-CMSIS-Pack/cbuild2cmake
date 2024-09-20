@@ -1,0 +1,146 @@
+build:
+  generated-by: csolution version 2.6.0
+  solution: ../pre-include/solution.csolution.yml
+  project: ../pre-include/project/project.cproject.yml
+  context: project.IAR+ARMCM0
+  compiler: IAR
+  device: ARMCM0
+  device-pack: ARM::Cortex_DFP@1.1.0
+  processor:
+    fpu: off
+    core: Cortex-M0
+  packs:
+    - pack: ARM::CMSIS@6.1.0
+      path: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0
+    - pack: ARM::Cortex_DFP@1.1.0
+      path: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0
+    - pack: ARM::PreIncludeTestPack@0.0.1
+      path: ../pre-include/pack
+  misc:
+    C:
+      - --dlib_config DLib_Config_Full.h
+    CPP:
+      - --dlib_config DLib_Config_Full.h
+    Link:
+      - --map=./out/project/ARMCM0/IAR/project.out.map
+  define:
+    - ARMCM0
+    - _RTE_
+  define-asm:
+    - ARMCM0
+    - _RTE_
+  add-path:
+    - ../pre-include/project/RTE/_IAR_ARMCM0
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include
+    - ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include
+  add-path-asm:
+    - ../pre-include/project/RTE/_IAR_ARMCM0
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include
+    - ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include
+  output-dirs:
+    intdir: tmp
+    outdir: out/project/ARMCM0/IAR
+    rtedir: ../pre-include/project/RTE
+  output:
+    - type: elf
+      file: project.out
+  components:
+    - component: ARM::CMSIS:CORE@6.1.0
+      condition: ARMv6_7_8-M Device
+      from-pack: ARM::CMSIS@6.1.0
+      selected-by: ARM::CMSIS:CORE
+      files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include
+          category: include
+          version: 6.1.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include/tz_context.h
+          category: header
+          version: 6.1.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Template/ARMv8-M/main_s.c
+          category: sourceC
+          attr: template
+          version: 1.1.1
+          select: Secure mode 'main' module for ARMv8-M
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Template/ARMv8-M/tz_context.c
+          category: sourceC
+          attr: template
+          version: 1.1.1
+          select: RTOS Context Management (TrustZone for ARMv8-M)
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Documentation/html/Core/index.html
+          category: doc
+          version: 6.1.0
+    - component: ARM::Device:Startup&C Startup@2.2.0
+      condition: ARMCM0 CMSIS
+      from-pack: ARM::Cortex_DFP@1.1.0
+      selected-by: ARM::Device:Startup&C Startup
+      files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include/ARMCM0.h
+          category: header
+          version: 2.2.0
+        - file: ../pre-include/project/RTE/Device/ARMCM0/startup_ARMCM0.c
+          category: sourceC
+          attr: config
+          version: 2.0.3
+        - file: ../pre-include/project/RTE/Device/ARMCM0/system_ARMCM0.c
+          category: sourceC
+          attr: config
+          version: 1.0.0
+    - component: ARM::TestClass:TestGlobal@1.0.0
+      condition: Test_Condition
+      from-pack: ARM::PreIncludeTestPack@0.0.1
+      selected-by: ARM::TestClass:TestGlobal
+      files:
+        - file: ../pre-include/pack/Files/header1.h
+          category: preIncludeGlobal
+          version: 1.0.0
+        - file: ../pre-include/pack/Files/test1.c
+          category: source
+          version: 1.0.0
+        - file: ../pre-include/project/RTE/TestClass/config-header1.h
+          category: preIncludeGlobal
+          attr: config
+          version: 1.0.0
+    - component: ARM::TestClass:TestLocal@1.0.0
+      condition: Test_Condition
+      from-pack: ARM::PreIncludeTestPack@0.0.1
+      selected-by: ARM::TestClass:TestLocal
+      files:
+        - file: ../pre-include/pack/Files/header2.h
+          category: preIncludeLocal
+          version: 1.0.0
+        - file: ../pre-include/pack/Files/test2.c
+          category: source
+          version: 1.0.0
+        - file: ../pre-include/project/RTE/TestClass/config-header2.h
+          category: preIncludeLocal
+          attr: config
+          version: 1.0.0
+        - file: ../pre-include/project/RTE/_IAR_ARMCM0/Pre_Include_TestClass_TestLocal.h
+          category: preIncludeLocal
+  linker:
+    script: ../pre-include/project/RTE/Device/ARMCM0/iar_linker_script.icf.src
+    regions: ../pre-include/project/RTE/Device/ARMCM0/regions_ARMCM0.h
+  groups:
+    - group: Source
+      files:
+        - file: ../pre-include/project/main.c
+          category: sourceC
+  constructed-files:
+    - file: ../pre-include/project/RTE/_IAR_ARMCM0/Pre_Include_Global.h
+      category: preIncludeGlobal
+    - file: ../pre-include/project/RTE/_IAR_ARMCM0/RTE_Components.h
+      category: header
+  licenses:
+    - license: <unknown>
+      packs:
+        - pack: ARM::PreIncludeTestPack@0.0.1
+      components:
+        - component: ARM::TestClass:TestGlobal@1.0.0
+        - component: ARM::TestClass:TestLocal@1.0.0
+    - license: Apache-2.0
+      packs:
+        - pack: ARM::CMSIS@6.1.0
+        - pack: ARM::Cortex_DFP@1.1.0
+      components:
+        - component: ARM::CMSIS:CORE@6.1.0
+        - component: ARM::Device:Startup&C Startup@2.2.0

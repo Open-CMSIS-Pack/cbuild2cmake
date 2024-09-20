@@ -20,10 +20,10 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 	outputByProducts, outputFile, outputType, customCommands := OutputFiles(cbuild.BuildDescType.Output)
 	outputExt := path.Ext(outputFile)
 	outputName := strings.TrimSuffix(outputFile, outputExt)
-	cbuild.ContextRoot, _ = filepath.Rel(m.CbuildIndex.BaseDir, cbuild.BaseDir)
+	cbuild.ContextRoot, _ = filepath.Rel(m.SolutionRoot, cbuild.BaseDir)
 	cbuild.ContextRoot = filepath.ToSlash(cbuild.ContextRoot)
 	cbuild.Toolchain = m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Name
-	outDir := AddRootPrefix(cbuild.ContextRoot, cbuild.BuildDescType.OutputDirs.Outdir)
+	outDir := cbuild.AddRootPrefix(cbuild.ContextRoot, cbuild.BuildDescType.OutputDirs.Outdir)
 	contextDir := path.Join(m.SolutionTmpDir, cbuild.BuildDescType.Context)
 	cbuild.IncludeGlobal = make(LanguageMap)
 	cbuild.UserIncGlobal = make(LanguageMap)
@@ -83,10 +83,10 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 
 	// Merge common add-path and add-path-asm
 	if len(cbuild.BuildDescType.AddPath) > 0 {
-		includeGlobal["PUBLIC"]["C,CXX"] = utils.AppendUniquely(includeGlobal["PUBLIC"]["C,CXX"], AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPath)...)
+		includeGlobal["PUBLIC"]["C,CXX"] = utils.AppendUniquely(includeGlobal["PUBLIC"]["C,CXX"], cbuild.AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPath)...)
 	}
 	if len(cbuild.BuildDescType.AddPathAsm) > 0 {
-		includeGlobal["PUBLIC"]["ASM"] = utils.AppendUniquely(includeGlobal["PUBLIC"]["ASM"], AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPathAsm)...)
+		includeGlobal["PUBLIC"]["ASM"] = utils.AppendUniquely(includeGlobal["PUBLIC"]["ASM"], cbuild.AddRootPrefixes(cbuild.ContextRoot, cbuild.BuildDescType.AddPathAsm)...)
 	}
 	includeGlobal["PUBLIC"] = MergeLanguageCommonIncludes(includeGlobal["PUBLIC"])
 

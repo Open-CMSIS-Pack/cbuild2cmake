@@ -73,6 +73,7 @@ type Cbuild struct {
 	} `yaml:"build"`
 	BaseDir          string
 	ContextRoot      string
+	SolutionRoot     string
 	Languages        []string
 	PreIncludeGlobal []string
 	LibraryGlobal    []string
@@ -260,6 +261,7 @@ func (m *Maker) ParseCbuildFiles() error {
 	cbuildIndex.BaseDir, _ = filepath.Abs(path.Dir(m.Params.InputFile))
 	cbuildIndex.BaseDir = filepath.ToSlash(cbuildIndex.BaseDir)
 	m.CbuildIndex = cbuildIndex
+	m.SolutionRoot = filepath.ToSlash(filepath.Dir(filepath.Join(cbuildIndex.BaseDir, cbuildIndex.BuildIdx.Csolution)))
 
 	// Parse cbuild-set file
 	if m.Options.UseContextSet {
@@ -294,6 +296,7 @@ func (m *Maker) ParseCbuildFiles() error {
 		}
 		cbuild.BaseDir, _ = filepath.Abs(path.Dir(cbuildFile))
 		cbuild.BaseDir = filepath.ToSlash(cbuild.BaseDir)
+		cbuild.SolutionRoot = m.SolutionRoot
 		m.Cbuilds = append(m.Cbuilds, cbuild)
 	}
 	return err

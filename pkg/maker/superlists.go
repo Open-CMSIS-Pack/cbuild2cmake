@@ -34,16 +34,16 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		for _, output := range cbuild.BuildDescType.Output {
 			outputFile = output.File
 
-			cbuildRelativePath, _ := filepath.Rel(m.CbuildIndex.BaseDir, cbuild.BaseDir)
+			cbuildRelativePath, _ := filepath.Rel(m.SolutionRoot, cbuild.BaseDir)
 			cbuildRelativePath = filepath.ToSlash(cbuildRelativePath)
-			output := AddRootPrefix(cbuildRelativePath, path.Join(cbuild.BuildDescType.OutputDirs.Outdir, outputFile))
+			output := cbuild.AddRootPrefix(cbuildRelativePath, path.Join(cbuild.BuildDescType.OutputDirs.Outdir, outputFile))
 			contextOutputs += "  \"" + output + "\"\n"
 		}
 
 		contextOutputs += ")\n"
 	}
 
-	solutionRoot, _ := filepath.EvalSymlinks(m.CbuildIndex.BaseDir)
+	solutionRoot, _ := filepath.EvalSymlinks(m.SolutionRoot)
 	solutionRoot = filepath.ToSlash(solutionRoot)
 
 	var verbosity, logConfigure string
@@ -122,7 +122,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
   )
   ExternalProject_Add_StepTargets(${CONTEXT} database)
 
-endforeach()` + ExecutesCommands(m.CbuildIndex.BuildIdx.Executes) + m.BuildDependencies() + `
+endforeach()` + m.ExecutesCommands(m.CbuildIndex.BuildIdx.Executes) + m.BuildDependencies() + `
 `
 	superCMakeLists := path.Join(m.SolutionTmpDir, "CMakeLists.txt")
 	err = utils.UpdateFile(superCMakeLists, content)
