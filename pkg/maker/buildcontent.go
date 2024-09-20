@@ -127,7 +127,7 @@ func CMakeAddLibrary(name string, buildFiles BuildFiles) string {
 }
 
 func (c *Cbuild) CMakeAddLibraryCustomFile(name string, file Files) string {
-	return "\nadd_library(" + name + " OBJECT\n  \"" + AddRootPrefix(c.ContextRoot, file.File) + "\"\n)"
+	return "\nadd_library(" + name + " OBJECT\n  \"" + c.AddRootPrefix(c.ContextRoot, file.File) + "\"\n)"
 }
 
 func OutputFiles(outputList []Output) (outputByProducts string, outputFile string, outputType string, customCommands string) {
@@ -429,17 +429,26 @@ func AddShellPrefix(input string) string {
 	return "\"SHELL:" + strings.ReplaceAll(input, "\"", "\\\"") + "\""
 }
 
-func AddRootPrefix(base string, input string) string {
+func (c *Cbuild) AddRootPrefix(base string, input string) string {
+	return AddRootPrefix(base, input, c.SolutionRoot)
+}
+
+func AddRootPrefix(base string, input string, solutionRoot string) string {
 	if !strings.HasPrefix(input, "${") && !filepath.IsAbs(input) {
-		return "${SOLUTION_ROOT}/" + path.Join(base, input)
+		if strings.Contains(input, "..") {
+			relPath, _ := filepath.Rel(solutionRoot, path.Join(solutionRoot, base, input))
+			return "${SOLUTION_ROOT}/" + filepath.ToSlash(relPath)
+		} else {
+			return "${SOLUTION_ROOT}/" + path.Join(base, input)
+		}
 	}
 	return input
 }
 
-func AddRootPrefixes(base string, input []string) []string {
+func (c *Cbuild) AddRootPrefixes(base string, input []string) []string {
 	var list []string
 	for _, element := range input {
-		list = append(list, AddRootPrefix(base, element))
+		list = append(list, c.AddRootPrefix(base, element))
 	}
 	return list
 }
@@ -478,26 +487,26 @@ func (c *Cbuild) ClassifyFiles(files []Files) BuildFiles {
 				buildFiles.Include[scope] = make(LanguageMap)
 			}
 			if file.Attr == "config" {
-				buildFiles.Include[scope][language] = utils.PrependUniquely(buildFiles.Include[scope][language], AddRootPrefix(c.ContextRoot, includePath))
+				buildFiles.Include[scope][language] = utils.PrependUniquely(buildFiles.Include[scope][language], c.AddRootPrefix(c.ContextRoot, includePath))
 			} else {
-				buildFiles.Include[scope][language] = utils.AppendUniquely(buildFiles.Include[scope][language], AddRootPrefix(c.ContextRoot, includePath))
+				buildFiles.Include[scope][language] = utils.AppendUniquely(buildFiles.Include[scope][language], c.AddRootPrefix(c.ContextRoot, includePath))
 			}
 		case "source", "sourceAsm", "sourceC", "sourceCpp":
 			language := GetLanguage(file)
 			c.AddContextLanguage(language)
 			if HasFileCustomOptions(file) {
-				buildFiles.Custom[language] = append(buildFiles.Custom[language], AddRootPrefix(c.ContextRoot, file.File))
+				buildFiles.Custom[language] = append(buildFiles.Custom[language], c.AddRootPrefix(c.ContextRoot, file.File))
 			} else {
-				buildFiles.Source[language] = append(buildFiles.Source[language], AddRootPrefix(c.ContextRoot, file.File))
+				buildFiles.Source[language] = append(buildFiles.Source[language], c.AddRootPrefix(c.ContextRoot, file.File))
 			}
 		case "library":
-			buildFiles.Library = append(buildFiles.Library, AddRootPrefix(c.ContextRoot, file.File))
+			buildFiles.Library = append(buildFiles.Library, c.AddRootPrefix(c.ContextRoot, file.File))
 		case "object":
-			buildFiles.Object = append(buildFiles.Object, AddRootPrefix(c.ContextRoot, file.File))
+			buildFiles.Object = append(buildFiles.Object, c.AddRootPrefix(c.ContextRoot, file.File))
 		case "preIncludeLocal":
-			buildFiles.PreIncludeLocal = append(buildFiles.PreIncludeLocal, AddRootPrefix(c.ContextRoot, file.File))
+			buildFiles.PreIncludeLocal = append(buildFiles.PreIncludeLocal, c.AddRootPrefix(c.ContextRoot, file.File))
 		case "preIncludeGlobal":
-			c.PreIncludeGlobal = append(c.PreIncludeGlobal, AddRootPrefix(c.ContextRoot, file.File))
+			c.PreIncludeGlobal = append(c.PreIncludeGlobal, c.AddRootPrefix(c.ContextRoot, file.File))
 		}
 	}
 
@@ -509,15 +518,15 @@ func (c *Cbuild) MergeIncludes(includes ScopeMap, scope string, parent string, a
 		includes[scope] = make(LanguageMap)
 	}
 	if len(addPaths) > 0 {
-		includes[scope]["C,CXX"] = utils.AppendUniquely(AddRootPrefixes(c.ContextRoot, addPaths), includes[scope]["C,CXX"]...)
+		includes[scope]["C,CXX"] = utils.AppendUniquely(c.AddRootPrefixes(c.ContextRoot, addPaths), includes[scope]["C,CXX"]...)
 	}
 	if len(addPathsAsm) > 0 {
-		includes[scope]["ASM"] = utils.AppendUniquely(AddRootPrefixes(c.ContextRoot, addPathsAsm), includes[scope]["ASM"]...)
+		includes[scope]["ASM"] = utils.AppendUniquely(c.AddRootPrefixes(c.ContextRoot, addPathsAsm), includes[scope]["ASM"]...)
 	}
 	if len(parent) > 0 {
 		if len(delPaths) > 0 {
 			includes[scope]["ALL"] = utils.PrependUniquely(includes[scope]["ALL"], "$<LIST:REMOVE_ITEM,$<TARGET_PROPERTY:"+
-				parent+",INTERFACE_INCLUDE_DIRECTORIES>,"+ListIncludeDirectories(AddRootPrefixes(c.ContextRoot, delPaths), ",")+">")
+				parent+",INTERFACE_INCLUDE_DIRECTORIES>,"+ListIncludeDirectories(c.AddRootPrefixes(c.ContextRoot, delPaths), ",")+">")
 		} else {
 			includes[scope]["ALL"] = utils.PrependUniquely(includes[scope]["ALL"], "$<TARGET_PROPERTY:"+parent+",INTERFACE_INCLUDE_DIRECTORIES>")
 		}
@@ -707,7 +716,7 @@ func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstrac
 	}
 	// set file properties
 	if hasMisc || hasAbstractions {
-		content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) +
+		content += "\nset_source_files_properties(\"" + c.AddRootPrefix(c.ContextRoot, file.File) +
 			"\" PROPERTIES\n  COMPILE_OPTIONS \"" + GetFileOptions(file, hasAbstractions, ";") + "\"\n)"
 	}
 	return content
@@ -725,10 +734,10 @@ func (c *Cbuild) SetFileAsmDefines(file Files, parentMiscAsm []string) string {
 			}
 			content += "\nset(COMPILE_DEFINITIONS\n  " + ListCompileDefinitions(file.DefineAsm, "\n  ") + "\n)"
 			content += "\ncbuild_set_defines(" + syntax + " COMPILE_DEFINITIONS)"
-			content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) +
+			content += "\nset_source_files_properties(\"" + c.AddRootPrefix(c.ContextRoot, file.File) +
 				"\" PROPERTIES\n  COMPILE_FLAGS \"${COMPILE_DEFINITIONS}\"\n)"
 		} else {
-			content += "\nset_source_files_properties(\"" + AddRootPrefix(c.ContextRoot, file.File) +
+			content += "\nset_source_files_properties(\"" + c.AddRootPrefix(c.ContextRoot, file.File) +
 				"\" PROPERTIES\n  COMPILE_DEFINITIONS \"" + ListCompileDefinitions(file.DefineAsm, ";") + "\"\n)"
 		}
 	}
@@ -748,9 +757,9 @@ func (c *Cbuild) AddContextLanguage(language string) {
 }
 
 func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
-	linkerVars += "\nset(LD_SCRIPT \"" + AddRootPrefix(c.ContextRoot, c.BuildDescType.Linker.Script) + "\")"
+	linkerVars += "\nset(LD_SCRIPT \"" + c.AddRootPrefix(c.ContextRoot, c.BuildDescType.Linker.Script) + "\")"
 	if len(c.BuildDescType.Linker.Regions) > 0 {
-		linkerVars += "\nset(LD_REGIONS \"" + AddRootPrefix(c.ContextRoot, c.BuildDescType.Linker.Regions) + "\")"
+		linkerVars += "\nset(LD_REGIONS \"" + c.AddRootPrefix(c.ContextRoot, c.BuildDescType.Linker.Regions) + "\")"
 	}
 	if len(c.BuildDescType.Linker.Define) > 0 {
 		linkerVars += "\nset(LD_SCRIPT_PP_DEFINES\n  "
@@ -788,10 +797,12 @@ func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 }
 
 func (c *Cbuild) AdjustRelativePath(option string) string {
-	pattern := regexp.MustCompile(`\./.*|\.\./.*`)
-	if pattern.MatchString(option) {
-		relativePath := pattern.FindString(option)
-		option = strings.Replace(option, relativePath, AddRootPrefix(c.ContextRoot, relativePath), 1)
+	if !strings.Contains(option, "${SOLUTION_ROOT}") {
+		pattern := regexp.MustCompile(`\./.*|\.\./.*`)
+		if pattern.MatchString(option) {
+			relativePath := pattern.FindString(option)
+			option = strings.Replace(option, relativePath, c.AddRootPrefix(c.ContextRoot, relativePath), 1)
+		}
 	}
 	return option
 }
@@ -801,11 +812,11 @@ func QuoteArguments(cmd string) string {
 	return pattern.ReplaceAllString(cmd, "\"${1}\"")
 }
 
-func ListExecutesIOs(io string, list []string, run string) string {
+func (m *Maker) ListExecutesIOs(io string, list []string, run string) string {
 	content := "\nset(" + io
 	var listItems string
 	for index, input := range list {
-		content += "\n  " + AddRootPrefix("", input)
+		content += "\n  " + AddRootPrefix("", input, m.SolutionRoot)
 		if strings.Contains(run, "${"+io+"_"+strconv.Itoa(index)+"}") {
 			listItems += "\nlist(GET " + io + " " + strconv.Itoa(index) + " " + io + "_" + strconv.Itoa(index) + ")"
 		}
@@ -815,7 +826,7 @@ func ListExecutesIOs(io string, list []string, run string) string {
 	return content
 }
 
-func ExecutesCommands(executes []Executes) string {
+func (m *Maker) ExecutesCommands(executes []Executes) string {
 	var content string
 	for _, item := range executes {
 		content += "\n\n# Execute: " + item.Execute
@@ -829,7 +840,7 @@ func ExecutesCommands(executes []Executes) string {
 		}
 		customCommand := "\nadd_custom_command(OUTPUT ${OUTPUT}"
 		if len(item.Input) > 0 {
-			content += ListExecutesIOs("INPUT", item.Input, item.Run)
+			content += m.ListExecutesIOs("INPUT", item.Input, item.Run)
 			customCommand += " DEPENDS ${INPUT}"
 		}
 		if !runAlways && len(item.Output) == 0 {
@@ -837,7 +848,7 @@ func ExecutesCommands(executes []Executes) string {
 			customCommand += "\n  COMMAND ${CMAKE_COMMAND} -E touch \"" + item.Execute + ".stamp\""
 		}
 		if len(item.Output) > 0 {
-			content += ListExecutesIOs("OUTPUT", item.Output, item.Run)
+			content += m.ListExecutesIOs("OUTPUT", item.Output, item.Run)
 		}
 		content += customTarget
 		if !runAlways {

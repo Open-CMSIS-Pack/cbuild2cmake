@@ -401,6 +401,8 @@ func TestBuildContent(t *testing.T) {
 		assert.Equal("-map=${SOLUTION_ROOT}/context/folder/out/file.map", adjustedOption)
 		adjustedOption = cbuild.AdjustRelativePath("-map=../../out/file.map")
 		assert.Equal("-map=${SOLUTION_ROOT}/out/file.map", adjustedOption)
+		adjustedOption = cbuild.AdjustRelativePath("-map=${SOLUTION_ROOT}/out/file.map")
+		assert.Equal("-map=${SOLUTION_ROOT}/out/file.map", adjustedOption)
 	})
 
 	t.Run("merge common language includes", func(t *testing.T) {
@@ -420,18 +422,23 @@ func TestBuildContent(t *testing.T) {
 	})
 
 	t.Run("add root prefixes", func(t *testing.T) {
+		var cbuild maker.Cbuild
 		absTestRoot, _ := filepath.Abs(testRoot)
+		absTestRoot = filepath.ToSlash(absTestRoot)
+		cbuild.SolutionRoot = absTestRoot + "/solution"
 		testData := []string{
 			"relative/path",
+			"../solution/path",
 			"${CMSIS_PACK_ROOT}/Pack/Name/0.0.0",
 			absTestRoot + "/absolute/path",
 		}
 		expectedData := []string{
 			"${SOLUTION_ROOT}/relative/path",
+			"${SOLUTION_ROOT}/path",
 			"${CMSIS_PACK_ROOT}/Pack/Name/0.0.0",
 			absTestRoot + "/absolute/path",
 		}
-		assert.Equal(expectedData, maker.AddRootPrefixes("", testData))
+		assert.Equal(expectedData, cbuild.AddRootPrefixes("", testData))
 	})
 
 }

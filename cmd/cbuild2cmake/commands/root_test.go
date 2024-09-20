@@ -241,6 +241,20 @@ set(OUTPUTS_1
 		assert.False(mismatch)
 	})
 
+	t.Run("test pre-includes in out-of-tree build", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		testCaseRoot := testRoot + "/run/solutions/pre-include-oot"
+		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
+		err := cmd.Execute()
+		assert.Nil(err)
+
+		// check golden references
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp")
+		assert.Nil(err)
+		assert.False(mismatch)
+	})
+
 	t.Run("test add-path, del-path, define, undefine", func(t *testing.T) {
 		cmd := commands.NewRootCmd()
 		testCaseRoot := testRoot + "/run/solutions/include-define"

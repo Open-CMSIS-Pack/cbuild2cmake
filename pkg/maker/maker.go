@@ -39,6 +39,7 @@ type Vars struct {
 	SelectedToolchainVersion []*semver.Version
 	SelectedToolchainConfig  []string
 	SolutionTmpDir           string
+	SolutionRoot             string
 }
 
 type Maker struct {
