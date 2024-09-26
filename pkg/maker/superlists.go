@@ -87,6 +87,9 @@ set(ARGS
   "-DCMSIS_COMPILER_ROOT=${CMSIS_COMPILER_ROOT}"
 )
 
+# Compilation database
+add_custom_target(database)
+
 # Iterate over contexts
 foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
@@ -120,6 +123,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     DEPENDEES         configure
   )
   ExternalProject_Add_StepTargets(${CONTEXT} database)
+  add_dependencies(database ${CONTEXT}-database)
 
 endforeach()` + m.ExecutesCommands(m.CbuildIndex.BuildIdx.Executes) + m.BuildDependencies() + `
 `
