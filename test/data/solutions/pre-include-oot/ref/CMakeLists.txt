@@ -43,6 +43,9 @@ set(ARGS
   "-DCMSIS_COMPILER_ROOT=${CMSIS_COMPILER_ROOT}"
 )
 
+# Compilation database
+add_custom_target(database)
+
 # Iterate over contexts
 foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
@@ -72,10 +75,10 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
   # Database generation step
   ExternalProject_Add_Step(${CONTEXT} database
     COMMAND           ${CMAKE_COMMAND} --build <BINARY_DIR> --target database
-    EXCLUDE_FROM_MAIN TRUE
     ALWAYS            TRUE
     DEPENDEES         configure
   )
   ExternalProject_Add_StepTargets(${CONTEXT} database)
+  add_dependencies(database ${CONTEXT}-database)
 
 endforeach()
