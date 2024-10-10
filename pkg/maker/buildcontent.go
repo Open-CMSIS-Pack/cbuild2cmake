@@ -178,6 +178,13 @@ func (m *Maker) BuildDependencies() string {
 	}
 	for _, item := range m.CbuildIndex.BuildIdx.Executes {
 		content += m.CMakeTargetAddDependencies(item.Execute, item.DependsOn)
+		// add executes statement to ${CONTEXT}-executes target of context
+		// if dependency is a context
+		for _, dependsOn := range item.DependsOn {
+			if slices.Contains(m.Contexts, dependsOn) {
+				content += m.CMakeTargetAddDependencies(dependsOn+"-executes", []string{item.Execute})
+			}
+		}
 	}
 	if len(content) > 0 {
 		content = "\n\n# Build dependencies" + content
