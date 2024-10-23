@@ -52,7 +52,13 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     BUILD_BYPRODUCTS      ${OUTPUTS_${N}}
     USES_TERMINAL_BUILD   ON
   )
-  ExternalProject_Add_StepTargets(${CONTEXT} build configure)
+
+  # Executes command step
+  ExternalProject_Add_Step(${CONTEXT} executes
+    DEPENDEES         build
+  )
+
+  ExternalProject_Add_StepTargets(${CONTEXT} build configure executes)
 
   # Debug
   message(VERBOSE "Configure Context: ${CMAKE_COMMAND} -G Ninja -S ${DIR} -B ${N}")
