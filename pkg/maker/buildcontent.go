@@ -841,6 +841,9 @@ func (m *Maker) ExecutesCommands(executes []Executes) string {
 		runAlways := item.Always != nil
 		if runAlways {
 			customTarget += "\n  COMMAND " + QuoteArguments(item.Run)
+			if len(item.Output) > 0 {
+				customTarget += "\n  BYPRODUCTS ${OUTPUT}"
+			}
 			customTarget += "\n  COMMENT " + item.Execute + "\n)"
 		} else {
 			customTarget += " DEPENDS ${OUTPUT})"
