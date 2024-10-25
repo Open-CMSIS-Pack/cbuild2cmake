@@ -1,3 +1,4 @@
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Open-CMSIS-Pack/cbuild2cmake/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Open-CMSIS-Pack/cbuild2cmake)
 
 # cbuild2cmake
 
