@@ -10,6 +10,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: read
+
 jobs:
   test:
     uses: Open-CMSIS-Pack/cbuild2cmake/.github/workflows/test.yml@main
@@ -17,7 +20,7 @@ jobs:
   goreleaser:
     needs: test
     permissions:
-      contents: write
+      contents: write # for goreleaser/goreleaser-action to create a GitHub release
     runs-on: ubuntu-latest
     steps:
       - name: Download test results
