@@ -8,21 +8,16 @@ include("roots.cmake")
 
 # Context specific lists
 set(CONTEXTS
-  "project.Debug+ARMCM0"
   "project.Release+ARMCM0"
 )
 list(LENGTH CONTEXTS CONTEXTS_LENGTH)
 math(EXPR CONTEXTS_LENGTH "${CONTEXTS_LENGTH}-1")
 
 set(DIRS
-  "${CMAKE_CURRENT_SOURCE_DIR}/project.Debug+ARMCM0"
   "${CMAKE_CURRENT_SOURCE_DIR}/project.Release+ARMCM0"
 )
 
 set(OUTPUTS_1
-  "${SOLUTION_ROOT}/out/project/ARMCM0/Debug/project.axf"
-)
-set(OUTPUTS_2
   "${SOLUTION_ROOT}/out/project/ARMCM0/Release/project.axf"
 )
 
@@ -150,25 +145,29 @@ add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
 )
 
 # Build dependencies
-add_dependencies(project.Debug+ARMCM0-build
-  Generate_Project_Sources
-)
 add_dependencies(project.Release+ARMCM0-build
   Generate_Project_Sources
+  Run_Always
 )
 add_dependencies(Archive_Artifacts
   project.Release+ARMCM0-build
   project.Release+ARMCM0-Sign_Artifact
+  Run_Always
 )
-add_dependencies(project.Release+ARMCM0-executes
-  Archive_Artifacts
+add_dependencies(Generate_Project_Sources
+  Run_Always
 )
 add_dependencies(Run_After_Archiving
   Archive_Artifacts
+  Run_Always
 )
 add_dependencies(project.Release+ARMCM0-Sign_Artifact
   project.Release+ARMCM0-build
+  Run_Always
 )
 add_dependencies(project.Release+ARMCM0-executes
+  Archive_Artifacts
+  Run_After_Archiving
   project.Release+ARMCM0-Sign_Artifact
+  Run_Always
 )

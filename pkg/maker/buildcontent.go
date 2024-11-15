@@ -38,6 +38,7 @@ type CompilerAbstractions struct {
 
 type ScopeMap map[string]map[string][]string
 type LanguageMap map[string][]string
+type DependenciesMap map[string][]string
 
 var CategoryLanguageMap = map[string]string{
 	"headerAsm":  "ASM",
@@ -158,6 +159,7 @@ func (m *Maker) AddStepSuffix(name string) string {
 
 func (m *Maker) CMakeTargetAddDependencies(name string, dependencies []string) string {
 	var content string
+	dependencies = utils.AppendUniquely(dependencies, m.GetAllRunAlways(name)...)
 	if len(dependencies) > 0 {
 		content += "\nadd_dependencies(" + m.AddStepSuffix(name)
 		for _, dependency := range dependencies {
@@ -176,20 +178,51 @@ func (m *Maker) BuildDependencies() string {
 		}
 		content += m.CMakeTargetAddDependencies(cbuild.Project+cbuild.Configuration, cbuild.DependsOn)
 	}
+	var postBuildDependencies = make(DependenciesMap)
 	for _, item := range m.CbuildIndex.BuildIdx.Executes {
 		content += m.CMakeTargetAddDependencies(item.Execute, item.DependsOn)
-		// add executes statement to ${CONTEXT}-executes target of context
-		// if dependency is a context
-		for _, dependsOn := range item.DependsOn {
-			if slices.Contains(m.Contexts, dependsOn) {
-				content += m.CMakeTargetAddDependencies(dependsOn+"-executes", []string{item.Execute})
-			}
-		}
+		postBuildDependencies = m.GetContextDependencies(item.Execute, item.DependsOn, postBuildDependencies)
+	}
+	// add executes statement to ${CONTEXT}-executes target of context
+	for context, dependencies := range postBuildDependencies {
+		content += m.CMakeTargetAddDependencies(context+"-executes", dependencies)
 	}
 	if len(content) > 0 {
 		content = "\n\n# Build dependencies" + content
 	}
 	return content
+}
+
+func (m *Maker) GetContextDependencies(execute string, dependsOn []string, deps DependenciesMap) DependenciesMap {
+	for _, item := range dependsOn {
+		if slices.Contains(m.Contexts, item) {
+			// collect dependency on context (post build step)
+			deps[item] = utils.AppendUniquely(deps[item], execute)
+		} else {
+			// check recursively further dependencies
+			deps = m.GetContextDependencies(execute, m.GetDependsOn(item), deps)
+		}
+	}
+	return deps
+}
+
+func (m *Maker) GetDependsOn(execute string) (dependsOn []string) {
+	for _, item := range m.CbuildIndex.BuildIdx.Executes {
+		if item.Execute == execute {
+			dependsOn = item.DependsOn
+			break
+		}
+	}
+	return dependsOn
+}
+
+func (m *Maker) GetAllRunAlways(execute string) (elements []string) {
+	for _, item := range m.CbuildIndex.BuildIdx.Executes {
+		if item.Execute != execute && item.Always != nil {
+			elements = utils.AppendUniquely(elements, item.Execute)
+		}
+	}
+	return elements
 }
 
 func CMakeTargetIncludeDirectories(name string, includes ScopeMap) string {

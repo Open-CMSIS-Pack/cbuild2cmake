@@ -1,20 +1,20 @@
 build-idx:
-  generated-by: csolution version 0.0.0+gdf212332
+  generated-by: csolution version 2.6.0
   cdefault: ${CMSIS_COMPILER_ROOT}/cdefault.yml
   csolution: solution.csolution.yml
+  tmpdir: tmp
   cprojects:
     - cproject: project/project.cproject.yml
   cbuilds:
-    - cbuild: project/project.Debug+ARMCM0.cbuild.yml
-      project: project
-      configuration: .Debug+ARMCM0
-      depends-on:
-        - Generate_Project_Sources
     - cbuild: project/project.Release+ARMCM0.cbuild.yml
       project: project
       configuration: .Release+ARMCM0
       depends-on:
         - Generate_Project_Sources
+      messages:
+        info:
+          - solution.cbuild-pack.yml - file generated successfully
+          - project.Release+ARMCM0.cbuild.yml - file generated successfully
   executes:
     - execute: Archive_Artifacts
       run: ${CMAKE_COMMAND} -DINPUT=${INPUT} -DOUTPUT=${OUTPUT} -P ${INPUT_0}
