@@ -357,8 +357,40 @@ func TestBuildContent(t *testing.T) {
 		m.Vars.Contexts = []string{
 			"project.debug+target",
 		}
+		m.CbuildIndex.BuildIdx.Executes = []maker.Executes{
+			{
+				Execute: "RunAlways",
+				Always:  make(map[string]interface{}),
+			},
+			{
+				Execute:   "PostBuild",
+				DependsOn: []string{"project.debug+target"},
+			},
+			{
+				Execute:   "SecondLevel_PostBuild",
+				DependsOn: []string{"PostBuild"},
+			},
+		}
 		content := m.BuildDependencies()
-		assert.Contains(content, "add_dependencies(project.debug+target-build\n  dependentContext\n)")
+		assert.Contains(content, `
+# Build dependencies
+add_dependencies(project.debug+target-build
+  dependentContext
+  RunAlways
+)
+add_dependencies(PostBuild
+  project.debug+target-build
+  RunAlways
+)
+add_dependencies(SecondLevel_PostBuild
+  PostBuild
+  RunAlways
+)
+add_dependencies(project.debug+target-executes
+  PostBuild
+  SecondLevel_PostBuild
+  RunAlways
+)`)
 	})
 
 	t.Run("test linker options", func(t *testing.T) {
