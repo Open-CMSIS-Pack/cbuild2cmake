@@ -140,6 +140,8 @@ func OutputFiles(outputList []Output) (outputByProducts string, outputFile strin
 		case "bin":
 			outputByProducts += "\nset(BIN_FILE \"" + output.File + "\")"
 			customCommands += "\n\n# Bin Conversion\n add_custom_command(TARGET ${CONTEXT} POST_BUILD COMMAND ${CMAKE_OBJCOPY} ${ELF2BIN})"
+		case "map":
+			outputByProducts += "\nset(LD_MAP_FILE \"" + output.File + "\")"
 		case "cmse-lib":
 			outputByProducts += "\nset(CMSE_LIB \"" + output.File + "\")"
 		case "elf", "lib":
@@ -148,6 +150,15 @@ func OutputFiles(outputList []Output) (outputByProducts string, outputFile strin
 		}
 	}
 	return outputByProducts, outputFile, outputType, customCommands
+}
+
+func HasMapFile(outputList []Output) bool {
+	for _, output := range outputList {
+		if output.Type == "map" {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *Maker) AddStepSuffix(name string) string {
@@ -809,6 +820,9 @@ func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 	linkerOptions += "\n# Linker options\ntarget_link_options(${CONTEXT} PUBLIC\n  " +
 		AddShellPrefix("${LD_CPU}") + "\n  " +
 		AddShellPrefix("${_LS}\"${LD_SCRIPT_PP}\"")
+	if HasMapFile(c.BuildDescType.Output) {
+		linkerOptions += "\n  " + AddShellPrefix("${LD_MAP}")
+	}
 	if len(c.BuildDescType.Processor.Trustzone) > 0 {
 		linkerOptions += "\n  " + AddShellPrefix("${LD_SECURE}")
 	}

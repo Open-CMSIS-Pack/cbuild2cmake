@@ -226,6 +226,10 @@ func TestBuildContent(t *testing.T) {
 				File: "./secure.lib",
 				Type: "cmse-lib",
 			},
+			{
+				File: "./project.map",
+				Type: "map",
+			},
 		}
 		outputByProducts, outputFile, outputType, customCommands := maker.OutputFiles(output)
 		assert.Equal(outputFile, "./arfifact.elf")
@@ -233,6 +237,7 @@ func TestBuildContent(t *testing.T) {
 		assert.Contains(outputByProducts, "binary.bin")
 		assert.Contains(outputByProducts, "hexadecimal.hex")
 		assert.Contains(outputByProducts, "secure.lib")
+		assert.Contains(outputByProducts, "project.map")
 		assert.Contains(customCommands, "${ELF2BIN}")
 		assert.Contains(customCommands, "${ELF2HEX}")
 	})
@@ -403,8 +408,15 @@ add_dependencies(project.debug+target-executes
 		cbuild.BuildDescType.Misc.Link = []string{"--link-flag"}
 		cbuild.BuildDescType.Misc.LinkC = []string{"--linkC-flag"}
 		cbuild.BuildDescType.Misc.LinkCPP = []string{"--linkCPP-flag"}
+		cbuild.BuildDescType.Output = []maker.Output{
+			{
+				File: "./project.map",
+				Type: "map",
+			},
+		}
 		linkerVars, linkerOptions := cbuild.LinkerOptions()
 		assert.Contains(linkerVars, "set(LD_SCRIPT \"${SOLUTION_ROOT}/path/to/script.ld\")")
+		assert.Contains(linkerOptions, "${LD_MAP}")
 		assert.Contains(linkerOptions, "${LD_SECURE}")
 		assert.Contains(linkerOptions, "--link-flag")
 		assert.Contains(linkerOptions, "--linkC-flag")
