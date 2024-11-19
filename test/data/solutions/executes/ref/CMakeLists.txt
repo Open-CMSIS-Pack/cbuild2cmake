@@ -123,10 +123,16 @@ add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
   COMMENT Run_After_Archiving
 )
 
-# Execute: Run_Always
-add_custom_target(Run_Always ALL
-  COMMAND ${CMAKE_COMMAND} -E echo "Execute Run Always"
-  COMMENT Run_Always
+# Execute: Run_Always1
+add_custom_target(Run_Always1 ALL
+  COMMAND ${CMAKE_COMMAND} -E echo "Execute Run Always1"
+  COMMENT Run_Always1
+)
+
+# Execute: Run_Always2
+add_custom_target(Run_Always2 ALL
+  COMMAND ${CMAKE_COMMAND} -E echo "Execute Run Always2"
+  COMMENT Run_Always2
 )
 
 # Execute: project.Release+ARMCM0-Sign_Artifact
@@ -147,27 +153,33 @@ add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
 # Build dependencies
 add_dependencies(project.Release+ARMCM0-build
   Generate_Project_Sources
-  Run_Always
+  Run_Always1
+  Run_Always2
 )
 add_dependencies(Archive_Artifacts
   project.Release+ARMCM0-build
   project.Release+ARMCM0-Sign_Artifact
-  Run_Always
+  Run_Always1
+  Run_Always2
 )
 add_dependencies(Generate_Project_Sources
-  Run_Always
+  Run_Always1
+  Run_Always2
 )
 add_dependencies(Run_After_Archiving
   Archive_Artifacts
-  Run_Always
+  Run_Always1
+  Run_Always2
 )
 add_dependencies(project.Release+ARMCM0-Sign_Artifact
   project.Release+ARMCM0-build
-  Run_Always
+  Run_Always1
+  Run_Always2
 )
 add_dependencies(project.Release+ARMCM0-executes
   Archive_Artifacts
   Run_After_Archiving
   project.Release+ARMCM0-Sign_Artifact
-  Run_Always
+  Run_Always1
+  Run_Always2
 )

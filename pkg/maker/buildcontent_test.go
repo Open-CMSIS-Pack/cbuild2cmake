@@ -359,8 +359,19 @@ func TestBuildContent(t *testing.T) {
 		}
 		m.CbuildIndex.BuildIdx.Executes = []maker.Executes{
 			{
-				Execute: "RunAlways",
+				Execute: "RunAlways1",
 				Always:  make(map[string]interface{}),
+			},
+			{
+				Execute: "RunAlways2",
+				Always:  make(map[string]interface{}),
+			},
+			{
+				// Test safety net to ensure cyclic dependencies are avoided
+				// RunAlways 'executes' usually do not have input dependencies
+				Execute:   "RunAlways_Dependent",
+				Always:    make(map[string]interface{}),
+				DependsOn: []string{"SecondLevel_PostBuild"},
 			},
 			{
 				Execute:   "PostBuild",
@@ -376,20 +387,27 @@ func TestBuildContent(t *testing.T) {
 # Build dependencies
 add_dependencies(project.debug+target-build
   dependentContext
-  RunAlways
+  RunAlways1
+  RunAlways2
+)
+add_dependencies(RunAlways_Dependent
+  SecondLevel_PostBuild
 )
 add_dependencies(PostBuild
   project.debug+target-build
-  RunAlways
+  RunAlways1
+  RunAlways2
 )
 add_dependencies(SecondLevel_PostBuild
   PostBuild
-  RunAlways
+  RunAlways1
+  RunAlways2
 )
 add_dependencies(project.debug+target-executes
   PostBuild
   SecondLevel_PostBuild
-  RunAlways
+  RunAlways1
+  RunAlways2
 )`)
 	})
 
