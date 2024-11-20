@@ -1,12 +1,12 @@
 # components.cmake
 
-# component ARM::CMSIS:CORE@6.0.0
-add_library(ARM_CMSIS_CORE_6_0_0 INTERFACE)
-target_include_directories(ARM_CMSIS_CORE_6_0_0 INTERFACE
+# component ARM::CMSIS:CORE@6.1.0
+add_library(ARM_CMSIS_CORE_6_1_0 INTERFACE)
+target_include_directories(ARM_CMSIS_CORE_6_1_0 INTERFACE
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
-  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include
 )
-target_compile_definitions(ARM_CMSIS_CORE_6_0_0 INTERFACE
+target_compile_definitions(ARM_CMSIS_CORE_6_1_0 INTERFACE
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>
 )
 
@@ -17,7 +17,7 @@ add_library(ARM_Device_Startup_C_Startup_2_2_0 OBJECT
 )
 target_include_directories(ARM_Device_Startup_C_Startup_2_2_0 PUBLIC
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
-  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
+  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include
 )
 target_compile_definitions(ARM_Device_Startup_C_Startup_2_2_0 PUBLIC
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>

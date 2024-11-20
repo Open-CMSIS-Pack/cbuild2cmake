@@ -7,6 +7,7 @@ set(CONTEXT project.GCC+ARMCM0)
 set(TARGET ${CONTEXT})
 set(OUT_DIR "${SOLUTION_ROOT}/out/project/ARMCM0/GCC")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(LD_MAP_FILE "project.map")
 set(LD_SCRIPT "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/gcc_linker_script.ld.src")
 set(LD_REGIONS "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/regions_ARMCM0.h")
 set(LD_SCRIPT_PP_DEFINES
@@ -40,8 +41,8 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 # Includes
 target_include_directories(${CONTEXT} PUBLIC
   ${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0
-  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
-  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include
+  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include
 )
 
 # Defines
@@ -71,7 +72,7 @@ include("components.cmake")
 
 target_link_libraries(${CONTEXT} PUBLIC
   Group_Source
-  ARM_CMSIS_CORE_6_0_0
+  ARM_CMSIS_CORE_6_1_0
   ARM_Device_Startup_C_Startup_2_2_0
 )
 
@@ -79,10 +80,11 @@ target_link_libraries(${CONTEXT} PUBLIC
 target_link_options(${CONTEXT} PUBLIC
   "SHELL:${LD_CPU}"
   "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
+  "SHELL:${LD_MAP}"
   "SHELL:--specs=nano.specs"
-  "SHELL:--specs=rdimon.specs"
-  "SHELL:-Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/GCC/project.elf.map"
+  "SHELL:--specs=nosys.specs"
   "SHELL:-Wl,--gc-sections"
+  "SHELL:-Wl,--no-warn-rwx-segments"
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
 

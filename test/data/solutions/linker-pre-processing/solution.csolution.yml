@@ -1,5 +1,5 @@
 solution:
-  created-for: CMSIS-Toolbox@2.2.1
+  created-for: CMSIS-Toolbox@2.6.0
   cdefault:
 
   packs:
@@ -25,11 +25,3 @@ solution:
 
   projects:
     - project: ./project/project.cproject.yml
-
-  misc:
-    - for-compiler: AC6
-      Link:
-        - --info summarysizes
-        - --info sizes
-        - --info totals
-        - --info unused
