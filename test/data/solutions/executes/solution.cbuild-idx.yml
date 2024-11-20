@@ -41,8 +41,11 @@ build-idx:
         - artifacts.zip
       depends-on:
         - Archive_Artifacts
-    - execute: Run_Always
-      run: ${CMAKE_COMMAND} -E echo "Execute Run Always"
+    - execute: Run_Always1
+      run: ${CMAKE_COMMAND} -E echo "Execute Run Always1"
+      always: 
+    - execute: Run_Always2
+      run: ${CMAKE_COMMAND} -E echo "Execute Run Always2"
       always: 
     - execute: project.Release+ARMCM0-Sign_Artifact
       run: ${CMAKE_COMMAND} -DINPUT=${INPUT} -DOUTPUT=${OUTPUT} -P ${INPUT_0}

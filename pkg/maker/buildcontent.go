@@ -159,7 +159,7 @@ func (m *Maker) AddStepSuffix(name string) string {
 
 func (m *Maker) CMakeTargetAddDependencies(name string, dependencies []string) string {
 	var content string
-	dependencies = utils.AppendUniquely(dependencies, m.GetAllRunAlways(name)...)
+	dependencies = utils.AppendUniquely(dependencies, m.GetIndependentRunAlways(name)...)
 	if len(dependencies) > 0 {
 		content += "\nadd_dependencies(" + m.AddStepSuffix(name)
 		for _, dependency := range dependencies {
@@ -194,32 +194,35 @@ func (m *Maker) BuildDependencies() string {
 }
 
 func (m *Maker) GetContextDependencies(execute string, dependsOn []string, deps DependenciesMap) DependenciesMap {
-	for _, item := range dependsOn {
-		if slices.Contains(m.Contexts, item) {
-			// collect dependency on context (post build step)
-			deps[item] = utils.AppendUniquely(deps[item], execute)
-		} else {
-			// check recursively further dependencies
-			deps = m.GetContextDependencies(execute, m.GetDependsOn(item), deps)
+	if m.GetExecute(execute).Always == nil {
+		for _, item := range dependsOn {
+			if slices.Contains(m.Contexts, item) {
+				// collect dependency on context (post build step)
+				deps[item] = utils.AppendUniquely(deps[item], execute)
+			} else {
+				// check recursively further dependencies
+				deps = m.GetContextDependencies(execute, m.GetExecute(item).DependsOn, deps)
+			}
 		}
 	}
 	return deps
 }
 
-func (m *Maker) GetDependsOn(execute string) (dependsOn []string) {
+func (m *Maker) GetExecute(execute string) Executes {
 	for _, item := range m.CbuildIndex.BuildIdx.Executes {
 		if item.Execute == execute {
-			dependsOn = item.DependsOn
-			break
+			return item
 		}
 	}
-	return dependsOn
+	return Executes{}
 }
 
-func (m *Maker) GetAllRunAlways(execute string) (elements []string) {
-	for _, item := range m.CbuildIndex.BuildIdx.Executes {
-		if item.Execute != execute && item.Always != nil {
-			elements = utils.AppendUniquely(elements, item.Execute)
+func (m *Maker) GetIndependentRunAlways(execute string) (elements []string) {
+	if m.GetExecute(execute).Always == nil {
+		for _, item := range m.CbuildIndex.BuildIdx.Executes {
+			if item.Always != nil && len(item.DependsOn) == 0 {
+				elements = utils.AppendUniquely(elements, item.Execute)
+			}
 		}
 	}
 	return elements
