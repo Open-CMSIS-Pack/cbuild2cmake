@@ -1,5 +1,5 @@
-github.com/Masterminds/semver/v3 v3.3.0 h1:B8LGeaivUe71a5qox1ICM/JLl0NqZSW5CHyL+hmvYS0=
-github.com/Masterminds/semver/v3 v3.3.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
+github.com/Masterminds/semver/v3 v3.3.1 h1:QtNSWtVZ3nBfk8mAOu/B6v7FMJ+NHTIgUPi7rj+4nv4=
+github.com/Masterminds/semver/v3 v3.3.1/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/Open-CMSIS-Pack/cbuild/v2 v2.6.1 h1:U0Cq6VVtl4U0Y9Cjlpxey9pdBVdkjctddaSvuDsDj2k=
 github.com/Open-CMSIS-Pack/cbuild/v2 v2.6.1/go.mod h1:qe5ZY5xgKtpvysWEt7TENV9Y/03iEoGiGXLhAjDziQI=
 github.com/cpuguy83/go-md2man/v2 v2.0.4/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
