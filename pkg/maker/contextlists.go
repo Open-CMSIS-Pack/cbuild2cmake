@@ -224,22 +224,20 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 		content += CMakeTargetCompileDefinitions(name, parentName, scope, group.Define, group.Undefine)
 		group.DefineAsm = utils.AppendDefines(group.DefineAsm, parentDefineAsm)
 		// compiler abstractions
+		var libraries []string
 		hasFileAbstractions := HasFileAbstractions(group.Files)
 		groupAbstractions := CompilerAbstractions{group.Debug, group.Optimize, group.Warnings, group.LanguageC, group.LanguageCpp}
 		languages := utils.AppendUniquely(maps.Keys(buildFiles.Source), maps.Keys(buildFiles.Custom)...)
-		var abstractions CompilerAbstractions
-		if !AreAbstractionsEmpty(groupAbstractions, c.Languages) {
-			abstractions = InheritCompilerAbstractions(parentAbstractions, groupAbstractions)
-			if !hasFileAbstractions {
+		abstractions := InheritCompilerAbstractions(parentAbstractions, groupAbstractions)
+		if !AreAbstractionsEmpty(abstractions, c.Languages) && (!hasFileAbstractions || hasChildren) {
+			if AreAbstractionsEmpty(groupAbstractions, c.Languages) {
+				content += c.CMakeTargetCompileOptionsAbstractions(name, CompilerAbstractions{}, []string{})
+				content += c.CMakeTargetLinkLibraries(name+"_ABSTRACTIONS", "INTERFACE", parentName+"_ABSTRACTIONS")
+			} else {
 				content += c.CMakeTargetCompileOptionsAbstractions(name, abstractions, languages)
 			}
-		}
-		var libraries []string
-		if !buildFiles.Interface && !hasFileAbstractions {
-			if !AreAbstractionsEmpty(groupAbstractions, languages) {
+			if !buildFiles.Interface && !hasFileAbstractions {
 				libraries = append(libraries, name+"_ABSTRACTIONS")
-			} else if !AreAbstractionsEmpty(parentAbstractions, languages) {
-				libraries = append(libraries, parentName+"_ABSTRACTIONS")
 			}
 		}
 		// target_compile_options

@@ -21,7 +21,6 @@ set(OUTPUTS_1
   "${SOLUTION_ROOT}/out/project/ARMCM0/Release/project.axf"
 )
 
-
 set(ARGS
   "-DSOLUTION_ROOT=${SOLUTION_ROOT}"
   "-DCMSIS_PACK_ROOT=${CMSIS_PACK_ROOT}"

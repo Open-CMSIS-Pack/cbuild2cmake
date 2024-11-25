@@ -392,14 +392,14 @@ func (c *Cbuild) CMakeTargetCompileOptionsAbstractions(name string, abstractions
 		if language == "C" {
 			prefix = "CC"
 		}
-		if !IsAbstractionEmpty(abstractions, language) {
+		if !AreAbstractionsEmpty(abstractions, []string{language}) {
 			content += "\ncbuild_set_options_flags(" + prefix
 			content += c.SetOptionsFlags(abstractions, language)
 			content += " " + prefix + "_OPTIONS_FLAGS_" + name + ")"
 			options += c.LanguageSpecificCompileOptions(language, "${"+prefix+"_OPTIONS_FLAGS_"+name+"}")
 		}
 	}
-	if len(content) > 0 {
+	if len(options) > 0 {
 		content += "\ntarget_compile_options(" + name + "_ABSTRACTIONS INTERFACE" + options + "\n)"
 	}
 	return content
@@ -434,19 +434,14 @@ func IsCompileMiscEmpty(misc Misc) bool {
 }
 
 func AreAbstractionsEmpty(abstractions CompilerAbstractions, languages []string) bool {
+	if len(abstractions.Debug) > 0 || len(abstractions.Optimize) > 0 || len(abstractions.Warnings) > 0 {
+		return false
+	}
 	for _, language := range languages {
-		if !IsAbstractionEmpty(abstractions, language) {
+		if (language == "C" && len(abstractions.LanguageC) > 0) ||
+			(language == "CXX" && len(abstractions.LanguageCpp) > 0) {
 			return false
 		}
-	}
-	return true
-}
-
-func IsAbstractionEmpty(abstractions CompilerAbstractions, language string) bool {
-	if len(abstractions.Debug) > 0 || len(abstractions.Optimize) > 0 || len(abstractions.Warnings) > 0 ||
-		(language == "C" && len(abstractions.LanguageC) > 0) ||
-		(language == "CXX" && len(abstractions.LanguageCpp) > 0) {
-		return false
 	}
 	return true
 }
@@ -712,7 +707,7 @@ func HasFileAbstractions(files []Files) bool {
 	for _, file := range files {
 		if strings.Contains(file.Category, "source") {
 			fileAbstractions := CompilerAbstractions{file.Debug, file.Optimize, file.Warnings, file.LanguageC, file.LanguageCpp}
-			hasFileAbstractions = !IsAbstractionEmpty(fileAbstractions, GetLanguage(file))
+			hasFileAbstractions = !AreAbstractionsEmpty(fileAbstractions, []string{GetLanguage(file)})
 			if hasFileAbstractions {
 				break
 			}
@@ -764,7 +759,7 @@ func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstrac
 	language := GetLanguage(file)
 	hasMisc := !IsCompileMiscEmpty(file.Misc)
 	// file compiler abstractions
-	hasAbstractions := !IsAbstractionEmpty(abstractions, language)
+	hasAbstractions := !AreAbstractionsEmpty(abstractions, []string{language})
 	if hasAbstractions {
 		content += c.CompilerAbstractions(abstractions, language)
 	}

@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/main/tools/projmgr/schemas/cproject.schema.json
+
+project:
+
+  components:
+    - component: ARM::CMSIS:CORE
+    - component: ARM::Device:Startup&C Startup
+      optimize: none
+
+  #inherited from build-type: optimize: size
+
+  groups:
+    - group: Group1
+      files:
+        - file: ./main.c
+    - group: Group2
+      optimize: none
+      files:
+        - file: ./optimize_none1.c
+        - file: ./optimize_speed1.c
+          optimize: speed
+      groups:
+        - group: SubGroup
+          files:
+            - file: ./optimize_none2.c
+          groups:
+            - group: SubGroup2
+              optimize: speed
+              files:
+                - file: ./optimize_speed2.c
+    - group: EmptyParent
+      groups:
+        - group: NestedChild
+          files:
+            - file: ./optimize_size1.c
+            - file: ./optimize_size2.c

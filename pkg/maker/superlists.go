@@ -28,7 +28,7 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		dirs = dirs + "  \"${CMAKE_CURRENT_SOURCE_DIR}/" + cbuild.BuildDescType.Context + "\"\n"
 
 		var contextOutputsName = "OUTPUTS_" + strconv.Itoa(i+1)
-		contextOutputs += "set(" + contextOutputsName + "\n"
+		contextOutputs += "\nset(" + contextOutputsName + "\n"
 
 		var outputFile string
 		for _, output := range cbuild.BuildDescType.Output {
@@ -40,7 +40,7 @@ func (m *Maker) CreateSuperCMakeLists() error {
 			contextOutputs += "  \"" + output + "\"\n"
 		}
 
-		contextOutputs += ")\n"
+		contextOutputs += ")"
 	}
 
 	solutionRoot, _ := filepath.EvalSymlinks(m.SolutionRoot)
@@ -78,7 +78,6 @@ math(EXPR CONTEXTS_LENGTH "${CONTEXTS_LENGTH}-1")
 
 set(DIRS
 ` + dirs + `)
-
 ` + contextOutputs + `
 
 set(ARGS

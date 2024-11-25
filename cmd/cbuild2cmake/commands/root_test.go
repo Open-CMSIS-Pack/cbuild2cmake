@@ -310,4 +310,18 @@ set(OUTPUTS_1
 		assert.Nil(err)
 		assert.False(mismatch)
 	})
+
+	t.Run("test abstractions", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		testCaseRoot := testRoot + "/run/solutions/abstractions"
+		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
+		err := cmd.Execute()
+		assert.Nil(err)
+
+		// check golden references
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp")
+		assert.Nil(err)
+		assert.False(mismatch)
+	})
 }

@@ -1,0 +1,15 @@
+build-idx:
+  generated-by: csolution version 2.6.0
+  cdefault: ${CMSIS_COMPILER_ROOT}/cdefault.yml
+  csolution: solution.csolution.yml
+  tmpdir: tmp
+  cprojects:
+    - cproject: project/project.cproject.yml
+  cbuilds:
+    - cbuild: project/project.GCC+ARMCM0.cbuild.yml
+      project: project
+      configuration: .GCC+ARMCM0
+      messages:
+        info:
+          - solution.cbuild-pack.yml - file is already up-to-date
+          - project.GCC+ARMCM0.cbuild.yml - file is already up-to-date
