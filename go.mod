@@ -9,7 +9,7 @@ require (
 	github.com/otiai10/copy v1.14.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2
 	gopkg.in/yaml.v3 v3.0.1
 )
