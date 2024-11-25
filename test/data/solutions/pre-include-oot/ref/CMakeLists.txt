@@ -36,7 +36,6 @@ set(OUTPUTS_4
   "${SOLUTION_ROOT}/../pre-include-oot/out/project/ARMCM0/IAR/project.out"
 )
 
-
 set(ARGS
   "-DSOLUTION_ROOT=${SOLUTION_ROOT}"
   "-DCMSIS_PACK_ROOT=${CMSIS_PACK_ROOT}"

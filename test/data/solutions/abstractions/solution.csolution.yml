@@ -1,0 +1,20 @@
+solution:
+  #created-for: CMSIS-Toolbox@2.6.0
+  cdefault:
+
+  packs:
+    - pack: ARM::Cortex_DFP
+    - pack: ARM::CMSIS
+
+  target-types:
+    - type: ARMCM0
+      device: ARMCM0
+
+  build-types:
+    - type: GCC
+      compiler: GCC
+      optimize: size
+      debug: off
+
+  projects:
+    - project: ./project/project.cproject.yml
