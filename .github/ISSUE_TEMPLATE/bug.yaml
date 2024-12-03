@@ -35,23 +35,6 @@ body:
       required: false
   - type: checkboxes
     attributes:
-      label: Affected tools
-      description: Which tools are affected by this bug?
-      options:
-        - label: cbuild
-          required: false
-        - label: cbuild2cmake
-          required: false
-        - label: cpackget
-          required: false
-        - label: csolution
-          required: false
-        - label: packchk
-          required: false
-        - label: svdconv
-          required: false
-  - type: checkboxes
-    attributes:
       label: Affected operating systems
       description: On which host os platforms does the bug occur?
       options:
