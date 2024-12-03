@@ -1,15 +1,24 @@
-# Contributing
+# Contribution Guide
 
-Contributions are accepted under Apache 2.0. Only submit contributions where you have authored all of the code.
+Thank you for your interest in contributing to our project! We strive to maintain a welcoming and inclusive community.
 
-## Proposals, Reviews and Project
+## Ways to Contribute
 
-Please feel free to raise an [issue on GitHub](https://github.com/Open-CMSIS-Pack/cbuild2cmake)
-to start the discussion about your proposal.
+There are multiple ways you can contribute to this project:
 
-### Issues, Labels
+1. **Report an Issue**: If you encounter a bug or have a suggestion, please open an issue on our
+[GitHub Issues page](https://github.com/Open-CMSIS-Pack/cbuild2cmake/issues) to start the discussion about your proposal.
 
-Please feel free to raise an [issue on GitHub](https://github.com/Open-CMSIS-Pack/cbuild2cmake)
+2. **Open a Pull Request**: Contributions are welcome, whether you're fixing a bug, adding a new feature, or improving
+documentation. You can submit a pull request to our
+[GitHub repository](https://github.com/Open-CMSIS-Pack/cbuild2cmake/pulls) to:
+   - Provide a bug fix
+   - Add new features or enhancements
+   - Improve or expand existing documentation
+
+### Report an Issue
+
+Please feel free to raise an [issue on GitHub](https://github.com/Open-CMSIS-Pack/cbuild2cmake/issues)
 to report misbehavior (i.e. bugs)
 
 Issues are your best way to interact directly with the maintenance team and the community.
@@ -20,18 +29,40 @@ We shall be monitoring and responding to issues as best we can.
 Please attempt to avoid filing duplicates of open or closed items when possible.
 In the spirit of openness we shall be tagging issues with the following:
 
-- **bug** – We consider this issue to be a bug that shall be investigated.
+- **bug** – This issue is identified as a bug and will be investigated.
+- **discussion** – This issue is currently under discussion.
+- **discussion done** – The discussion on this issue is complete.
+- **documentation** – This issue highlights a documentation gap, which will be addressed in future updates.
+- **duplicate** – This issue duplicates an existing one; see comments for related references.
+- **enhancement** – This issue represents a request for a new feature or improvement.
+- **question** – We need further information or clarification on this issue; please review and respond.
+- **wontfix** – While we appreciate this suggestion, we have decided not to make changes at this time.
 
-- **wontfix** - We appreciate this issue but decided not to change the current behavior.
+### Open a Pull Request
 
-- **out-of-scope** - We consider this issue loosely related to CMSIS.
- It might be implemented outside of CMSIS. Let us know about your work.
+We encourage contributions of all sizes, but please keep each contribution focused and independent. We prefer smaller,
+more manageable pull requests, which makes it easier for us to review, provide feedback, and merge changes quickly.
 
-- **question** – We have further questions about this issue. Please review and provide feedback.
+#### Contribution Process
 
-- **documentation** - This issue is a documentation flaw that shall be improved in the future.
+To make a successful contribution, please follow these steps:
 
-- **DONE** - We consider this issue as resolved - please review and close it.
- In case of no further activity, these issues shall be closed after a week.
+1. **Fork the Repository**: Start by forking the repository to your GitHub account.
 
-- **duplicate** - This issue is already addressed elsewhere, see a comment with provided references.
+2. **Make Your Changes**:
+   - Implement your changes, ensuring that you match the existing coding style and documentation conventions.
+   - Write unit tests for your code to ensure it is functional and reliable.
+
+3. **Write a Clear Commit Message**: Write a concise and informative commit message summarizing your changes.
+
+4. **Push to Your Fork**: Push your changes to your forked repository.
+
+5. **Submit a Pull Request (PR)**: Open a pull request against the main repository.
+
+### Review Process
+
+Our team will review your proposed changes as soon as possible. Since our tools are complex and cover a wide range of
+use cases, we may request additional modifications. This helps ensure that your contribution meets our quality
+standards, is generally applicable, and doesn’t negatively impact other use cases or maintainability.
+
+Thank you for helping us improve this project! We value your effort and commitment.
