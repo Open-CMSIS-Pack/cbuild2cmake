@@ -1,5 +1,5 @@
 build:
-  generated-by: csolution version 2.5.0
+  generated-by: csolution version 2.6.0
   solution: ../solution.csolution.yml
   project: project.cproject.yml
   context: project.CLANG+ARMCM0
@@ -27,9 +27,8 @@ build:
       - -ffunction-sections
       - -fdata-sections
     Link:
-      - -lcrt0-semihost
-      - -lsemihost
-      - -Wl,-Map=../out/project/ARMCM0/CLANG/project.elf.map
+      - -lcrt0
+      - -Wl,-print-memory-usage
       - -Wl,--gc-sections
   define:
     - ARMCM0
@@ -86,10 +85,9 @@ build:
     - component: ARM::CMSIS:OS Tick:SysTick@1.0.5
       condition: OS Tick SysTick
       from-pack: ARM::CMSIS@6.1.0
-      selected-by: ARM::CMSIS:OS Tick
+      selected-by: ARM::CMSIS:OS Tick:SysTick
+      implements: CMSIS:OS Tick@1.0.1
       files:
-        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include/os_tick.h
-          category: api
         - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Source/os_systick.c
           category: sourceC
           version: 1.0.5
@@ -97,9 +95,8 @@ build:
       condition: RTX5
       from-pack: ARM::CMSIS-RTX@5.9.0
       selected-by: ARM::CMSIS:RTOS2:Keil RTX5&Library
+      implements: CMSIS:RTOS2@2.3.0
       files:
-        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include/cmsis_os2.h
-          category: api
         - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Documentation/index.html
           category: doc
           version: 5.9.0
@@ -184,6 +181,27 @@ build:
           category: sourceC
           attr: config
           version: 1.0.0
+  apis:
+    - api: CMSIS:RTOS2@2.3.0
+      from-pack: ARM::CMSIS@6.1.0
+      implemented-by: ARM::CMSIS:RTOS2:Keil RTX5&Library@5.9.0
+      files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Documentation/html/RTOS2/index.html
+          category: doc
+          version: 2.3.0
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include/cmsis_os2.h
+          category: header
+          version: 2.3.0
+    - api: CMSIS:OS Tick@1.0.1
+      from-pack: ARM::CMSIS@6.1.0
+      implemented-by: ARM::CMSIS:OS Tick:SysTick@1.0.5
+      files:
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include/os_tick.h
+          category: header
+          version: 1.0.1
+        - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Documentation/html/RTOS2/index.html
+          category: doc
+          version: 1.0.1
   linker:
     script: RTE/Device/ARMCM0/clang_linker_script.ld.src
     regions: RTE/Device/ARMCM0/regions_ARMCM0.h

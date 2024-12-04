@@ -503,4 +503,20 @@ add_dependencies(project.debug+target-executes
 		assert.Equal(expectedData, cbuild.AddRootPrefixes("", testData))
 	})
 
+	t.Run("get api files", func(t *testing.T) {
+		var cbuild maker.Cbuild
+		var files = []maker.Files{
+			{
+				File: "api_header.h",
+			},
+		}
+		cbuild.BuildDescType.Apis = []maker.Apis{
+			{
+				API:   "CORE:API",
+				Files: files,
+			},
+		}
+		assert.Equal(files, cbuild.GetAPIFiles("CORE:API"))
+	})
+
 }

@@ -914,3 +914,12 @@ func (m *Maker) ExecutesCommands(executes []Executes) string {
 	}
 	return content
 }
+
+func (c *Cbuild) GetAPIFiles(id string) []Files {
+	for _, api := range c.BuildDescType.Apis {
+		if api.API == id {
+			return api.Files
+		}
+	}
+	return nil
+}

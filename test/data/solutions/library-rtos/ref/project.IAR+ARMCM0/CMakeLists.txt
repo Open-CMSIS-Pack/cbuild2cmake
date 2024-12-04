@@ -77,8 +77,6 @@ target_link_libraries(${CONTEXT} PUBLIC
 target_link_options(${CONTEXT} PUBLIC
   "SHELL:${LD_CPU}"
   "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
-  "SHELL:--semihosting"
-  "SHELL:--map=${SOLUTION_ROOT}/out/project/ARMCM0/IAR/project.out.map"
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
 

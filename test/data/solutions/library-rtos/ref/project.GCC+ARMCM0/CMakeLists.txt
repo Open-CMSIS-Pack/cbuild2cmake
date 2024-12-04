@@ -86,8 +86,9 @@ target_link_options(${CONTEXT} PUBLIC
   "SHELL:${LD_CPU}"
   "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
   "SHELL:--specs=nano.specs"
-  "SHELL:--specs=rdimon.specs"
-  "SHELL:-Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/GCC/project.elf.map"
+  "SHELL:--specs=nosys.specs"
+  "SHELL:-Wl,-print-memory-usage"
   "SHELL:-Wl,--gc-sections"
+  "SHELL:-Wl,--no-warn-rwx-segments"
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
