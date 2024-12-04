@@ -81,7 +81,6 @@ target_link_options(${CONTEXT} PUBLIC
   "SHELL:${LD_CPU}"
   "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
   "SHELL:--entry=Reset_Handler"
-  "SHELL:--map"
   "SHELL:--info summarysizes"
   "SHELL:--summary_stderr"
   "SHELL:--diag_suppress=L6314W"

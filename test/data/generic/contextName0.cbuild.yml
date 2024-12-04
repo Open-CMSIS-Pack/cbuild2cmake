@@ -34,7 +34,11 @@ build:
     - component: vendorName::DFP:CORE@7.7.7
       condition: Cortex-M Condition
       from-pack: vendorName::DFP@8.8.8
+      implements: DFP:CORE@1.1.1
       selected-by: CORE
+  apis:
+    - api: DFP:CORE@1.1.1
+      from-pack: vendorName::DFP@8.8.8
   linker:
     script: ac6.sct.src
     regions: regions_deviceName.h

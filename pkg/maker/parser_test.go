@@ -81,7 +81,11 @@ func TestParser(t *testing.T) {
 		assert.Equal("vendorName::DFP:CORE@7.7.7", data.BuildDescType.Components[0].Component)
 		assert.Equal("Cortex-M Condition", data.BuildDescType.Components[0].Condition)
 		assert.Equal("vendorName::DFP@8.8.8", data.BuildDescType.Components[0].FromPack)
+		assert.Equal("DFP:CORE@1.1.1", data.BuildDescType.Components[0].Implements)
 		assert.Equal("CORE", data.BuildDescType.Components[0].SelectedBy)
+
+		assert.Equal("DFP:CORE@1.1.1", data.BuildDescType.Apis[0].API)
+		assert.Equal("vendorName::DFP@8.8.8", data.BuildDescType.Apis[0].FromPack)
 
 		assert.Equal("Source", data.BuildDescType.Groups[0].Group)
 		assert.Equal("./TestSource.c", data.BuildDescType.Groups[0].Files[0].File)

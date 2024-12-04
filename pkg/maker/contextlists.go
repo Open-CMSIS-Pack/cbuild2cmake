@@ -297,7 +297,7 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 	content := "# components.cmake\n"
 	for _, component := range c.BuildDescType.Components {
-		buildFiles := c.ClassifyFiles(component.Files)
+		buildFiles := c.ClassifyFiles(append(component.Files, c.GetAPIFiles(component.Implements)...))
 		name := ReplaceDelimiters(component.Component)
 		// default scope
 		scope := "PUBLIC"

@@ -80,9 +80,8 @@ target_link_libraries(${CONTEXT} PUBLIC
 target_link_options(${CONTEXT} PUBLIC
   "SHELL:${LD_CPU}"
   "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
-  "SHELL:-lcrt0-semihost"
-  "SHELL:-lsemihost"
-  "SHELL:-Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/CLANG/project.elf.map"
+  "SHELL:-lcrt0"
+  "SHELL:-Wl,-print-memory-usage"
   "SHELL:-Wl,--gc-sections"
 )
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})

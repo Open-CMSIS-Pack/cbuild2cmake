@@ -65,6 +65,7 @@ type Cbuild struct {
 		OutputDirs       OutputDirs    `yaml:"output-dirs"`
 		Output           []Output      `yaml:"output"`
 		Components       []Components  `yaml:"components"`
+		Apis             []Apis        `yaml:"apis"`
 		Linker           Linker        `yaml:"linker"`
 		Groups           []Groups      `yaml:"groups"`
 		Generators       []struct{}    `yaml:"generators"`
@@ -103,10 +104,17 @@ type Cprojects struct {
 	Clayers  []Clayers `yaml:"clayers"`
 }
 
+type Apis struct {
+	API      string  `yaml:"api"`
+	Files    []Files `yaml:"files"`
+	FromPack string  `yaml:"from-pack"`
+}
+
 type Components struct {
 	Component   string        `yaml:"component"`
 	Condition   string        `yaml:"condition"`
 	SelectedBy  string        `yaml:"selected-by"`
+	Implements  string        `yaml:"implements"`
 	Rtedir      string        `yaml:"rtedir"`
 	Optimize    string        `yaml:"optimize"`
 	Debug       string        `yaml:"debug"`
