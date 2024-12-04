@@ -921,5 +921,5 @@ func (c *Cbuild) GetAPIFiles(id string) []Files {
 			return api.Files
 		}
 	}
-	return []Files{}
+	return nil
 }
