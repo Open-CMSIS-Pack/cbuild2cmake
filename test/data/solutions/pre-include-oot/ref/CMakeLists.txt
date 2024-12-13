@@ -79,8 +79,9 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
   # Database generation step
   ExternalProject_Add_Step(${CONTEXT} database
-    COMMAND           ${CMAKE_COMMAND} --build <BINARY_DIR> --target database
+    COMMAND           ${CMAKE_COMMAND} --build <BINARY_DIR> --target database --verbose
     ALWAYS            TRUE
+    USES_TERMINAL     ON
     DEPENDEES         configure
   )
   ExternalProject_Add_StepTargets(${CONTEXT} database)

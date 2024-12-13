@@ -46,12 +46,13 @@ func (m *Maker) CreateSuperCMakeLists() error {
 	solutionRoot, _ := filepath.EvalSymlinks(m.SolutionRoot)
 	solutionRoot = filepath.ToSlash(solutionRoot)
 
-	var verbosity, logConfigure string
+	var verbosity, logConfigure, stepLog string
 	if m.Options.Debug || m.Options.Verbose {
 		verbosity = " --verbose"
 	} else {
 		logConfigure = "\n    LOG_CONFIGURE         ON"
 		logConfigure += "\n    LOG_OUTPUT_ON_FAILURE ON"
+		stepLog = "\n    LOG               TRUE"
 	}
 
 	// Create roots.cmake
@@ -123,8 +124,9 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
   # Database generation step
   ExternalProject_Add_Step(${CONTEXT} database
-    COMMAND           ${CMAKE_COMMAND} --build <BINARY_DIR> --target database
-    ALWAYS            TRUE
+    COMMAND           ${CMAKE_COMMAND} --build <BINARY_DIR> --target database` + verbosity + `
+    ALWAYS            TRUE` + stepLog + `
+    USES_TERMINAL     ON
     DEPENDEES         configure
   )
   ExternalProject_Add_StepTargets(${CONTEXT} database)
