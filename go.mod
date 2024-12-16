@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
-	github.com/Open-CMSIS-Pack/cbuild/v2 v2.6.1
+	github.com/Open-CMSIS-Pack/cbuild/v2 v2.7.0
 	github.com/gobs/sortedmap v1.0.0
 	github.com/otiai10/copy v1.14.0
 	github.com/sirupsen/logrus v1.9.3
