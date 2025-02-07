@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -27,6 +27,7 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 	contextDir := path.Join(m.SolutionTmpDir, cbuild.BuildDescType.Context)
 	cbuild.IncludeGlobal = make(LanguageMap)
 	cbuild.UserIncGlobal = make(LanguageMap)
+	cbuild.GeneratedFiles = m.GeneratedFiles
 
 	var cmakeTargetType, outputDirType, linkerVars, linkerOptions string
 	if outputType == "elf" {

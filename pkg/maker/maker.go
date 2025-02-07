@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -34,6 +34,7 @@ type Vars struct {
 	Cbuilds                  []Cbuild
 	Contexts                 []string
 	EnvVars                  utils.EnvVars
+	GeneratedFiles           []string
 	ToolchainConfigs         map[*semver.Version]Toolchain
 	RegisteredToolchains     map[*semver.Version]Toolchain
 	SelectedToolchainVersion []*semver.Version
