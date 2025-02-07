@@ -144,6 +144,7 @@ func OutputFiles(outputList []Output) (outputByProducts string, outputFile strin
 			outputByProducts += "\nset(LD_MAP_FILE \"" + output.File + "\")"
 		case "cmse-lib":
 			outputByProducts += "\nset(CMSE_LIB \"" + output.File + "\")"
+			customCommands += "\n\n# CMSE Library\n add_custom_command(TARGET ${CONTEXT} PRE_LINK COMMAND \"\" BYPRODUCTS ${OUT_DIR}/${CMSE_LIB})"
 		case "elf", "lib":
 			outputFile = output.File
 			outputType = output.Type
