@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -517,6 +517,16 @@ add_dependencies(project.debug+target-executes
 			},
 		}
 		assert.Equal(files, cbuild.GetAPIFiles("CORE:API"))
+	})
+
+	t.Run("get executes generated files", func(t *testing.T) {
+		var m maker.Maker
+		var files = []string{"./source0.c", "./source1.c"}
+		m.GetGeneratedFiles(files)
+		assert.Equal(
+			[]string{"${SOLUTION_ROOT}/source0.c", "${SOLUTION_ROOT}/source1.c"},
+			m.GeneratedFiles,
+		)
 	})
 
 }

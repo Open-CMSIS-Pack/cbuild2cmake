@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -82,6 +82,7 @@ type Cbuild struct {
 	UserIncGlobal    LanguageMap
 	BuildGroups      []string
 	Toolchain        string
+	GeneratedFiles   []string
 }
 
 type Cbuilds struct {
