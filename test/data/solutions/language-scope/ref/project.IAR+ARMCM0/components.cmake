@@ -4,7 +4,7 @@
 add_library(ARM_CMSIS_CORE_6_0_0 INTERFACE)
 target_include_directories(ARM_CMSIS_CORE_6_0_0 INTERFACE
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
-  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include
+  "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.0.0/CMSIS/Core/Include"
 )
 target_compile_definitions(ARM_CMSIS_CORE_6_0_0 INTERFACE
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>
@@ -17,7 +17,7 @@ add_library(ARM_Device_Startup_C_Startup_2_2_0 OBJECT
 )
 target_include_directories(ARM_Device_Startup_C_Startup_2_2_0 PUBLIC
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
-  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include
+  "${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0/Device/ARMCM0/Include"
 )
 target_compile_definitions(ARM_Device_Startup_C_Startup_2_2_0 PUBLIC
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>
@@ -34,16 +34,16 @@ add_library(ARM_RteTest_LanguageAndScope_0_9_9 OBJECT
 target_include_directories(ARM_RteTest_LanguageAndScope_0_9_9
   PRIVATE
     $<$<COMPILE_LANGUAGE:C,CXX>:
-      ${SOLUTION_ROOT}/pack/LanguageAndScope/Hidden
-      ${SOLUTION_ROOT}/pack/LanguageAndScope/Private
+      "${SOLUTION_ROOT}/pack/LanguageAndScope/Hidden"
+      "${SOLUTION_ROOT}/pack/LanguageAndScope/Private"
     >
   PUBLIC
     $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
     $<$<COMPILE_LANGUAGE:C>:
-      ${SOLUTION_ROOT}/pack/LanguageAndScope/Public
+      "${SOLUTION_ROOT}/pack/LanguageAndScope/Public"
     >
     $<$<COMPILE_LANGUAGE:C,CXX>:
-      ${SOLUTION_ROOT}/pack/LanguageAndScope/Visible
+      "${SOLUTION_ROOT}/pack/LanguageAndScope/Visible"
     >
 )
 target_compile_definitions(ARM_RteTest_LanguageAndScope_0_9_9 PUBLIC

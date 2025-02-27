@@ -36,12 +36,12 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 
 # Includes
 target_include_directories(${CONTEXT} PUBLIC
-  ${SOLUTION_ROOT}/project/RTE/_CLANG_ARMCM0
-  ${SOLUTION_ROOT}/project/RTE/CMSIS
-  ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Include
-  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include
-  ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include
-  ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include
+  "${SOLUTION_ROOT}/project/RTE/_CLANG_ARMCM0"
+  "${SOLUTION_ROOT}/project/RTE/CMSIS"
+  "${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Include"
+  "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include"
+  "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include"
+  "${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include"
 )
 
 # Defines
