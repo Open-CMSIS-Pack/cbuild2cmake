@@ -260,14 +260,14 @@ func CMakeTargetIncludeDirectories(name string, includes ScopeMap) string {
 					if strings.Contains(file, "$<TARGET_PROPERTY:") {
 						content += fileIndentation + file
 					} else {
-						allLanguagesContent += fileIndentation + file
+						allLanguagesContent += fileIndentation + "\"" + file + "\""
 					}
 				}
 			} else {
 				if len(language.Value) > 0 {
 					specificLanguageContent += fileIndentation + "$<$<COMPILE_LANGUAGE:" + language.Key + ">:"
 					for _, file := range language.Value {
-						specificLanguageContent += fileIndentation + "  " + file
+						specificLanguageContent += fileIndentation + "  \"" + file + "\""
 					}
 					specificLanguageContent += fileIndentation + ">"
 				}

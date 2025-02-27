@@ -7,10 +7,10 @@ add_library(Group_Source1 OBJECT
 target_include_directories(Group_Source1 PUBLIC
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
   $<$<COMPILE_LANGUAGE:ASM>:
-    ${SOLUTION_ROOT}/project/group
+    "${SOLUTION_ROOT}/project/group"
   >
   $<$<COMPILE_LANGUAGE:C,CXX>:
-    ${SOLUTION_ROOT}/project/inc1
+    "${SOLUTION_ROOT}/project/inc1"
   >
 )
 target_compile_definitions(Group_Source1 PUBLIC
@@ -30,7 +30,7 @@ add_library(Group_Source1_source3_c OBJECT
 target_include_directories(Group_Source1_source3_c PUBLIC
   $<LIST:REMOVE_ITEM,$<TARGET_PROPERTY:Group_Source1,INTERFACE_INCLUDE_DIRECTORIES>,${SOLUTION_ROOT}/project/inc1>
   $<$<COMPILE_LANGUAGE:C,CXX>:
-    ${SOLUTION_ROOT}/project/inc3
+    "${SOLUTION_ROOT}/project/inc3"
   >
 )
 target_compile_definitions(Group_Source1_source3_c PUBLIC
@@ -50,7 +50,7 @@ add_library(Group_Source1_Source2 OBJECT
 target_include_directories(Group_Source1_Source2 PUBLIC
   $<LIST:REMOVE_ITEM,$<TARGET_PROPERTY:Group_Source1,INTERFACE_INCLUDE_DIRECTORIES>,${SOLUTION_ROOT}/project/inc1>
   $<$<COMPILE_LANGUAGE:C,CXX>:
-    ${SOLUTION_ROOT}/project/inc2
+    "${SOLUTION_ROOT}/project/inc2"
   >
 )
 target_compile_definitions(Group_Source1_Source2 PUBLIC
@@ -82,7 +82,7 @@ add_library(Group_Main_main_c OBJECT
 target_include_directories(Group_Main_main_c PUBLIC
   $<TARGET_PROPERTY:Group_Main,INTERFACE_INCLUDE_DIRECTORIES>
   $<$<COMPILE_LANGUAGE:C,CXX>:
-    ${SOLUTION_ROOT}/project/inc2
+    "${SOLUTION_ROOT}/project/inc2"
   >
 )
 target_compile_definitions(Group_Main_main_c PUBLIC
@@ -99,7 +99,7 @@ target_compile_options(Group_Main_main_c PUBLIC
 add_library(Group_Headers INTERFACE)
 target_include_directories(Group_Headers INTERFACE
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_INCLUDE_DIRECTORIES>
-  ${SOLUTION_ROOT}/project/inc1
+  "${SOLUTION_ROOT}/project/inc1"
 )
 target_compile_definitions(Group_Headers INTERFACE
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_DEFINITIONS>
