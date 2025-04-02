@@ -30,10 +30,11 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 	cbuild.GeneratedFiles = m.GeneratedFiles
 
 	var cmakeTargetType, outputDirType, linkerVars, linkerOptions string
-	if outputType == "elf" {
+	switch outputType {
+	case "elf":
 		cmakeTargetType = "add_executable"
 		outputDirType = "RUNTIME_OUTPUT_DIRECTORY"
-	} else if outputType == "lib" {
+	case "lib":
 		cmakeTargetType = "add_library"
 		outputDirType = "ARCHIVE_OUTPUT_DIRECTORY"
 	}
