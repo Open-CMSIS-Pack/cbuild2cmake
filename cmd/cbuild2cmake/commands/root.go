@@ -122,7 +122,7 @@ func NewRootCmd() *cobra.Command {
 	}
 
 	cobra.AddTemplateFunc("replaceString", func(s string) string {
-		return strings.Replace(strings.Replace(s, "strings  ", "arg [...]", -1), "string ", "arg    ", -1)
+		return strings.ReplaceAll(strings.ReplaceAll(s, "strings  ", "arg [...]"), "string ", "arg    ")
 	})
 	rootCmd.SetUsageTemplate(usageTemplate)
 	rootCmd.DisableFlagsInUseLine = true
