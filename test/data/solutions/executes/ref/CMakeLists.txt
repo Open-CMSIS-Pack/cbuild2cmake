@@ -86,8 +86,8 @@ set(OUTPUT
 )
 add_custom_target(Archive_Artifacts ALL DEPENDS ${OUTPUT})
 add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
+  COMMAND ${CMAKE_COMMAND} -E echo "Executing: Archive_Artifacts"
   COMMAND ${CMAKE_COMMAND} -DINPUT="${INPUT}" -DOUTPUT="${OUTPUT}" -P "${INPUT_0}"
-  COMMENT Archive_Artifacts
 )
 
 # Execute: Generate_Project_Sources
@@ -105,8 +105,8 @@ list(GET OUTPUT 0 OUTPUT_0)
 list(GET OUTPUT 1 OUTPUT_1)
 add_custom_target(Generate_Project_Sources ALL DEPENDS ${OUTPUT})
 add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
+  COMMAND ${CMAKE_COMMAND} -E echo "Executing: Generate_Project_Sources"
   COMMAND ${CMAKE_COMMAND} -DINPUT_1="${INPUT_1}" -DOUTPUT_0="${OUTPUT_0}" -DOUTPUT_1="${OUTPUT_1}" -P "${INPUT_0}"
-  COMMENT Generate_Project_Sources
 )
 
 # Execute: Run_After_Archiving
@@ -118,21 +118,21 @@ set(OUTPUT
 )
 add_custom_target(Run_After_Archiving ALL DEPENDS ${OUTPUT})
 add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
+  COMMAND ${CMAKE_COMMAND} -E echo "Executing: Run_After_Archiving"
   COMMAND ${CMAKE_COMMAND} -E touch "Run_After_Archiving.stamp"
   COMMAND ${CMAKE_COMMAND} -E echo "Archive has been updated"
-  COMMENT Run_After_Archiving
 )
 
 # Execute: Run_Always1
 add_custom_target(Run_Always1 ALL
+  COMMAND ${CMAKE_COMMAND} -E echo "Executing: Run_Always1"
   COMMAND ${CMAKE_COMMAND} -E echo "Execute Run Always1"
-  COMMENT Run_Always1
 )
 
 # Execute: Run_Always2
 add_custom_target(Run_Always2 ALL
+  COMMAND ${CMAKE_COMMAND} -E echo "Executing: Run_Always2"
   COMMAND ${CMAKE_COMMAND} -E echo "Execute Run Always2"
-  COMMENT Run_Always2
 )
 
 # Execute: project.Release+ARMCM0-Sign_Artifact
@@ -146,8 +146,8 @@ set(OUTPUT
 )
 add_custom_target(project.Release+ARMCM0-Sign_Artifact ALL DEPENDS ${OUTPUT})
 add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
+  COMMAND ${CMAKE_COMMAND} -E echo "Executing: project.Release+ARMCM0-Sign_Artifact"
   COMMAND ${CMAKE_COMMAND} -DINPUT="${INPUT}" -DOUTPUT="${OUTPUT}" -P "${INPUT_0}"
-  COMMENT project.Release+ARMCM0-Sign_Artifact
 )
 
 # Build dependencies
