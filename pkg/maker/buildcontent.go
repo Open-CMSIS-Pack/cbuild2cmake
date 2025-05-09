@@ -850,7 +850,7 @@ func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 	if len(c.BuildDescType.Processor.Trustzone) > 0 {
 		linkerOptions += "\n  " + AddShellPrefix("${LD_SECURE}")
 	}
-	if c.LinkerLto {
+	if c.LinkerLto || c.BuildDescType.Lto {
 		linkerOptions += "\n  " + AddShellPrefix("${LD_LTO}")
 	}
 	options := c.BuildDescType.Misc.Link
