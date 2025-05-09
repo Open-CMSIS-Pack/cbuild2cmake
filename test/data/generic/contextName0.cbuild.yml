@@ -36,6 +36,7 @@ build:
       from-pack: vendorName::DFP@8.8.8
       implements: DFP:CORE@1.1.1
       selected-by: CORE
+      link-time-optimize: true
   apis:
     - api: DFP:CORE@1.1.1
       from-pack: vendorName::DFP@8.8.8
@@ -44,6 +45,7 @@ build:
     regions: regions_deviceName.h
     define:
       - LD_PP_DEF0
+  link-time-optimize: true
   groups:
     - group: Source
       files:
@@ -56,6 +58,7 @@ build:
           warnings: all
           language-C: c90
           language-CPP: c++20
+          link-time-optimize: true
           define:
             - DEF_FILE
           undefine:

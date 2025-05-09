@@ -34,6 +34,9 @@ target_compile_options(ARM_Device_Startup_C_Startup_2_2_0_ABSTRACTIONS INTERFACE
 )
 target_compile_options(ARM_Device_Startup_C_Startup_2_2_0 PUBLIC
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_OPTIONS>
+  $<$<COMPILE_LANGUAGE:C>:
+    "SHELL:${CC_LTO}"
+  >
 )
 target_link_libraries(ARM_Device_Startup_C_Startup_2_2_0 PUBLIC
   ARM_Device_Startup_C_Startup_2_2_0_ABSTRACTIONS

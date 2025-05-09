@@ -89,6 +89,7 @@ target_link_libraries(${CONTEXT} PUBLIC
 target_link_options(${CONTEXT} PUBLIC
   "SHELL:${LD_CPU}"
   "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
+  "SHELL:${LD_LTO}"
   "SHELL:--specs=nano.specs"
   "SHELL:--specs=nosys.specs"
   "SHELL:-Wl,--gc-sections"

@@ -345,7 +345,7 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 		}
 	}
 	// add global misc options
-	c.GetCompileOptionsLanguageMap(c.BuildDescType.Misc, &optionsMap)
+	c.GetCompileOptionsLanguageMap((c.BuildDescType.Lto), c.BuildDescType.Misc, &optionsMap)
 
 	// pre-includes global
 	for _, preInclude := range c.PreIncludeGlobal {
@@ -370,11 +370,11 @@ func (c *Cbuild) CMakeTargetLinkLibraries(name string, scope string, libraries .
 	return content
 }
 
-func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, misc Misc, preIncludes []string, parent string) string {
+func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, lto bool, misc Misc, preIncludes []string, parent string) string {
 	content := "\ntarget_compile_options(" + name + " " + scope
 	content += "\n  $<TARGET_PROPERTY:" + parent + ",INTERFACE_COMPILE_OPTIONS>"
 	optionsMap := make(map[string][]string)
-	c.GetCompileOptionsLanguageMap(misc, &optionsMap)
+	c.GetCompileOptionsLanguageMap(lto, misc, &optionsMap)
 	for _, preInclude := range preIncludes {
 		optionsMap["C,CXX"] = append(optionsMap["C,CXX"], "${_PI}\""+preInclude+"\"")
 	}
@@ -406,7 +406,7 @@ func (c *Cbuild) CMakeTargetCompileOptionsAbstractions(name string, abstractions
 	return content
 }
 
-func (c *Cbuild) GetCompileOptionsLanguageMap(misc Misc, optionsMap *map[string][]string) {
+func (c *Cbuild) GetCompileOptionsLanguageMap(lto bool, misc Misc, optionsMap *map[string][]string) {
 	for _, language := range c.Languages {
 		switch language {
 		case "ASM":
@@ -414,11 +414,23 @@ func (c *Cbuild) GetCompileOptionsLanguageMap(misc Misc, optionsMap *map[string]
 				(*optionsMap)[language] = append((*optionsMap)[language], misc.ASM...)
 			}
 		case "C", "CXX":
-			if language == "C" && len(misc.C) > 0 {
-				(*optionsMap)[language] = append((*optionsMap)[language], misc.C...)
+			if language == "C" {
+				if lto {
+					c.LinkerLto = true
+					(*optionsMap)[language] = append((*optionsMap)[language], "${CC_LTO}")
+				}
+				if len(misc.C) > 0 {
+					(*optionsMap)[language] = append((*optionsMap)[language], misc.C...)
+				}
 			}
-			if language == "CXX" && len(misc.CPP) > 0 {
-				(*optionsMap)[language] = append((*optionsMap)[language], misc.CPP...)
+			if language == "CXX" {
+				if lto {
+					c.LinkerLto = true
+					(*optionsMap)[language] = append((*optionsMap)[language], "${CXX_LTO}")
+				}
+				if len(misc.CPP) > 0 {
+					(*optionsMap)[language] = append((*optionsMap)[language], misc.CPP...)
+				}
 			}
 			if len(misc.CCPP) > 0 {
 				(*optionsMap)[language] = append((*optionsMap)[language], misc.CCPP...)
@@ -459,6 +471,9 @@ func GetFileOptions(file Files, hasAbstractions bool, delimiter string) string {
 		prefix = "CC"
 	case "CXX":
 		options = append(file.Misc.CPP, file.Misc.CCPP...)
+	}
+	if file.Lto {
+		options = append(options, "${"+prefix+"_LTO}")
 	}
 	if hasAbstractions {
 		options = append(options, "${"+prefix+"_OPTIONS_FLAGS}")
@@ -759,6 +774,7 @@ func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstrac
 	// file build options
 	language := GetLanguage(file)
 	hasMisc := !IsCompileMiscEmpty(file.Misc)
+	c.LinkerLto = c.LinkerLto || file.Lto
 	// file compiler abstractions
 	hasAbstractions := !AreAbstractionsEmpty(abstractions, []string{language})
 	if hasAbstractions {
@@ -768,9 +784,9 @@ func (c *Cbuild) CMakeSetFileProperties(file Files, abstractions CompilerAbstrac
 	filename := c.AddRootPrefix(c.ContextRoot, file.File)
 	isGenerated := slices.Contains(c.GeneratedFiles, filename)
 	// set file properties
-	if hasMisc || hasAbstractions || isGenerated {
+	if hasMisc || file.Lto || hasAbstractions || isGenerated {
 		content += "\nset_source_files_properties(\"" + filename + "\" PROPERTIES"
-		if hasMisc || hasAbstractions {
+		if hasMisc || file.Lto || hasAbstractions {
 			content += "\n  COMPILE_OPTIONS \"" + GetFileOptions(file, hasAbstractions, ";") + "\""
 		}
 		if isGenerated {
@@ -833,6 +849,9 @@ func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 	}
 	if len(c.BuildDescType.Processor.Trustzone) > 0 {
 		linkerOptions += "\n  " + AddShellPrefix("${LD_SECURE}")
+	}
+	if c.LinkerLto {
+		linkerOptions += "\n  " + AddShellPrefix("${LD_LTO}")
 	}
 	options := c.BuildDescType.Misc.Link
 	for _, language := range c.Languages {

@@ -51,6 +51,7 @@ func TestParser(t *testing.T) {
 		assert.Equal("bti-signret", data.BuildDescType.Processor.BranchProtection)
 		assert.Equal("non-secure", data.BuildDescType.Processor.Trustzone)
 		assert.Equal("Cortex-M0", data.BuildDescType.Processor.Core)
+		assert.True(data.BuildDescType.Lto)
 
 		assert.Equal("vendorName::DFP@8.8.8", data.BuildDescType.Packs[0].Pack)
 		assert.Equal("${CMSIS_PACK_ROOT}/vendorName/DFP/8.8.8", data.BuildDescType.Packs[0].Path)
@@ -83,6 +84,7 @@ func TestParser(t *testing.T) {
 		assert.Equal("vendorName::DFP@8.8.8", data.BuildDescType.Components[0].FromPack)
 		assert.Equal("DFP:CORE@1.1.1", data.BuildDescType.Components[0].Implements)
 		assert.Equal("CORE", data.BuildDescType.Components[0].SelectedBy)
+		assert.True(data.BuildDescType.Components[0].Lto)
 
 		assert.Equal("DFP:CORE@1.1.1", data.BuildDescType.Apis[0].API)
 		assert.Equal("vendorName::DFP@8.8.8", data.BuildDescType.Apis[0].FromPack)
@@ -90,6 +92,7 @@ func TestParser(t *testing.T) {
 		assert.Equal("Source", data.BuildDescType.Groups[0].Group)
 		assert.Equal("./TestSource.c", data.BuildDescType.Groups[0].Files[0].File)
 		assert.Equal("sourceC", data.BuildDescType.Groups[0].Files[0].Category)
+		assert.True(data.BuildDescType.Groups[0].Files[0].Lto)
 
 		assert.Equal("Subgroup", data.BuildDescType.Groups[0].Groups[0].Group)
 		assert.Equal("./TestSubgroup.c", data.BuildDescType.Groups[0].Groups[0].Files[0].File)

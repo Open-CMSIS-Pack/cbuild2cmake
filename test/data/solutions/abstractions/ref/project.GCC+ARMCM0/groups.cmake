@@ -16,6 +16,9 @@ target_link_libraries(Group_Group1_ABSTRACTIONS INTERFACE
 )
 target_compile_options(Group_Group1 PUBLIC
   $<TARGET_PROPERTY:${CONTEXT},INTERFACE_COMPILE_OPTIONS>
+  $<$<COMPILE_LANGUAGE:C>:
+    "SHELL:${CC_LTO}"
+  >
 )
 target_link_libraries(Group_Group1 PUBLIC
   Group_Group1_ABSTRACTIONS
@@ -136,4 +139,7 @@ target_compile_options(Group_EmptyParent_NestedChild PUBLIC
 )
 target_link_libraries(Group_EmptyParent_NestedChild PUBLIC
   Group_EmptyParent_NestedChild_ABSTRACTIONS
+)
+set_source_files_properties("${SOLUTION_ROOT}/project/optimize_size2.c" PROPERTIES
+  COMPILE_OPTIONS "${CC_LTO}"
 )

@@ -152,13 +152,14 @@ func TestBuildContent(t *testing.T) {
 			CPP:  []string{"-cpp-flag"},
 			CCPP: []string{"-c-cpp-flag"},
 		}
+		lto := true
 		var cbuild maker.Cbuild
 		cbuild.Languages = []string{"ASM", "C", "CXX"}
 		preIncludes := []string{"${SOLUTION_ROOT}/project/RTE/class/pre-include.h"}
-		content := cbuild.CMakeTargetCompileOptions("TARGET", "PUBLIC", misc, preIncludes, "${CONTEXT}")
+		content := cbuild.CMakeTargetCompileOptions("TARGET", "PUBLIC", lto, misc, preIncludes, "${CONTEXT}")
 		assert.Contains(content, "$<$<COMPILE_LANGUAGE:ASM>:\n    \"SHELL:-asm-flag\"")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    \"SHELL:-c-flag\"\n    \"SHELL:-c-cpp-flag\"")
-		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    \"SHELL:-cpp-flag\"\n    \"SHELL:-c-cpp-flag\"")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:C>:\n    \"SHELL:${CC_LTO}\"\n    \"SHELL:-c-flag\"\n    \"SHELL:-c-cpp-flag\"")
+		assert.Contains(content, "$<$<COMPILE_LANGUAGE:CXX>:\n    \"SHELL:${CXX_LTO}\"\n    \"SHELL:-cpp-flag\"\n    \"SHELL:-c-cpp-flag\"")
 		assert.Contains(content, "\"SHELL:${_PI}\\\"${SOLUTION_ROOT}/project/RTE/class/pre-include.h\\\"\"")
 	})
 
