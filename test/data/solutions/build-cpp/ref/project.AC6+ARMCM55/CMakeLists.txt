@@ -57,6 +57,7 @@ target_compile_options(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:C>:
     "SHELL:${CC_CPU}"
     "SHELL:${CC_FLAGS}"
+    "SHELL:${CC_LTO}"
     "SHELL:-std=gnu11"
     "SHELL:-Wno-macro-redefined"
     "SHELL:-Wno-pragma-pack"
@@ -66,6 +67,7 @@ target_compile_options(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:CXX>:
     "SHELL:${CXX_CPU}"
     "SHELL:${CXX_FLAGS}"
+    "SHELL:${CXX_LTO}"
     "SHELL:-Wno-macro-redefined"
     "SHELL:-Wno-pragma-pack"
     "SHELL:-Wno-parentheses-equality"
@@ -87,6 +89,7 @@ target_link_libraries(${CONTEXT} PUBLIC
 target_link_options(${CONTEXT} PUBLIC
   "SHELL:${LD_CPU}"
   "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
+  "SHELL:${LD_LTO}"
   "SHELL:--entry=Reset_Handler"
   "SHELL:--map"
   "SHELL:--info summarysizes"

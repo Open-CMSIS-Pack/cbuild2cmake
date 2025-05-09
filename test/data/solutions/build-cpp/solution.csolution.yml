@@ -13,6 +13,7 @@ solution:
   build-types:
     - type: AC6
       compiler: AC6
+      link-time-optimize:
 
     - type: GCC
       compiler: GCC
