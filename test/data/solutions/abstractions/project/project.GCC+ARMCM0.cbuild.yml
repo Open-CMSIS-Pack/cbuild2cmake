@@ -1,11 +1,14 @@
 build:
-  generated-by: csolution version 2.6.0
+  generated-by: csolution version 0.0.0+gd100d305
   solution: ../solution.csolution.yml
   project: project.cproject.yml
   context: project.GCC+ARMCM0
   compiler: GCC
-  device: ARMCM0
+  device: ARM::ARMCM0
   device-pack: ARM::Cortex_DFP@1.1.0
+  device-books:
+    - name: https://developer.arm.com/documentation/dui0497
+      title: Cortex-M0 Processor Devices Generic Users Guide
   processor:
     fpu: off
     core: Cortex-M0
@@ -84,6 +87,7 @@ build:
       from-pack: ARM::Cortex_DFP@1.1.0
       selected-by: ARM::Device:Startup&C Startup
       optimize: none
+      link-time-optimize: true
       files:
         - file: ${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include/ARMCM0.h
           category: header
@@ -104,6 +108,7 @@ build:
     script: RTE/Device/ARMCM0/ARMCM0_gcc.ld
   groups:
     - group: Group1
+      link-time-optimize: true
       files:
         - file: main.c
           category: sourceC
@@ -134,6 +139,7 @@ build:
               category: sourceC
             - file: optimize_size2.c
               category: sourceC
+              link-time-optimize: true
   constructed-files:
     - file: RTE/_GCC_ARMCM0/RTE_Components.h
       category: header

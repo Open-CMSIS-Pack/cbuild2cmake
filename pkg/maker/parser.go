@@ -57,6 +57,7 @@ type Cbuild struct {
 		Warnings         string        `yaml:"warnings"`
 		LanguageC        string        `yaml:"language-C"`
 		LanguageCpp      string        `yaml:"language-CPP"`
+		Lto              bool          `yaml:"link-time-optimize"`
 		Misc             Misc          `yaml:"misc"`
 		Define           []interface{} `yaml:"define"`
 		DefineAsm        []interface{} `yaml:"define-asm"`
@@ -83,6 +84,7 @@ type Cbuild struct {
 	BuildGroups      []string
 	Toolchain        string
 	GeneratedFiles   []string
+	LinkerLto        bool
 }
 
 type Cbuilds struct {
@@ -122,6 +124,7 @@ type Components struct {
 	Warnings    string        `yaml:"warnings"`
 	LanguageC   string        `yaml:"language-C"`
 	LanguageCpp string        `yaml:"language-CPP"`
+	Lto         bool          `yaml:"link-time-optimize"`
 	Define      []interface{} `yaml:"define"`
 	DefineAsm   []interface{} `yaml:"define-asm"`
 	Undefine    []string      `yaml:"undefine"`
@@ -155,6 +158,7 @@ type Files struct {
 	Warnings    string        `yaml:"warnings"`
 	LanguageC   string        `yaml:"language-C"`
 	LanguageCpp string        `yaml:"language-CPP"`
+	Lto         bool          `yaml:"link-time-optimize"`
 	Define      []interface{} `yaml:"define"`
 	DefineAsm   []interface{} `yaml:"define-asm"`
 	Undefine    []string      `yaml:"undefine"`
@@ -180,6 +184,7 @@ type Groups struct {
 	Warnings    string        `yaml:"warnings"`
 	LanguageC   string        `yaml:"language-C"`
 	LanguageCpp string        `yaml:"language-CPP"`
+	Lto         bool          `yaml:"link-time-optimize"`
 	Define      []interface{} `yaml:"define"`
 	DefineAsm   []interface{} `yaml:"define-asm"`
 	Undefine    []string      `yaml:"undefine"`

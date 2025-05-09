@@ -244,7 +244,7 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 		}
 		// target_compile_options
 		if hasChildren || len(buildFiles.Source) > 0 || len(buildFiles.Custom) > 0 {
-			content += c.CMakeTargetCompileOptions(name, scope, group.Misc, buildFiles.PreIncludeLocal, parentName)
+			content += c.CMakeTargetCompileOptions(name, scope, group.Lto, group.Misc, buildFiles.PreIncludeLocal, parentName)
 		}
 		// target_link_libraries
 		libraries = append(libraries, buildFiles.Library...)
@@ -269,7 +269,7 @@ func (c *Cbuild) CMakeCreateGroupRecursively(parent string, groups []Groups,
 						content += CMakeTargetCompileDefinitions(fileTargetName, name, "PUBLIC", file.Define, file.Undefine)
 					}
 					// target_compile_options
-					content += c.CMakeTargetCompileOptions(fileTargetName, "PUBLIC", Misc{}, []string{}, name)
+					content += c.CMakeTargetCompileOptions(fileTargetName, "PUBLIC", false, Misc{}, []string{}, name)
 				}
 				// asm defines are set in file properties
 				if GetLanguage(file) == "ASM" {
@@ -331,7 +331,7 @@ func (c *Cbuild) CMakeCreateComponents(contextDir string) error {
 		}
 		// target_compile_options
 		if len(buildFiles.Source) > 0 || len(buildFiles.Custom) > 0 {
-			content += c.CMakeTargetCompileOptions(name, scope, component.Misc, buildFiles.PreIncludeLocal, "${CONTEXT}")
+			content += c.CMakeTargetCompileOptions(name, scope, component.Lto, component.Misc, buildFiles.PreIncludeLocal, "${CONTEXT}")
 		}
 		// target_link_libraries
 		libraries = append(libraries, buildFiles.Library...)
