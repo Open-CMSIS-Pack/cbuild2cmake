@@ -1,7 +1,7 @@
 github.com/Masterminds/semver/v3 v3.3.1 h1:QtNSWtVZ3nBfk8mAOu/B6v7FMJ+NHTIgUPi7rj+4nv4=
 github.com/Masterminds/semver/v3 v3.3.1/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
-github.com/Open-CMSIS-Pack/cbuild/v2 v2.8.0 h1:XKB9SFZhwAacJS49PNodPSXyw0DV9+g2lJaEVvLkYAc=
-github.com/Open-CMSIS-Pack/cbuild/v2 v2.8.0/go.mod h1:SkrV1duu3l+HVtN4KbLUYgqNDKeixZeotWmR8uuMmUQ=
+github.com/Open-CMSIS-Pack/cbuild/v2 v2.9.0 h1:x4SllcuKTxLQEO/WWfOMrn7rmH3L6RlYa5GxrhLmZEg=
+github.com/Open-CMSIS-Pack/cbuild/v2 v2.9.0/go.mod h1:SkrV1duu3l+HVtN4KbLUYgqNDKeixZeotWmR8uuMmUQ=
 github.com/cpuguy83/go-md2man/v2 v2.0.6/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6NIQQ7OS05n1F4g=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
