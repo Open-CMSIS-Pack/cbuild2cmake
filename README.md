@@ -1,5 +1,5 @@
-[![Maintainability](https://api.codeclimate.com/v1/badges/692b11cd7a46cf52d6ca/maintainability)](https://codeclimate.com/github/Open-CMSIS-Pack/cbuild2cmake/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/692b11cd7a46cf52d6ca/test_coverage)](https://codeclimate.com/github/Open-CMSIS-Pack/cbuild2cmake/test_coverage)
+[![Maintainability](https://qlty.sh/badges/bd793305-62a9-4dbd-9b91-52efbb6a2cb4/maintainability.svg)](https://qlty.sh/gh/Open-CMSIS-Pack/projects/cbuild2cmake)
+[![Test Coverage](https://qlty.sh/badges/bd793305-62a9-4dbd-9b91-52efbb6a2cb4/test_coverage.svg)](https://qlty.sh/gh/Open-CMSIS-Pack/projects/cbuild2cmake)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Open-CMSIS-Pack/cbuild2cmake/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Open-CMSIS-Pack/cbuild2cmake)
 
 # cbuild2cmake
