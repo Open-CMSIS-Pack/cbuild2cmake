@@ -207,12 +207,10 @@ jobs:
         run: |
           make coverage-check
 
-      - name: Publish coverage report to Code Climate
+      - name: Publish coverage report to QLTY
         if: ${{ github.event.pull_request.head.repo.fork == false }}
-        uses: paambaati/codeclimate-action@f429536ee076d758a24705203199548125a28ca7 # v9.0.0
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        uses: qltysh/qlty-action/coverage@f13b3559771beedd11e68b03d49512f3c21a75ba # v1
         with:
-          debug: true
-          coverageLocations: ./build/cover.out:gocov
-          prefix: github.com/Open-CMSIS-Pack/cbuild2cmake
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: ./build/cover.out
+          strip-prefix: github.com/Open-CMSIS-Pack/cbuild2cmake
