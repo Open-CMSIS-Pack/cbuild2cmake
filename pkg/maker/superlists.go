@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -9,7 +9,6 @@ package maker
 import (
 	"path"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -17,11 +16,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (m *Maker) CreateSuperCMakeLists() error {
-	csolution := filepath.Base(m.CbuildIndex.BuildIdx.Csolution)
-	reg := regexp.MustCompile(`(.*)\.csolution.ya?ml`)
-	csolution = reg.ReplaceAllString(csolution, "$1")
+const CMAKE_MIN_REQUIRED = "3.27"
 
+func (m *Maker) CreateSuperCMakeLists() error {
+	// Iterate over cbuilds
 	var contexts, dirs, contextOutputs string
 	for i, cbuild := range m.Cbuilds {
 		contexts = contexts + "  \"" + strings.ReplaceAll(cbuild.BuildDescType.Context, " ", "_") + "\"\n"
@@ -43,9 +41,6 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		contextOutputs += ")"
 	}
 
-	solutionRoot, _ := filepath.EvalSymlinks(m.SolutionRoot)
-	solutionRoot = filepath.ToSlash(solutionRoot)
-
 	var verbosity, logConfigure, stepLog string
 	if m.Options.Debug || m.Options.Verbose {
 		verbosity = " --verbose"
@@ -55,18 +50,12 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		stepLog = "\n    LOG               TRUE"
 	}
 
-	// Create roots.cmake
-	err := m.CMakeCreateRoots(solutionRoot)
-	if err != nil {
-		return err
-	}
-
 	// Write content
 	content :=
-		`cmake_minimum_required(VERSION 3.27)
+		`cmake_minimum_required(VERSION ` + CMAKE_MIN_REQUIRED + `)
 include(ExternalProject)
 	
-project("` + csolution + `" NONE)
+project("` + m.SolutionName + `" NONE)
 
 # Roots
 include("roots.cmake")
@@ -135,7 +124,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 endforeach()` + m.ExecutesCommands(m.CbuildIndex.BuildIdx.Executes) + m.BuildDependencies() + `
 `
 	superCMakeLists := path.Join(m.SolutionTmpDir, "CMakeLists.txt")
-	err = utils.UpdateFile(superCMakeLists, content)
+	err := utils.UpdateFile(superCMakeLists, content)
 	if err != nil {
 		return err
 	}
@@ -162,4 +151,24 @@ cmake_path(ABSOLUTE_PATH SOLUTION_ROOT NORMALIZE OUTPUT_VARIABLE SOLUTION_ROOT)
 	}
 
 	return err
+}
+
+func (m *Maker) CreateCMakeListsImageOnly() error {
+	// Write content
+	content :=
+		`cmake_minimum_required(VERSION ` + CMAKE_MIN_REQUIRED + `)
+
+project("` + m.SolutionName + `" NONE)
+
+# Roots
+include("roots.cmake")` + m.ExecutesCommands(m.CbuildIndex.BuildIdx.Executes) + m.BuildDependencies() + `
+`
+	pathCMakeLists := path.Join(m.SolutionTmpDir, "CMakeLists.txt")
+	err := utils.UpdateFile(pathCMakeLists, content)
+	if err != nil {
+		return err
+	}
+
+	log.Info("CMakeLists was successfully generated in the " + m.SolutionTmpDir + " directory")
+	return nil
 }

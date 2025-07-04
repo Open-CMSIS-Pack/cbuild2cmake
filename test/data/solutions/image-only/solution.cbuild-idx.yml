@@ -1,0 +1,29 @@
+build-idx:
+  generated-by: csolution version 0.0.0
+  csolution: solution.csolution.yml
+  cbuild-run: out/solution+CM0.cbuild-run.yml
+  tmpdir: tmp
+  image-only: true
+  cbuilds:
+    - cbuild: out/solution/CM0/solution+CM0.cbuild.yml
+      configuration: +CM0
+      messages:
+        info:
+          - solution.cbuild-pack.yml - file generated successfully
+          - solution+CM0.cbuild-run.yml - file generated successfully
+          - solution+CM0.cbuild.yml - file generated successfully
+  executes:
+    - execute: Convert_Image1
+      run: ${CMAKE_COMMAND} -E echo "Simulate image conversion 1 > 2" && ${CMAKE_COMMAND} -E copy ${INPUT_0} ${OUTPUT_0}
+      input:
+        - images/image1.elf
+      output:
+        - images/image2.hex
+    - execute: Convert_Image2
+      run: ${CMAKE_COMMAND} -E echo "Simulate image conversion 2 > 3" && ${CMAKE_COMMAND} -E copy ${INPUT_0} ${OUTPUT_0}
+      input:
+        - images/image2.hex
+      output:
+        - images/image3.bin
+      depends-on:
+        - Convert_Image1

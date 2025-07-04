@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -43,5 +43,12 @@ func TestMaker(t *testing.T) {
 		m.Params.InputFile = testRoot + "invalid.cbuild-idx.yml"
 		err := m.GenerateCMakeLists()
 		assert.Error(err)
+	})
+
+	t.Run("test maker with image only solution", func(t *testing.T) {
+		var m maker.Maker
+		m.Params.InputFile = testRoot + "/run/generic/imageOnly.cbuild-idx.yml"
+		err := m.GenerateCMakeLists()
+		assert.Nil(err)
 	})
 }
