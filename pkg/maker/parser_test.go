@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -32,6 +32,7 @@ func TestParser(t *testing.T) {
 		assert.Equal("projectName", data.BuildIdx.Cbuilds[0].Project)
 		assert.Equal(".BuildType0+TargetType0", data.BuildIdx.Cbuilds[0].Configuration)
 		assert.Equal("projectName.BuildType1+TargetType1.cbuild.yml", data.BuildIdx.Cbuilds[0].DependsOn[0])
+		assert.False(data.BuildIdx.ImageOnly)
 	})
 
 	t.Run("test parsing cbuild.yml", func(t *testing.T) {
@@ -173,5 +174,12 @@ func TestParser(t *testing.T) {
 		assert.Equal("csolution version 2.4.0", data.BuildSet.GeneratedBy)
 		assert.Equal("AC6", data.BuildSet.Compiler)
 		assert.Equal("projectName.BuildType0+TargetType0", data.BuildSet.Contexts[0].Context)
+	})
+
+	t.Run("test parsing image-only cbuild-idx.yml", func(t *testing.T) {
+		data, err := m.ParseCbuildIndexFile(testRoot + "/run/generic/imageOnly.cbuild-idx.yml")
+		assert.Nil(err)
+		assert.Equal("csolution version 2.11.0", data.BuildIdx.GeneratedBy)
+		assert.True(data.BuildIdx.ImageOnly)
 	})
 }
