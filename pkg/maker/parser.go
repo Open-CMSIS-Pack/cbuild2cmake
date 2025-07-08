@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"slices"
 
 	"gopkg.in/yaml.v3"
@@ -22,6 +23,7 @@ type CbuildIndex struct {
 		GeneratedBy string      `yaml:"generated-by"`
 		Cdefault    string      `yaml:"cdefault"`
 		Csolution   string      `yaml:"csolution"`
+		ImageOnly   bool        `yaml:"image-only"`
 		TmpDir      string      `yaml:"tmpdir"`
 		Cprojects   []Cprojects `yaml:"cprojects"`
 		Cbuilds     []Cbuilds   `yaml:"cbuilds"`
@@ -275,7 +277,12 @@ func (m *Maker) ParseCbuildFiles() error {
 	cbuildIndex.BaseDir, _ = filepath.Abs(path.Dir(m.Params.InputFile))
 	cbuildIndex.BaseDir = filepath.ToSlash(cbuildIndex.BaseDir)
 	m.CbuildIndex = cbuildIndex
-	m.SolutionRoot = filepath.ToSlash(filepath.Dir(filepath.Join(cbuildIndex.BaseDir, cbuildIndex.BuildIdx.Csolution)))
+	m.SolutionRoot = filepath.Dir(filepath.Join(cbuildIndex.BaseDir, cbuildIndex.BuildIdx.Csolution))
+	m.SolutionRoot, _ = filepath.EvalSymlinks(m.SolutionRoot)
+	m.SolutionRoot = filepath.ToSlash(m.SolutionRoot)
+	m.SolutionName = filepath.Base(m.CbuildIndex.BuildIdx.Csolution)
+	reg := regexp.MustCompile(`(.*)\.csolution.ya?ml`)
+	m.SolutionName = reg.ReplaceAllString(m.SolutionName, "$1")
 
 	// Parse cbuild-set file
 	if m.Options.UseContextSet {

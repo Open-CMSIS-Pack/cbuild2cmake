@@ -41,6 +41,7 @@ type Vars struct {
 	SelectedToolchainConfig  []string
 	SolutionTmpDir           string
 	SolutionRoot             string
+	SolutionName             string
 }
 
 type Maker struct {
@@ -62,6 +63,23 @@ func (m *Maker) GenerateCMakeLists() error {
 		return err
 	}
 
+	// Get tmp directory
+	if len(m.CbuildIndex.BuildIdx.TmpDir) == 0 {
+		m.CbuildIndex.BuildIdx.TmpDir = "tmp"
+	}
+	m.SolutionTmpDir = path.Join(m.CbuildIndex.BaseDir, m.CbuildIndex.BuildIdx.TmpDir)
+
+	// Create roots.cmake
+	err = m.CMakeCreateRoots(m.SolutionRoot)
+	if err != nil {
+		return err
+	}
+
+	// Create CMakeLists.txt for image only solution
+	if m.CbuildIndex.BuildIdx.ImageOnly {
+		return m.CreateCMakeListsImageOnly()
+	}
+
 	// Process toolchain
 	err = m.ProcessToolchain()
 	if err != nil {
@@ -69,10 +87,6 @@ func (m *Maker) GenerateCMakeLists() error {
 	}
 
 	// Create super project CMakeLists.txt
-	if len(m.CbuildIndex.BuildIdx.TmpDir) == 0 {
-		m.CbuildIndex.BuildIdx.TmpDir = "tmp"
-	}
-	m.SolutionTmpDir = path.Join(m.CbuildIndex.BaseDir, m.CbuildIndex.BuildIdx.TmpDir)
 	err = m.CreateSuperCMakeLists()
 	if err != nil {
 		return err

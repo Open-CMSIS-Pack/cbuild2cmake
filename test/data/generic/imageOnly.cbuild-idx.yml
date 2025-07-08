@@ -1,0 +1,8 @@
+build-idx:
+  generated-by: csolution version 2.11.0
+  csolution: iamgeOnly.csolution.yml
+  tmpdir: custom/tmp/path
+  image-only: true
+  cbuilds:
+    - cbuild: iamgeOnly+TargetType0.cbuild.yml
+      configuration: +TargetType0
