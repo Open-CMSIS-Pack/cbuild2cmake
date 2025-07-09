@@ -18,6 +18,7 @@ add_custom_target(Convert_Image1 ALL DEPENDS ${OUTPUT})
 add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
   COMMAND ${CMAKE_COMMAND} -E echo "Executing: Convert_Image1"
   COMMAND ${CMAKE_COMMAND} -E echo "Simulate image conversion 1 > 2" && ${CMAKE_COMMAND} -E copy "${INPUT_0}" "${OUTPUT_0}"
+  USES_TERMINAL
 )
 
 # Execute: Convert_Image2
@@ -33,6 +34,7 @@ add_custom_target(Convert_Image2 ALL DEPENDS ${OUTPUT})
 add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
   COMMAND ${CMAKE_COMMAND} -E echo "Executing: Convert_Image2"
   COMMAND ${CMAKE_COMMAND} -E echo "Simulate image conversion 2 > 3" && ${CMAKE_COMMAND} -E copy "${INPUT_0}" "${OUTPUT_0}"
+  USES_TERMINAL
 )
 
 # Build dependencies

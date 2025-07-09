@@ -926,7 +926,7 @@ func (m *Maker) ExecutesCommands(executes []Executes) string {
 			if len(item.Output) > 0 {
 				customTarget += "\n  BYPRODUCTS ${OUTPUT}"
 			}
-			customTarget += "\n)"
+			customTarget += "\n  USES_TERMINAL\n)"
 		} else {
 			customTarget += " DEPENDS ${OUTPUT})"
 		}
@@ -951,7 +951,7 @@ func (m *Maker) ExecutesCommands(executes []Executes) string {
 			if !executeCommandNameAdded {
 				customCommand += "\n  COMMAND ${CMAKE_COMMAND} -E echo \"Executing: " + item.Execute + "\""
 			}
-			customCommand += "\n  COMMAND " + QuoteArguments(item.Run) + "\n)"
+			customCommand += "\n  COMMAND " + QuoteArguments(item.Run) + "\n  USES_TERMINAL\n)"
 			content += customCommand
 		}
 	}
