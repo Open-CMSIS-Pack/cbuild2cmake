@@ -11,11 +11,15 @@ on:
       - "v*"
 
 jobs:
-  test:
-    uses: Open-CMSIS-Pack/cbuild2cmake/.github/workflows/test.yml@main
+  build-and-verify:
+    uses: Open-CMSIS-Pack/workflows-and-actions-collection/.github/workflows/build-and-verify.yml@v1.0.0
+    with:
+      program: cbuild2cmake
+      go-version-file: ./go.mod
+      enable-code-climate: false
 
   goreleaser:
-    needs: test
+    needs: [ build-and-verify ]
     permissions:
       contents: write # for goreleaser/goreleaser-action to create a GitHub release
     runs-on: ubuntu-latest

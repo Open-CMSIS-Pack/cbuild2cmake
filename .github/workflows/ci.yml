@@ -1,0 +1,56 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    paths:
+      - '.github/workflows/ci.yml'
+      - '**/*.go'
+      - 'makefile'
+      - 'go.mod'
+      - 'go.sum'
+      - '!**/*.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-verify:
+    uses: Open-CMSIS-Pack/workflows-and-actions-collection/.github/workflows/build-and-verify.yml@v1.0.0
+    secrets:
+      QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+    with:
+      program: cbuild2cmake
+      go-version-file: ./go.mod
+      enable-code-climate: true
+      artifact-retention-days: 7
+
+  publish-test-results:
+    name: "Publish Tests Results"
+    needs: [ build-and-verify ]
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
+    if: ${{ github.event.pull_request.user.login != 'dependabot[bot]' && github.workflow != 'Release' }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          path: artifacts
+
+      - name: publish test results
+        uses: EnricoMi/publish-unit-test-result-action/linux@3a74b2957438d0b6e2e61d67b05318aa25c9e6c6 # v2.20.0
+        with:
+          files: artifacts/**/cbuild2cmake-testreport-*.xml
+          report_individual_runs: true
