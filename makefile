@@ -55,6 +55,8 @@ $(PROG): $(SOURCES)
 	@echo Building project
 	GOOS=$(OS) GOARCH=$(ARCH) go build -ldflags "-X main.version=`git describe 2>/dev/null || echo unknown`" -o $(PROG) ./cmd/cbuild2cmake
 
+build: $(PROG)
+
 run: $(PROG)
 	@./$(PROG) $(ARGS) || true
 
@@ -70,7 +72,7 @@ format-check:
 
 .PHONY: test release config
 test: $(SOURCES)
-	mkdir -p build && GOOS=$(OS) GOARCH=$(ARCH) go test $(ARGS) ./... -coverprofile build/cover.out
+	mkdir -p build && GOOS=$(OS) GOARCH=$(ARCH) go test $(ARGS) -v ./... -coverprofile build/cover.out
 
 test-all: format-check coverage-check lint
 
