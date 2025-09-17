@@ -29,7 +29,6 @@ jobs:
       go-version-file: ./go.mod
       enable-qlty-coverage: true
 
-
   publish-test-results:
     name: "Publish Tests Results"
     needs: [ build-and-verify ]
