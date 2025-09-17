@@ -2,7 +2,10 @@
 OS ?= $(shell uname)
 
 # Having this will allow CI scripts to build for many OS's and ARCH's
-ARCH := $(or $(ARCH),amd64)
+ARCH ?= $(shell uname -m)
+
+# Retrieve version from git history
+VERSION ?= $(shell git describe --tags 2>/dev/null || echo unknown)
 
 # Path to lint tool
 GOLINTER ?= golangci-lint
@@ -19,6 +22,14 @@ else ifneq (,$(findstring Darwin,$(OS)))
 else
     # Default to Linux
     OS=linux
+endif
+ifneq (,$(findstring x86_64,$(ARCH)))
+	ARCH=amd64
+else ifneq (,$(findstring aarch64,$(ARCH)))
+    ARCH=arm64
+else ifneq (,$(findstring unknown,$(ARCH)))
+	# fallback
+	ARCH=amd64
 endif
 
 SOURCES := $(wildcard cmd/cbuild2cmake/*.go) $(wildcard pkg/*/*.go)
@@ -53,7 +64,8 @@ all:
 
 $(PROG): $(SOURCES)
 	@echo Building project
-	GOOS=$(OS) GOARCH=$(ARCH) go build -ldflags "-X main.version=`git describe 2>/dev/null || echo unknown`" -o $(PROG) ./cmd/cbuild2cmake
+	GOOS=$(OS) GOARCH=$(ARCH) go build -ldflags "-X main.version=$(VERSION)" -o $(PROG) ./cmd/cbuild2cmake
+
 
 build: $(PROG)
 
@@ -67,21 +79,22 @@ format:
 	$(GOFORMATTER) -s -w .
 
 format-check:
-	mkdir -p build && $(GOFORMATTER) -d . | tee build/format-check.out
-	test ! -s build/format-check.out
+	$(GOFORMATTER) -d . | tee format-check.out
+	test ! -s format-check.out
 
 .PHONY: test release config
 test: $(SOURCES)
-	mkdir -p build && GOOS=$(OS) GOARCH=$(ARCH) go test $(ARGS) -v ./... -coverprofile build/cover.out
+	GOOS=$(OS) GOARCH=$(ARCH) go test $(ARGS) -v ./... -coverprofile ./cover.out
 
 test-all: format-check coverage-check lint
 
 coverage-report: test
-	go tool cover -html=build/cover.out
+	go tool cover -html=./cover.out
 
 coverage-check: test
+	@echo "Current coverage is: $(shell go tool cover -func ./cover.out | tail -1 | awk '{print ($$3 + 0)}')"%
 	@echo Checking if test coverage is above 80%
-	test `go tool cover -func build/cover.out | tail -1 | awk '{print ($$3 + 0)*10}'` -ge 800
+	test `go tool cover -func ./cover.out | tail -1 | awk '{print ($$3 + 0)*10}'` -ge 800
 
 release: test-all $(PROG)
 	@./scripts/release
@@ -93,5 +106,6 @@ config:
 
 	# Install pre-commit hooks
 	cp scripts/pre-commit .git/hooks/pre-commit
+
 clean:
-	rm -rf build
+	rm -rf build/*
