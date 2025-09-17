@@ -12,11 +12,11 @@ on:
 
 jobs:
   build-and-verify:
-    uses: Open-CMSIS-Pack/workflows-and-actions-collection/.github/workflows/build-and-verify.yml@v1.0.0
+    uses: Open-CMSIS-Pack/workflows-and-actions-collection/.github/workflows/build-and-verify.yml@v1.0.1
     with:
       program: cbuild2cmake
       go-version-file: ./go.mod
-      enable-code-climate: false
+      enable-qlty-coverage: false
 
   goreleaser:
     needs: [ build-and-verify ]
