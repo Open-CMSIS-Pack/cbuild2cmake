@@ -94,7 +94,11 @@ func (m *Maker) GenerateCMakeLists() error {
 
 	// Create context specific CMake files
 	for index := range m.Cbuilds {
-		err = m.CreateContextCMakeLists(index)
+		if m.CbuildIndex.BuildIdx.Cbuilds[index].West {
+			err = m.CreateWestCMakeLists(index)
+		} else {
+			err = m.CreateContextCMakeLists(index)
+		}
 		if err != nil {
 			return err
 		}
