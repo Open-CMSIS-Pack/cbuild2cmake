@@ -40,7 +40,7 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 	}
 
 	// Create toolchain.cmake
-	err := m.CMakeCreateToolchain(index, contextDir)
+	err := m.CMakeCreateToolchain(index, contextDir, true)
 	if err != nil {
 		return err
 	}
@@ -161,14 +161,18 @@ include("components.cmake")
 	return err
 }
 
-func (m *Maker) CMakeCreateToolchain(index int, contextDir string) error {
+func (m *Maker) CMakeCreateToolchain(index int, contextDir string, inc bool) error {
 	toolchainConfig, _ := filepath.Rel(m.EnvVars.CompilerRoot, m.SelectedToolchainConfig[index])
 	toolchainConfig = "${CMSIS_COMPILER_ROOT}/" + filepath.ToSlash(toolchainConfig)
+	var include string
+	if inc {
+		include = "include(\"" + toolchainConfig + "\")\n"
+	}
 	content := `# toolchain.cmake
 
 set(REGISTERED_TOOLCHAIN_ROOT "` + m.RegisteredToolchains[m.SelectedToolchainVersion[index]].Path + `")
 set(REGISTERED_TOOLCHAIN_VERSION "` + m.SelectedToolchainVersion[index].String() + `")
-include("` + toolchainConfig + `")
+` + include + `
 `
 	filename := path.Join(contextDir, "toolchain.cmake")
 	err := utils.UpdateFile(filename, content)

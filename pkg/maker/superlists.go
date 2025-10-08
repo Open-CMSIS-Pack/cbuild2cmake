@@ -20,10 +20,13 @@ const CMAKE_MIN_REQUIRED = "3.27"
 
 func (m *Maker) CreateSuperCMakeLists() error {
 	// Iterate over cbuilds
-	var contexts, dirs, contextOutputs string
+	var contexts, dirs, westContextFlags, contextOutputs string
+	west := false
 	for i, cbuild := range m.Cbuilds {
 		contexts = contexts + "  \"" + strings.ReplaceAll(cbuild.BuildDescType.Context, " ", "_") + "\"\n"
 		dirs = dirs + "  \"${CMAKE_CURRENT_SOURCE_DIR}/" + cbuild.BuildDescType.Context + "\"\n"
+		west = west || (cbuild.BuildDescType.West.AppPath != "")
+		westContextFlags = westContextFlags + "  \"" + strconv.FormatBool(west) + "\"\n"
 
 		var contextOutputsName = "OUTPUTS_" + strconv.Itoa(i+1)
 		contextOutputs += "\nset(" + contextOutputsName + "\n"
@@ -39,6 +42,13 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		}
 
 		contextOutputs += ")"
+	}
+
+	var westContexts, westContextCheck, westTarget string
+	if west {
+		westContexts = "\nset(WEST_CONTEXTS\n" + westContextFlags + ")\n"
+		westContextCheck = "\n  list(GET WEST_CONTEXTS ${INDEX} WEST_CONTEXT)\n  if(WEST_CONTEXT)\n    set(WEST_TARGET \"--target west\")\n  endif()"
+		westTarget = " ${WEST_TARGET}"
 	}
 
 	var verbosity, logConfigure, stepLog string
@@ -68,7 +78,7 @@ math(EXPR CONTEXTS_LENGTH "${CONTEXTS_LENGTH}-1")
 
 set(DIRS
 ` + dirs + `)
-` + contextOutputs + `
+` + westContexts + contextOutputs + `
 
 set(ARGS
   "-DSOLUTION_ROOT=${SOLUTION_ROOT}"
@@ -84,7 +94,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
   math(EXPR N "${INDEX}+1")
   list(GET CONTEXTS ${INDEX} CONTEXT)
-  list(GET DIRS ${INDEX} DIR)
+  list(GET DIRS ${INDEX} DIR)` + westContextCheck + `
 
   # Create external project, set configure and build steps
   ExternalProject_Add(${CONTEXT}
@@ -95,7 +105,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     TEST_COMMAND          ""
     CONFIGURE_COMMAND     ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
     BUILD_COMMAND         ${CMAKE_COMMAND} -E echo "Building CMake target '${CONTEXT}'"
-    COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR>` + verbosity + `
+    COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR>` + westTarget + verbosity + `
     BUILD_ALWAYS          TRUE
     BUILD_BYPRODUCTS      ${OUTPUTS_${N}}` + logConfigure + `
     USES_TERMINAL_BUILD   ON

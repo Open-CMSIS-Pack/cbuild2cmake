@@ -74,6 +74,7 @@ type Cbuild struct {
 		Generators       []struct{}    `yaml:"generators"`
 		ConstructedFiles []Files       `yaml:"constructed-files"`
 		Licenses         []struct{}    `yaml:"licenses"`
+		West             West          `yaml:"west"`
 	} `yaml:"build"`
 	BaseDir          string
 	ContextRoot      string
@@ -94,6 +95,7 @@ type Cbuilds struct {
 	Project       string   `yaml:"project"`
 	Configuration string   `yaml:"configuration"`
 	DependsOn     []string `yaml:"depends-on"`
+	West          bool     `yaml:"west"`
 }
 
 type Clayers struct {
@@ -239,6 +241,15 @@ type Processor struct {
 type Packs struct {
 	Pack string `yaml:"pack"`
 	Path string `yaml:"path"`
+}
+
+type West struct {
+	ProjectId string        `yaml:"project-id"`
+	AppPath   string        `yaml:"app-path"`
+	Board     string        `yaml:"board"`
+	Device    string        `yaml:"device"`
+	WestDefs  []interface{} `yaml:"west-defs"`
+	WestOpt   []string      `yaml:"west-opt"`
 }
 
 func (m *Maker) ParseCbuildIndexFile(cbuildIndexFile string) (data CbuildIndex, err error) {
