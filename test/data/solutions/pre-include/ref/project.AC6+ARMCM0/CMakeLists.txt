@@ -88,4 +88,5 @@ target_link_options(${CONTEXT} PUBLIC
   "SHELL:--summary_stderr"
   "SHELL:--diag_suppress=L6314W"
 )
-set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
+set(LD_DEPS ${LD_SCRIPT})
+set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS "${LD_DEPS}")

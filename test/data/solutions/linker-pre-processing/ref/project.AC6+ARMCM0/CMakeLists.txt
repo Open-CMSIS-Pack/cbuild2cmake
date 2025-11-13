@@ -84,7 +84,8 @@ target_link_options(${CONTEXT} PUBLIC
   "SHELL:--entry=Reset_Handler"
   "SHELL:--diag_suppress=L6314W"
 )
-set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
+set(LD_DEPS ${LD_SCRIPT} ${LD_REGIONS})
+set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS "${LD_DEPS}")
 
 # Linker script pre-processing
 add_custom_command(TARGET ${CONTEXT} PRE_LINK COMMAND ${CPP} ARGS ${CPP_ARGS_LD_SCRIPT} BYPRODUCTS ${LD_SCRIPT_PP})

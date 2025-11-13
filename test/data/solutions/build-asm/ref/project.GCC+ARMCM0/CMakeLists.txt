@@ -85,4 +85,5 @@ target_link_options(${CONTEXT} PUBLIC
   "SHELL:-Wl,-Map=${SOLUTION_ROOT}/out/project/ARMCM0/GCC/project.elf.map"
   "SHELL:-Wl,--gc-sections"
 )
-set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})
+set(LD_DEPS ${LD_SCRIPT})
+set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS "${LD_DEPS}")
