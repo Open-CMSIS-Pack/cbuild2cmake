@@ -522,12 +522,26 @@ add_dependencies(project.debug+target-executes
 
 	t.Run("get executes generated files", func(t *testing.T) {
 		var m maker.Maker
-		var files = []string{"./source0.c", "./source1.c"}
+		m.SolutionRoot, _ = filepath.Abs(testRoot)
+		m.SolutionRoot = filepath.ToSlash(m.SolutionRoot)
+		m.CbuildIndex.RelDir = "1/2/3"
+		var files = []string{"../source0.c", "../../source1.c"}
 		m.GetGeneratedFiles(files)
 		assert.Equal(
-			[]string{"${SOLUTION_ROOT}/source0.c", "${SOLUTION_ROOT}/source1.c"},
+			[]string{"${SOLUTION_ROOT}/1/2/source0.c", "${SOLUTION_ROOT}/1/source1.c"},
 			m.GeneratedFiles,
 		)
 	})
 
+	t.Run("list executes IOs", func(t *testing.T) {
+		var m maker.Maker
+		m.SolutionRoot, _ = filepath.Abs(testRoot)
+		m.SolutionRoot = filepath.ToSlash(m.SolutionRoot)
+		m.CbuildIndex.RelDir = "1/2/3"
+		var files = []string{"../source0.c", "../../source1.c"}
+		assert.Equal(
+			"\nset(INPUT\n  ${SOLUTION_ROOT}/1/2/source0.c\n  ${SOLUTION_ROOT}/1/source1.c\n)",
+			m.ListExecutesIOs("INPUT", files, ""),
+		)
+	})
 }
