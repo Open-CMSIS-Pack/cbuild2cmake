@@ -833,9 +833,12 @@ func (c *Cbuild) AddContextLanguage(language string) {
 
 func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 	linkerVars += "\nset(LD_SCRIPT \"" + c.AddRootPrefix(c.ContextRoot, c.BuildDescType.Linker.Script) + "\")"
+	linkerDeps := "\nset(LD_DEPS ${LD_SCRIPT}"
 	if len(c.BuildDescType.Linker.Regions) > 0 {
 		linkerVars += "\nset(LD_REGIONS \"" + c.AddRootPrefix(c.ContextRoot, c.BuildDescType.Linker.Regions) + "\")"
+		linkerDeps += " ${LD_REGIONS}"
 	}
+	linkerDeps += ")"
 	if len(c.BuildDescType.Linker.Define) > 0 {
 		linkerVars += "\nset(LD_SCRIPT_PP_DEFINES\n  "
 		linkerVars += ListCompileDefinitions(c.BuildDescType.Linker.Define, "\n  ")
@@ -866,7 +869,7 @@ func (c *Cbuild) LinkerOptions() (linkerVars string, linkerOptions string) {
 		linkerOptions += "\n  " + AddShellPrefix(c.AdjustRelativePath(option))
 	}
 	linkerOptions += "\n)"
-	linkerOptions += "\nset_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS ${LD_SCRIPT})"
+	linkerOptions += linkerDeps + "\nset_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS \"${LD_DEPS}\")"
 	if path.Ext(c.BuildDescType.Linker.Script) == ".src" || len(c.BuildDescType.Linker.Regions) > 0 || len(c.BuildDescType.Linker.Define) > 0 {
 		linkerScriptPP := strings.TrimSuffix(path.Base(c.BuildDescType.Linker.Script), ".src")
 		linkerVars += "\nset(LD_SCRIPT_PP \"${CMAKE_CURRENT_BINARY_DIR}/" + linkerScriptPP + "\")"
