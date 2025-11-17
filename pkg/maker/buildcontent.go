@@ -900,7 +900,7 @@ func (m *Maker) ListExecutesIOs(io string, list []string, run string) string {
 	content := "\nset(" + io
 	var listItems string
 	for index, input := range list {
-		content += "\n  " + AddRootPrefix("", input, m.SolutionRoot)
+		content += "\n  " + AddRootPrefix(m.CbuildIndex.RelDir, input, m.SolutionRoot)
 		if strings.Contains(run, "${"+io+"_"+strconv.Itoa(index)+"}") {
 			listItems += "\nlist(GET " + io + " " + strconv.Itoa(index) + " " + io + "_" + strconv.Itoa(index) + ")"
 		}
@@ -912,7 +912,7 @@ func (m *Maker) ListExecutesIOs(io string, list []string, run string) string {
 
 func (m *Maker) GetGeneratedFiles(list []string) {
 	for _, input := range list {
-		file := AddRootPrefix("", input, m.SolutionRoot)
+		file := AddRootPrefix(m.CbuildIndex.RelDir, input, m.SolutionRoot)
 		m.GeneratedFiles = utils.AppendUniquely(m.GeneratedFiles, file)
 	}
 }

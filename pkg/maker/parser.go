@@ -30,6 +30,7 @@ type CbuildIndex struct {
 		Executes    []Executes  `yaml:"executes"`
 	} `yaml:"build-idx"`
 	BaseDir string
+	RelDir  string
 }
 
 type CbuildSet struct {
@@ -294,6 +295,8 @@ func (m *Maker) ParseCbuildFiles() error {
 	m.SolutionName = filepath.Base(m.CbuildIndex.BuildIdx.Csolution)
 	reg := regexp.MustCompile(`(.*)\.csolution.ya?ml`)
 	m.SolutionName = reg.ReplaceAllString(m.SolutionName, "$1")
+	m.CbuildIndex.RelDir, _ = filepath.Rel(m.SolutionRoot, m.CbuildIndex.BaseDir)
+	m.CbuildIndex.RelDir = filepath.ToSlash(m.CbuildIndex.RelDir)
 
 	// Parse cbuild-set file
 	if m.Options.UseContextSet {
