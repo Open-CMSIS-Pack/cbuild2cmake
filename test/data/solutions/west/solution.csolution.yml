@@ -36,3 +36,5 @@ solution:
         device: :cm0_core1
         west-defs:
           - CORE: 1
+        west-opt:
+          - --verbose
