@@ -89,13 +89,13 @@ set(ENV_VARS
 
 # Compilation database
 add_custom_target(database
-  COMMAND cmake -E env ${ENV_VARS} west build -b ${WEST_BOARD} -d "${OUT_DIR}" -p auto --cmake-only` + westOptionsRef + ` "${WEST_APP}"` + westDefsRef + `
+  COMMAND cmake -E env ${ENV_VARS} west` + westOptionsRef + ` build -b ${WEST_BOARD} -d "${OUT_DIR}" -p auto --cmake-only "${WEST_APP}"` + westDefsRef + `
   USES_TERMINAL
 )
 
 # West build
 add_custom_target(west
-  COMMAND cmake -E env ${ENV_VARS} west build -b ${WEST_BOARD} -d "${OUT_DIR}" -p auto` + westOptionsRef + ` "${WEST_APP}"` + westDefsRef + `
+  COMMAND cmake -E env ${ENV_VARS} west` + westOptionsRef + ` build -b ${WEST_BOARD} -d "${OUT_DIR}" -p auto "${WEST_APP}"` + westDefsRef + `
   USES_TERMINAL
 )
 `

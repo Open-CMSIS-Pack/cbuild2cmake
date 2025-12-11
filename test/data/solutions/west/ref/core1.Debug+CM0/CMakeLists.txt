@@ -15,6 +15,9 @@ include("toolchain.cmake")
 # Setup project
 project(${CONTEXT} LANGUAGES NONE)
 
+set(WEST_OPTIONS
+  --verbose
+)
 set(WEST_DEFS
   -DCORE=1
   -DCONFIG_BUILD_OUTPUT_HEX=y
@@ -32,12 +35,12 @@ set(ENV_VARS
 
 # Compilation database
 add_custom_target(database
-  COMMAND cmake -E env ${ENV_VARS} west build -b ${WEST_BOARD} -d "${OUT_DIR}" -p auto --cmake-only "${WEST_APP}" -- ${WEST_DEFS}
+  COMMAND cmake -E env ${ENV_VARS} west ${WEST_OPTIONS} build -b ${WEST_BOARD} -d "${OUT_DIR}" -p auto --cmake-only "${WEST_APP}" -- ${WEST_DEFS}
   USES_TERMINAL
 )
 
 # West build
 add_custom_target(west
-  COMMAND cmake -E env ${ENV_VARS} west build -b ${WEST_BOARD} -d "${OUT_DIR}" -p auto "${WEST_APP}" -- ${WEST_DEFS}
+  COMMAND cmake -E env ${ENV_VARS} west ${WEST_OPTIONS} build -b ${WEST_BOARD} -d "${OUT_DIR}" -p auto "${WEST_APP}" -- ${WEST_DEFS}
   USES_TERMINAL
 )
