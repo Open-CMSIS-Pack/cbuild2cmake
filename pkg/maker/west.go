@@ -79,6 +79,9 @@ include("toolchain.cmake")
 project(${CONTEXT} LANGUAGES NONE)
 ` + westOptions + westDefs + `
 
+# Enable color diagnostics
+set(CMAKE_COLOR_DIAGNOSTICS ON)
+
 # Environment variables
 set(ZEPHYR_TOOLCHAIN_PATH "${REGISTERED_TOOLCHAIN_ROOT}/..")
 cmake_path(ABSOLUTE_PATH ZEPHYR_TOOLCHAIN_PATH NORMALIZE OUTPUT_VARIABLE ZEPHYR_TOOLCHAIN_PATH)

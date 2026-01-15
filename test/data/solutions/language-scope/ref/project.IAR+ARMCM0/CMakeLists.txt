@@ -21,6 +21,9 @@ include("toolchain.cmake")
 # Setup project
 project(${CONTEXT} LANGUAGES C CXX)
 
+# Enable color diagnostics
+set(CMAKE_COLOR_DIAGNOSTICS ON)
+
 # Compilation database
 add_custom_target(database
   COMMAND ${CMAKE_COMMAND} -E make_directory "${OUT_DIR}"

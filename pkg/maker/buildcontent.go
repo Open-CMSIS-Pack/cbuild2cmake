@@ -924,7 +924,7 @@ func (m *Maker) ExecutesCommands(executes []Executes) string {
 		customTarget := "\nadd_custom_target(" + item.Execute + " ALL"
 		runAlways := item.Always != nil
 		if runAlways {
-			customTarget += "\n  COMMAND ${CMAKE_COMMAND} -E echo \"Executing: " + item.Execute + "\""
+			customTarget += "\n  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --green \"Executing: " + item.Execute + "\""
 			customTarget += "\n  COMMAND " + QuoteArguments(item.Run)
 			if len(item.Output) > 0 {
 				customTarget += "\n  BYPRODUCTS ${OUTPUT}"
@@ -941,7 +941,7 @@ func (m *Maker) ExecutesCommands(executes []Executes) string {
 		executeCommandNameAdded := false
 		if !runAlways && len(item.Output) == 0 {
 			item.Output = append(item.Output, "${CMAKE_CURRENT_BINARY_DIR}/"+item.Execute+".stamp")
-			customCommand += "\n  COMMAND ${CMAKE_COMMAND} -E echo \"Executing: " + item.Execute + "\""
+			customCommand += "\n  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --green \"Executing: " + item.Execute + "\""
 			customCommand += "\n  COMMAND ${CMAKE_COMMAND} -E touch \"" + item.Execute + ".stamp\""
 			executeCommandNameAdded = true
 		}
@@ -952,7 +952,7 @@ func (m *Maker) ExecutesCommands(executes []Executes) string {
 		content += customTarget
 		if !runAlways {
 			if !executeCommandNameAdded {
-				customCommand += "\n  COMMAND ${CMAKE_COMMAND} -E echo \"Executing: " + item.Execute + "\""
+				customCommand += "\n  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --green \"Executing: " + item.Execute + "\""
 			}
 			customCommand += "\n  COMMAND " + QuoteArguments(item.Run) + "\n  USES_TERMINAL\n)"
 			content += customCommand
