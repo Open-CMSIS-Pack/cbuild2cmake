@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -543,5 +543,17 @@ add_dependencies(project.debug+target-executes
 			"\nset(INPUT\n  ${SOLUTION_ROOT}/1/2/source0.c\n  ${SOLUTION_ROOT}/1/source1.c\n)",
 			m.ListExecutesIOs("INPUT", files, ""),
 		)
+	})
+
+	t.Run("test get device pack directory", func(t *testing.T) {
+		var cbuild maker.Cbuild
+		cbuild.BuildDescType.DevicePack = "Vendor::PackName@1.2.3"
+		cbuild.BuildDescType.Packs = []maker.Packs{
+			{
+				Pack: "Vendor::PackName@1.2.3",
+				Path: "${CMSIS_PACK_ROOT}/Vendor/PackName/1.2.3",
+			},
+		}
+		assert.Equal("${CMSIS_PACK_ROOT}/Vendor/PackName/1.2.3", cbuild.GetDpackDir())
 	})
 }

@@ -5,6 +5,9 @@ include("../roots.cmake")
 
 set(CONTEXT project.CLANG+ARMCM55)
 set(TARGET ${CONTEXT})
+set(DNAME ARMCM55)
+set(DPACK ARM::Cortex_DFP@1.0.0)
+set(DPACK_DIR "${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0")
 set(OUT_DIR "${SOLUTION_ROOT}/out/project/ARMCM55/CLANG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(LD_SCRIPT "${SOLUTION_ROOT}/project/RTE/Device/ARMCM55/clang_linker_script.ld.src")
@@ -18,6 +21,7 @@ set(DSP DSP)
 set(MVE FP_FVE)
 
 # Toolchain config map
+set(COMPILER CLANG)
 include("toolchain.cmake")
 
 # Setup project

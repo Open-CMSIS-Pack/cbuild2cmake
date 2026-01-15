@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -968,4 +968,16 @@ func (c *Cbuild) GetAPIFiles(id string) []Files {
 		}
 	}
 	return nil
+}
+
+func (c *Cbuild) GetDpackDir() string {
+	dir := ""
+	dpack := c.BuildDescType.DevicePack
+	for _, entry := range c.BuildDescType.Packs {
+		if entry.Pack == dpack {
+			dir = entry.Path
+			break
+		}
+	}
+	return dir
 }
