@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2025-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -86,5 +86,17 @@ func TestUtils(t *testing.T) {
 		assert.Equal(timestamp, os.FileInfo.ModTime(info))
 
 		os.Remove(filename)
+	})
+
+	t.Run("extract Dname Pname", func(t *testing.T) {
+		dname, pname := utils.ExtractDnamePname("Vendor::DeviceName:Core")
+		assert.Equal("DeviceName", dname)
+		assert.Equal("Core", pname)
+		dname, pname = utils.ExtractDnamePname("DeviceName:Core")
+		assert.Equal("DeviceName", dname)
+		assert.Equal("Core", pname)
+		dname, pname = utils.ExtractDnamePname("DeviceName")
+		assert.Equal("DeviceName", dname)
+		assert.Equal("", pname)
 	})
 }

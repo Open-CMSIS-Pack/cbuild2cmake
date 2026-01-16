@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -109,6 +109,13 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 		globalCompilerAbstractions = "\n\n# Compile Options Abstractions" + cbuild.CMakeTargetCompileOptionsAbstractions("${CONTEXT}", abstractions, cbuild.Languages)
 	}
 
+	// Extract Dname and Pname
+	dname, pname := utils.ExtractDnamePname(cbuild.BuildDescType.Device)
+	deviceVars := "\nset(DNAME " + dname + ")"
+	if len(pname) > 0 {
+		deviceVars += "\nset(PNAME " + pname + ")"
+	}
+
 	// Create CMakeLists content
 	content := `cmake_minimum_required(VERSION 3.27)
 
@@ -116,13 +123,16 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 include("../roots.cmake")
 
 set(CONTEXT ` + strings.ReplaceAll(cbuild.BuildDescType.Context, " ", "_") + `)
-set(TARGET ${CONTEXT})
+set(TARGET ${CONTEXT})` + deviceVars + `
+set(DPACK ` + cbuild.BuildDescType.DevicePack + `)
+set(DPACK_DIR "` + cbuild.AddRootPrefix(cbuild.ContextRoot, cbuild.GetDpackDir()) + `")
 set(OUT_DIR "` + outDir + `")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)` + outputByProducts + linkerVars + `
 
 # Processor Options` + cbuild.ProcessorOptions() + `
 
 # Toolchain config map
+set(COMPILER ` + cbuild.Toolchain + `)
 include("toolchain.cmake")
 
 # Setup project
