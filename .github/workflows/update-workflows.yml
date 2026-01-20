@@ -1,4 +1,4 @@
-name: Update go-workflows
+name: Update Workflows
 
 on:
   workflow_dispatch:
@@ -6,11 +6,11 @@ on:
     - cron: "30 3 * * *"
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   update-workflows:
+    name: Update Workflow References
     uses: Open-CMSIS-Pack/workflows-and-actions-collection/.github/workflows/update-workflow.yml@v1.0.2
     secrets:
       TOKEN_ACCESS: ${{ secrets.GRASCI_WORKFLOW_UPDATE }}
