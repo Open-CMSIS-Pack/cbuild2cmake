@@ -19,21 +19,18 @@ permissions:
 
 jobs:
   check-licenses:
-    # Avoid running this on forks
     if: github.repository == 'Open-CMSIS-Pack/cbuild2cmake'
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      checks: write
-      pull-requests: write
-      actions: write
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           egress-policy: audit
 
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Set up Go
         uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
@@ -42,14 +39,17 @@ jobs:
           check-latest: true
 
       - name: Go tidy
-        run:  go mod tidy
+        run: go mod tidy
 
       - name: Install go-licenses
         run:  go install github.com/google/go-licenses@5348b744d0983d85713295ea08a20cca1654a45e # v1.6.0
 
       - name: Generate TPIP Report
         run:  |
-          go-licenses report . --ignore github.com/Open-CMSIS-Pack/cbuild2cmake --template ../../scripts/template/${{ env.tpip_report }}.template > ../../${{ env.tpip_report }}
+          go-licenses report . \
+            --ignore github.com/Open-CMSIS-Pack/cbuild2cmake \
+            --template ../../scripts/template/${{ env.tpip_report }}.template \
+            > ../../${{ env.tpip_report }}
         working-directory: ./cmd/cbuild2cmake
         
       - name: Archive TPIP report
@@ -58,31 +58,33 @@ jobs:
           name: tpip-report
           path: ./${{ env.tpip_report }}
 
-      - name: Print TPIP Report
+      - name: Print TPIP Report report to summary
         run: cat ${{ env.tpip_report }} >> $GITHUB_STEP_SUMMARY
 
       - name: Check Licenses
-        run: go-licenses check . --ignore github.com/Open-CMSIS-Pack/cbuild2cmake --disallowed_types=forbidden,restricted
+        run: |
+          go-licenses check . \
+            --ignore github.com/Open-CMSIS-Pack/cbuild2cmake \
+            --disallowed_types=forbidden,restricted
         working-directory: ./cmd/cbuild2cmake
 
   commit-changes:
-    # Running this job only on specific event
-    # in order to have workaround for issue
-    # related to deletion of GH checks/status data
-    permissions:
-      contents: write  # for peter-evans/create-pull-request to create branch
-      pull-requests: write  # for peter-evans/create-pull-request to create a PR
     if: (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch')
     needs: [ check-licenses ]
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           egress-policy: audit
 
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
@@ -92,9 +94,10 @@ jobs:
         with:
           name: tpip-report
 
-      - name: Create Pull Request
+      - name: Create pull request
         uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725 # v8.0.0
         with:
+          token: ${{ secrets.GRASCI_WORKFLOW_UPDATE }}
           commit-message: Update TPIP report
           title: ':robot: [TPIP] Automated report updates'
           body: |

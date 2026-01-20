@@ -10,8 +10,14 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: read
+
 jobs:
   build-and-verify:
+    permissions:
+      contents: read
+      actions: write
     uses: Open-CMSIS-Pack/workflows-and-actions-collection/.github/workflows/build-and-verify.yml@v1.0.2
     with:
       program: cbuild2cmake
@@ -21,8 +27,11 @@ jobs:
   goreleaser:
     needs: [ build-and-verify ]
     permissions:
-      contents: write # for goreleaser/goreleaser-action to create a GitHub release
+      contents: write
+      actions: read
+      id-token: write
     runs-on: ubuntu-latest
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
@@ -48,7 +57,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
 
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
