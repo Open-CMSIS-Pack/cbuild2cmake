@@ -5,7 +5,7 @@
 | github.com/Masterminds/semver/v3 | v3.4.0  | [MIT](https://github.com/Masterminds/semver/blob/v3.4.0/LICENSE.txt) |
 | github.com/Open-CMSIS-Pack/cbuild/v2/pkg | v2.12.0  | [Apache-2.0](https://github.com/Open-CMSIS-Pack/cbuild/blob/v2.12.0/LICENSE) |
 | github.com/gobs/sortedmap | v1.0.0  | [MIT](https://github.com/gobs/sortedmap/blob/v1.0.0/LICENSE) |
-| github.com/sirupsen/logrus | v1.9.3  | [MIT](https://github.com/sirupsen/logrus/blob/v1.9.3/LICENSE) |
+| github.com/sirupsen/logrus | v1.9.4  | [MIT](https://github.com/sirupsen/logrus/blob/v1.9.4/LICENSE) |
 | github.com/spf13/cobra | v1.10.2  | [Apache-2.0](https://github.com/spf13/cobra/blob/v1.10.2/LICENSE.txt) |
 | github.com/spf13/pflag | v1.0.10  | [BSD-3-Clause](https://github.com/spf13/pflag/blob/v1.0.10/LICENSE) |
 | golang.org/x/exp | v0.0.0-20230224173230-c95f2b4c22f2  | [BSD-3-Clause](https://cs.opensource.google/go/x/exp/+/c95f2b4c:LICENSE) |
