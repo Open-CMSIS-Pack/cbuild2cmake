@@ -3,6 +3,9 @@ include(ExternalProject)
 	
 project("solution" NONE)
 
+# Enable color diagnostics
+set(CMAKE_COLOR_DIAGNOSTICS ON)
+
 # Roots
 include("roots.cmake")
 
@@ -61,7 +64,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     INSTALL_COMMAND       ""
     TEST_COMMAND          ""
     CONFIGURE_COMMAND     ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
-    BUILD_COMMAND         ${CMAKE_COMMAND} -E echo "Building CMake target '${CONTEXT}'"
+    BUILD_COMMAND         ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold "Building CMake target '${CONTEXT}'"
     COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR> ${WEST_TARGET} --verbose
     BUILD_ALWAYS          TRUE
     BUILD_BYPRODUCTS      ${OUTPUTS_${N}}

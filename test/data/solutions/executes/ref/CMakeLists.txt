@@ -3,6 +3,9 @@ include(ExternalProject)
 	
 project("solution" NONE)
 
+# Enable color diagnostics
+set(CMAKE_COLOR_DIAGNOSTICS ON)
+
 # Roots
 include("roots.cmake")
 
@@ -45,7 +48,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     INSTALL_COMMAND       ""
     TEST_COMMAND          ""
     CONFIGURE_COMMAND     ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
-    BUILD_COMMAND         ${CMAKE_COMMAND} -E echo "Building CMake target '${CONTEXT}'"
+    BUILD_COMMAND         ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold "Building CMake target '${CONTEXT}'"
     COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR> --verbose
     BUILD_ALWAYS          TRUE
     BUILD_BYPRODUCTS      ${OUTPUTS_${N}}
@@ -86,7 +89,7 @@ set(OUTPUT
 )
 add_custom_target(Archive_Artifacts ALL DEPENDS ${OUTPUT})
 add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
-  COMMAND ${CMAKE_COMMAND} -E echo "Executing: Archive_Artifacts"
+  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --green "Executing: Archive_Artifacts"
   COMMAND ${CMAKE_COMMAND} -DINPUT="${INPUT}" -DOUTPUT="${OUTPUT}" -P "${INPUT_0}"
   USES_TERMINAL
 )
@@ -106,7 +109,7 @@ list(GET OUTPUT 0 OUTPUT_0)
 list(GET OUTPUT 1 OUTPUT_1)
 add_custom_target(Generate_Project_Sources ALL DEPENDS ${OUTPUT})
 add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
-  COMMAND ${CMAKE_COMMAND} -E echo "Executing: Generate_Project_Sources"
+  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --green "Executing: Generate_Project_Sources"
   COMMAND ${CMAKE_COMMAND} -DINPUT_1="${INPUT_1}" -DOUTPUT_0="${OUTPUT_0}" -DOUTPUT_1="${OUTPUT_1}" -P "${INPUT_0}"
   USES_TERMINAL
 )
@@ -120,7 +123,7 @@ set(OUTPUT
 )
 add_custom_target(Run_After_Archiving ALL DEPENDS ${OUTPUT})
 add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
-  COMMAND ${CMAKE_COMMAND} -E echo "Executing: Run_After_Archiving"
+  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --green "Executing: Run_After_Archiving"
   COMMAND ${CMAKE_COMMAND} -E touch "Run_After_Archiving.stamp"
   COMMAND ${CMAKE_COMMAND} -E echo "Archive has been updated"
   USES_TERMINAL
@@ -128,14 +131,14 @@ add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
 
 # Execute: Run_Always1
 add_custom_target(Run_Always1 ALL
-  COMMAND ${CMAKE_COMMAND} -E echo "Executing: Run_Always1"
+  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --green "Executing: Run_Always1"
   COMMAND ${CMAKE_COMMAND} -E echo "Execute Run Always1"
   USES_TERMINAL
 )
 
 # Execute: Run_Always2
 add_custom_target(Run_Always2 ALL
-  COMMAND ${CMAKE_COMMAND} -E echo "Executing: Run_Always2"
+  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --green "Executing: Run_Always2"
   COMMAND ${CMAKE_COMMAND} -E echo "Execute Run Always2"
   USES_TERMINAL
 )
@@ -151,7 +154,7 @@ set(OUTPUT
 )
 add_custom_target(project.Release+ARMCM0-Sign_Artifact ALL DEPENDS ${OUTPUT})
 add_custom_command(OUTPUT ${OUTPUT} DEPENDS ${INPUT}
-  COMMAND ${CMAKE_COMMAND} -E echo "Executing: project.Release+ARMCM0-Sign_Artifact"
+  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --green "Executing: project.Release+ARMCM0-Sign_Artifact"
   COMMAND ${CMAKE_COMMAND} -DINPUT="${INPUT}" -DOUTPUT="${OUTPUT}" -P "${INPUT_0}"
   USES_TERMINAL
 )
