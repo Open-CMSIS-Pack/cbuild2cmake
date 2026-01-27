@@ -93,8 +93,8 @@ target_link_libraries(${CONTEXT} PUBLIC
   ARM_Device_Startup_C_Startup_2_2_0
   ARM_RteTest_LanguageAndScope_0_9_9
   -Wl,--start-group
-  -lm
-  -lc
+    -lm
+    -lc
   -Wl,--end-group
 )
 

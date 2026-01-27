@@ -43,10 +43,7 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 # Includes
 target_include_directories(${CONTEXT} PUBLIC
   "${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0"
-  "${SOLUTION_ROOT}/project/RTE/CMSIS"
-  "${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Include"
-  "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include"
-  "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include"
+  "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.3.0/CMSIS/Core/Include"
   "${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include"
 )
 
@@ -77,14 +74,13 @@ include("components.cmake")
 
 target_link_libraries(${CONTEXT} PUBLIC
   Group_Source
-  ARM_CMSIS_CORE_6_1_0
-  ARM_CMSIS_OS_Tick_SysTick_1_0_5
-  ARM_CMSIS_RTOS2_Keil_RTX5_Library_5_9_0
+  ARM_CMSIS_CORE_6_2_0
   ARM_Device_Startup_C_Startup_2_2_0
   -Wl,--start-group
-    -lm
-    -lc
-    ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Library/GCC/libRTX_V6M.a
+    -Wl,--whole-archive
+      ${SOLUTION_ROOT}/lib/lib1.a
+    -Wl,--no-whole-archive
+    ${SOLUTION_ROOT}/lib/lib0.a
   -Wl,--end-group
 )
 

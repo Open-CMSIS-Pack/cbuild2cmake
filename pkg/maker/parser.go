@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -77,18 +77,19 @@ type Cbuild struct {
 		Licenses         []struct{}    `yaml:"licenses"`
 		West             West          `yaml:"west"`
 	} `yaml:"build"`
-	BaseDir          string
-	ContextRoot      string
-	SolutionRoot     string
-	Languages        []string
-	PreIncludeGlobal []string
-	LibraryGlobal    []string
-	IncludeGlobal    LanguageMap
-	UserIncGlobal    LanguageMap
-	BuildGroups      []string
-	Toolchain        string
-	GeneratedFiles   []string
-	LinkerLto        bool
+	BaseDir            string
+	ContextRoot        string
+	SolutionRoot       string
+	Languages          []string
+	PreIncludeGlobal   []string
+	LibraryGlobal      []string
+	WholeArchiveGlobal []string
+	IncludeGlobal      LanguageMap
+	UserIncGlobal      LanguageMap
+	BuildGroups        []string
+	Toolchain          string
+	GeneratedFiles     []string
+	LinkerLto          bool
 }
 
 type Cbuilds struct {
@@ -163,6 +164,7 @@ type Files struct {
 	Warnings    string        `yaml:"warnings"`
 	LanguageC   string        `yaml:"language-C"`
 	LanguageCpp string        `yaml:"language-CPP"`
+	Link        string        `yaml:"link"`
 	Lto         bool          `yaml:"link-time-optimize"`
 	Define      []interface{} `yaml:"define"`
 	DefineAsm   []interface{} `yaml:"define-asm"`

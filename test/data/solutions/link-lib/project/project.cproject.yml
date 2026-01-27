@@ -1,0 +1,13 @@
+project:
+
+  components:
+    - component: ARM::CMSIS:CORE
+    - component: ARM::Device:Startup&C Startup
+
+  groups:
+    - group: Source
+      files:
+        - file: ../lib/lib0.a
+        - file: ../lib/lib1.a
+          link: whole-archive
+        - file: main.c

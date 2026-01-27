@@ -26,6 +26,7 @@ type BuildFiles struct {
 	Library         []string
 	Object          []string
 	PreIncludeLocal []string
+	WholeArchive    []string
 }
 
 type CompilerAbstractions struct {
@@ -136,15 +137,15 @@ func OutputFiles(outputList []Output) (outputByProducts string, outputFile strin
 		switch output.Type {
 		case "hex":
 			outputByProducts += "\nset(HEX_FILE \"" + output.File + "\")"
-			customCommands += "\n\n# Hex Conversion\n add_custom_command(TARGET ${CONTEXT} POST_BUILD COMMAND ${CMAKE_OBJCOPY} ${ELF2HEX})"
+			customCommands += "\n\n# Hex Conversion\nadd_custom_command(TARGET ${CONTEXT} POST_BUILD COMMAND ${CMAKE_OBJCOPY} ${ELF2HEX})"
 		case "bin":
 			outputByProducts += "\nset(BIN_FILE \"" + output.File + "\")"
-			customCommands += "\n\n# Bin Conversion\n add_custom_command(TARGET ${CONTEXT} POST_BUILD COMMAND ${CMAKE_OBJCOPY} ${ELF2BIN})"
+			customCommands += "\n\n# Bin Conversion\nadd_custom_command(TARGET ${CONTEXT} POST_BUILD COMMAND ${CMAKE_OBJCOPY} ${ELF2BIN})"
 		case "map":
 			outputByProducts += "\nset(LD_MAP_FILE \"" + output.File + "\")"
 		case "cmse-lib":
 			outputByProducts += "\nset(CMSE_LIB \"" + output.File + "\")"
-			customCommands += "\n\n# CMSE Library\n add_custom_command(TARGET ${CONTEXT} PRE_LINK COMMAND \"\" BYPRODUCTS ${OUT_DIR}/${CMSE_LIB})"
+			customCommands += "\n\n# CMSE Library\nadd_custom_command(TARGET ${CONTEXT} PRE_LINK COMMAND \"\" BYPRODUCTS ${OUT_DIR}/${CMSE_LIB})"
 		case "elf", "lib":
 			outputFile = output.File
 			outputType = output.Type
@@ -361,6 +362,31 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 	return content
 }
 
+func (c *Cbuild) CMakeTargetLinkLibrariesGlobal() string {
+	content := "\ntarget_link_libraries(${CONTEXT} PUBLIC"
+	// groups and components
+	for _, library := range c.ListGroupsAndComponents() {
+		content += "\n  " + library
+	}
+
+	// format whole-archive library entries (GCC and CLANG)
+	libraries := c.FormatWholeArchive(c.WholeArchiveGlobal)
+
+	// add other libraries
+	libraries = append(libraries, c.BuildDescType.Misc.Library...)
+	libraries = append(libraries, c.LibraryGlobal...)
+
+	// rescan libraries: special handling for GCC
+	libraries = c.RescanLibs(libraries)
+
+	// set content
+	for _, library := range libraries {
+		content += "\n  " + library
+	}
+	content += "\n)"
+	return content
+}
+
 func (c *Cbuild) CMakeTargetLinkLibraries(name string, scope string, libraries ...string) string {
 	content := "\ntarget_link_libraries(" + name + " " + scope
 	for _, library := range libraries {
@@ -565,7 +591,11 @@ func (c *Cbuild) ClassifyFiles(files []Files) BuildFiles {
 				buildFiles.Source[language] = append(buildFiles.Source[language], c.AddRootPrefix(c.ContextRoot, file.File))
 			}
 		case "library":
-			buildFiles.Library = append(buildFiles.Library, c.AddRootPrefix(c.ContextRoot, file.File))
+			if file.Link == "whole-archive" {
+				buildFiles.WholeArchive = append(buildFiles.WholeArchive, c.AddRootPrefix(c.ContextRoot, file.File))
+			} else {
+				buildFiles.Library = append(buildFiles.Library, c.AddRootPrefix(c.ContextRoot, file.File))
+			}
 		case "object":
 			buildFiles.Object = append(buildFiles.Object, c.AddRootPrefix(c.ContextRoot, file.File))
 		case "preIncludeLocal":
@@ -980,4 +1010,36 @@ func (c *Cbuild) GetDpackDir() string {
 		}
 	}
 	return dir
+}
+
+func (c *Cbuild) FormatWholeArchive(libraries []string) []string {
+	// handle whole-archive linker command line directives fOR GCC and CLANG
+	if (c.Toolchain == "GCC" || c.Toolchain == "CLANG") &&
+		len(libraries) > 0 {
+		// wrap libraries in --whole-archive/--no-whole-archive
+		wholeArchive := []string{"-Wl,--whole-archive"}
+		for _, library := range libraries {
+			wholeArchive = append(wholeArchive, "  "+library)
+		}
+		wholeArchive = append(wholeArchive, "-Wl,--no-whole-archive")
+		return wholeArchive
+	}
+	return libraries
+}
+
+func (c *Cbuild) RescanLibs(libraries []string) []string {
+	// rescan libraries: special handling for GCC
+	if c.Toolchain == "GCC" &&
+		len(c.BuildDescType.Misc.Library)+
+			len(c.LibraryGlobal)+
+			len(c.WholeArchiveGlobal) > 1 {
+		// wrap libraries in --start-group/--end-group
+		rescanGroup := []string{"-Wl,--start-group"}
+		for _, library := range libraries {
+			rescanGroup = append(rescanGroup, "  "+library)
+		}
+		rescanGroup = append(rescanGroup, "-Wl,--end-group")
+		return rescanGroup
+	}
+	return libraries
 }

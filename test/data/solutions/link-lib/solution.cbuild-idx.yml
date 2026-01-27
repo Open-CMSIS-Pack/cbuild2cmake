@@ -1,0 +1,23 @@
+build-idx:
+  generated-by: csolution version 0.0.0
+  cdefault: ${CMSIS_COMPILER_ROOT}/cdefault.yml
+  csolution: solution.csolution.yml
+  tmpdir: tmp
+  cprojects:
+    - cproject: project/project.cproject.yml
+  cbuilds:
+    - cbuild: out/project/ARMCM0/GCC/project.GCC+ARMCM0.cbuild.yml
+      project: project
+      configuration: .GCC+ARMCM0
+      messages:
+        info:
+          - solution.cbuild-pack.yml - file is already up-to-date
+          - project.GCC+ARMCM0.cbuild.yml - file is already up-to-date
+    - cbuild: out/project/ARMCM0/CLANG/project.CLANG+ARMCM0.cbuild.yml
+      project: project
+      configuration: .CLANG+ARMCM0
+      messages:
+        info:
+          - solution.cbuild-pack.yml - file is already up-to-date
+          - project.CLANG+ARMCM0.cbuild.yml - file generated successfully
+  rebuild: true
