@@ -77,8 +77,8 @@ target_link_libraries(${CONTEXT} PUBLIC
   ARM_CMSIS_CORE_6_0_0
   ARM_Device_Startup_C_Startup_2_2_0
   -Wl,--start-group
-  -lm
-  -lc
+    -lm
+    -lc
   -Wl,--end-group
 )
 

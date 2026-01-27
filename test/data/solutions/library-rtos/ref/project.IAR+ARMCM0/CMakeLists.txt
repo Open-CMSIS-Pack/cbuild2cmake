@@ -78,6 +78,7 @@ target_link_libraries(${CONTEXT} PUBLIC
   ARM_CMSIS_OS_Tick_SysTick_1_0_5
   ARM_CMSIS_RTOS2_Keil_RTX5_Library_5_9_0
   ARM_Device_Startup_C_Startup_2_2_0
+  ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Library/IAR/RTX_V6M.a
 )
 
 # Linker options

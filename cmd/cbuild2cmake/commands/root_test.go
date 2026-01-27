@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -342,6 +342,20 @@ set(OUTPUTS_1
 	t.Run("test west solution", func(t *testing.T) {
 		cmd := commands.NewRootCmd()
 		testCaseRoot := testRoot + "/run/solutions/west"
+		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
+		err := cmd.Execute()
+		assert.Nil(err)
+
+		// check golden references
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp")
+		assert.Nil(err)
+		assert.False(mismatch)
+	})
+
+	t.Run("test link whole archive", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		testCaseRoot := testRoot + "/run/solutions/link-lib"
 		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
 		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
 		err := cmd.Execute()

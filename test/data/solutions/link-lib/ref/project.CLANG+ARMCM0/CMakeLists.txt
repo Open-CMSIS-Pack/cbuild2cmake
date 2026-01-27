@@ -3,22 +3,23 @@ cmake_minimum_required(VERSION 3.27)
 # Roots
 include("../roots.cmake")
 
-set(CONTEXT project.GCC+ARMCM0)
+set(CONTEXT project.CLANG+ARMCM0)
 set(TARGET ${CONTEXT})
 set(DNAME ARMCM0)
 set(DPACK ARM::Cortex_DFP@1.1.0)
 set(DPACK_DIR "${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0")
-set(OUT_DIR "${SOLUTION_ROOT}/out/project/ARMCM0/GCC")
+set(OUT_DIR "${SOLUTION_ROOT}/out/project/ARMCM0/CLANG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(LD_SCRIPT "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/ARMCM0_gcc.ld")
-set(LD_SCRIPT_PP ${LD_SCRIPT})
+set(LD_SCRIPT "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/clang_linker_script.ld.src")
+set(LD_REGIONS "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/regions_ARMCM0.h")
+set(LD_SCRIPT_PP "${CMAKE_CURRENT_BINARY_DIR}/clang_linker_script.ld")
 
 # Processor Options
 set(CPU Cortex-M0)
 set(FPU NO_FPU)
 
 # Toolchain config map
-set(COMPILER GCC)
+set(COMPILER CLANG)
 include("toolchain.cmake")
 
 # Setup project
@@ -42,11 +43,8 @@ add_library(${CONTEXT}_GLOBAL INTERFACE)
 
 # Includes
 target_include_directories(${CONTEXT} PUBLIC
-  "${SOLUTION_ROOT}/project/RTE/_GCC_ARMCM0"
-  "${SOLUTION_ROOT}/project/RTE/CMSIS"
-  "${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Include"
-  "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/Core/Include"
-  "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.1.0/CMSIS/RTOS2/Include"
+  "${SOLUTION_ROOT}/project/RTE/_CLANG_ARMCM0"
+  "${CMSIS_PACK_ROOT}/ARM/CMSIS/6.3.0/CMSIS/Core/Include"
   "${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.1.0/Device/ARMCM0/Include"
 )
 
@@ -64,7 +62,6 @@ target_compile_options(${CONTEXT} PUBLIC
     "SHELL:${CC_CPU}"
     "SHELL:${CC_FLAGS}"
     "SHELL:-std=gnu11"
-    "SHELL:-masm-syntax-unified"
     "SHELL:-fomit-frame-pointer"
     "SHELL:-ffunction-sections"
     "SHELL:-fdata-sections"
@@ -77,26 +74,23 @@ include("components.cmake")
 
 target_link_libraries(${CONTEXT} PUBLIC
   Group_Source
-  ARM_CMSIS_CORE_6_1_0
-  ARM_CMSIS_OS_Tick_SysTick_1_0_5
-  ARM_CMSIS_RTOS2_Keil_RTX5_Library_5_9_0
+  ARM_CMSIS_CORE_6_2_0
   ARM_Device_Startup_C_Startup_2_2_0
-  -Wl,--start-group
-    -lm
-    -lc
-    ${CMSIS_PACK_ROOT}/ARM/CMSIS-RTX/5.9.0/Library/GCC/libRTX_V6M.a
-  -Wl,--end-group
+  -Wl,--whole-archive
+    ${SOLUTION_ROOT}/lib/lib1.a
+  -Wl,--no-whole-archive
+  ${SOLUTION_ROOT}/lib/lib0.a
 )
 
 # Linker options
 target_link_options(${CONTEXT} PUBLIC
   "SHELL:${LD_CPU}"
   "SHELL:${_LS}\"${LD_SCRIPT_PP}\""
-  "SHELL:--specs=nano.specs"
-  "SHELL:--specs=nosys.specs"
   "SHELL:-Wl,-print-memory-usage"
   "SHELL:-Wl,--gc-sections"
-  "SHELL:-Wl,--no-warn-rwx-segments"
 )
-set(LD_DEPS ${LD_SCRIPT})
+set(LD_DEPS ${LD_SCRIPT} ${LD_REGIONS})
 set_target_properties(${CONTEXT} PROPERTIES LINK_DEPENDS "${LD_DEPS}")
+
+# Linker script pre-processing
+add_custom_command(TARGET ${CONTEXT} PRE_LINK COMMAND ${CPP} ARGS ${CPP_ARGS_LD_SCRIPT} BYPRODUCTS ${LD_SCRIPT_PP})
