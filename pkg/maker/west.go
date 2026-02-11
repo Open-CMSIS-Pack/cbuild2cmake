@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2025-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -90,15 +90,24 @@ set(ENV_VARS
   ZEPHYR_TOOLCHAIN_VARIANT="` + westToolchain + `"
 )
 
-# Compilation database
-add_custom_target(database
+# West setup and compilation database
+add_custom_target(database DEPENDS "${OUT_DIR}/CMakeCache.txt")
+add_custom_command(
+  OUTPUT "${OUT_DIR}/CMakeCache.txt"
+  BYPRODUCTS "${OUT_DIR}/compile_commands.json"
+  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --blue " Setup west build directory"
   COMMAND cmake -E env ${ENV_VARS} west` + westOptionsRef + ` build -b ${WEST_BOARD} -d "${OUT_DIR}" -p auto --cmake-only "${WEST_APP}"` + westDefsRef + `
+  COMMENT "" 
+  DEPENDS "${CMAKE_CURRENT_LIST_FILE}"
   USES_TERMINAL
 )
 
 # West build
 add_custom_target(west
-  COMMAND cmake -E env ${ENV_VARS} west` + westOptionsRef + ` build -b ${WEST_BOARD} -d "${OUT_DIR}" -p auto "${WEST_APP}"` + westDefsRef + `
+  COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --blue " Run west build"
+  COMMAND west build -d "${OUT_DIR}"
+  COMMENT ""
+  DEPENDS database
   USES_TERMINAL
 )
 `
