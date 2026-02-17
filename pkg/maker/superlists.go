@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -51,13 +51,12 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		westTarget = " ${WEST_TARGET}"
 	}
 
-	var verbosity, logConfigure, stepLog string
+	var verbosity, logConfigure string
 	if m.Options.Debug || m.Options.Verbose {
 		verbosity = " --verbose"
 	} else {
 		logConfigure = "\n    LOG_CONFIGURE         ON"
 		logConfigure += "\n    LOG_OUTPUT_ON_FAILURE ON"
-		stepLog = "\n    LOG               TRUE"
 	}
 
 	// Write content
@@ -127,7 +126,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
   # Database generation step
   ExternalProject_Add_Step(${CONTEXT} database
     COMMAND           ${CMAKE_COMMAND} --build <BINARY_DIR> --target database` + verbosity + `
-    ALWAYS            TRUE` + stepLog + `
+    ALWAYS            TRUE
     USES_TERMINAL     ON
     DEPENDEES         configure
   )
