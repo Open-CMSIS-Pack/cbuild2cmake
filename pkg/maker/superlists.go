@@ -114,7 +114,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     TEST_COMMAND          ""
     CONFIGURE_COMMAND     ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
     BUILD_COMMAND         ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold "Building CMake target '${CONTEXT}'"
-    COMMAND               ${CMAKE_COMMAND} -E echo "Using ${COMPILER} compiler"
+    COMMAND               ${CMAKE_COMMAND} -E echo "Using compiler: ${COMPILER}"
     COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR>` + westTarget + verbosity + `
     BUILD_ALWAYS          TRUE
     BUILD_BYPRODUCTS      ${OUTPUTS_${N}}` + logConfigure + `
