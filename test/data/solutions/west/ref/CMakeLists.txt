@@ -17,6 +17,11 @@ set(CONTEXTS
 list(LENGTH CONTEXTS CONTEXTS_LENGTH)
 math(EXPR CONTEXTS_LENGTH "${CONTEXTS_LENGTH}-1")
 
+set(COMPILERS
+  "AC6 V6.19.0"
+  "AC6 V6.19.0"
+)
+
 set(DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/core0.Debug+CM0"
   "${CMAKE_CURRENT_SOURCE_DIR}/core1.Debug+CM0"
@@ -50,6 +55,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
   math(EXPR N "${INDEX}+1")
   list(GET CONTEXTS ${INDEX} CONTEXT)
+  list(GET COMPILERS ${INDEX} COMPILER)
   list(GET DIRS ${INDEX} DIR)
   list(GET WEST_CONTEXTS ${INDEX} WEST_CONTEXT)
   if(WEST_CONTEXT)
@@ -65,6 +71,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     TEST_COMMAND          ""
     CONFIGURE_COMMAND     ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
     BUILD_COMMAND         ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold "Building CMake target '${CONTEXT}'"
+    COMMAND               ${CMAKE_COMMAND} -E echo "Using ${COMPILER} compiler"
     COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR> ${WEST_TARGET} --verbose
     BUILD_ALWAYS          TRUE
     BUILD_BYPRODUCTS      ${OUTPUTS_${N}}

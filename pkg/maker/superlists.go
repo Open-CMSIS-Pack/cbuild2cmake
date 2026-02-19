@@ -20,13 +20,16 @@ const CMAKE_MIN_REQUIRED = "3.27"
 
 func (m *Maker) CreateSuperCMakeLists() error {
 	// Iterate over cbuilds
-	var contexts, dirs, westContextFlags, contextOutputs string
+	var contexts, dirs, westContextFlags, contextOutputs, compilers string
 	west := false
 	for i, cbuild := range m.Cbuilds {
 		contexts = contexts + "  \"" + strings.ReplaceAll(cbuild.BuildDescType.Context, " ", "_") + "\"\n"
 		dirs = dirs + "  \"${CMAKE_CURRENT_SOURCE_DIR}/" + cbuild.BuildDescType.Context + "\"\n"
 		west = west || (cbuild.BuildDescType.West.AppPath != "")
 		westContextFlags = westContextFlags + "  \"" + strconv.FormatBool(west) + "\"\n"
+
+		compilers += "  \"" + m.RegisteredToolchains[m.SelectedToolchainVersion[i]].Name +
+			" V" + m.SelectedToolchainVersion[i].String() + "\"\n"
 
 		var contextOutputsName = "OUTPUTS_" + strconv.Itoa(i+1)
 		contextOutputs += "\nset(" + contextOutputsName + "\n"
@@ -78,6 +81,9 @@ set(CONTEXTS
 list(LENGTH CONTEXTS CONTEXTS_LENGTH)
 math(EXPR CONTEXTS_LENGTH "${CONTEXTS_LENGTH}-1")
 
+set(COMPILERS
+` + compilers + `)
+
 set(DIRS
 ` + dirs + `)
 ` + westContexts + contextOutputs + `
@@ -96,6 +102,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
   math(EXPR N "${INDEX}+1")
   list(GET CONTEXTS ${INDEX} CONTEXT)
+  list(GET COMPILERS ${INDEX} COMPILER)
   list(GET DIRS ${INDEX} DIR)` + westContextCheck + `
 
   # Create external project, set configure and build steps
@@ -107,6 +114,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     TEST_COMMAND          ""
     CONFIGURE_COMMAND     ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
     BUILD_COMMAND         ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold "Building CMake target '${CONTEXT}'"
+    COMMAND               ${CMAKE_COMMAND} -E echo "Using ${COMPILER} compiler"
     COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR>` + westTarget + verbosity + `
     BUILD_ALWAYS          TRUE
     BUILD_BYPRODUCTS      ${OUTPUTS_${N}}` + logConfigure + `

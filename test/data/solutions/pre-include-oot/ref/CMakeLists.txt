@@ -19,6 +19,13 @@ set(CONTEXTS
 list(LENGTH CONTEXTS CONTEXTS_LENGTH)
 math(EXPR CONTEXTS_LENGTH "${CONTEXTS_LENGTH}-1")
 
+set(COMPILERS
+  "AC6 V6.19.0"
+  "CLANG V18.0.0"
+  "GCC V12.3.0"
+  "IAR V9.32.5"
+)
+
 set(DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/project.AC6+ARMCM0"
   "${CMAKE_CURRENT_SOURCE_DIR}/project.CLANG+ARMCM0"
@@ -53,6 +60,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
   math(EXPR N "${INDEX}+1")
   list(GET CONTEXTS ${INDEX} CONTEXT)
+  list(GET COMPILERS ${INDEX} COMPILER)
   list(GET DIRS ${INDEX} DIR)
 
   # Create external project, set configure and build steps
@@ -64,6 +72,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     TEST_COMMAND          ""
     CONFIGURE_COMMAND     ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
     BUILD_COMMAND         ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold "Building CMake target '${CONTEXT}'"
+    COMMAND               ${CMAKE_COMMAND} -E echo "Using ${COMPILER} compiler"
     COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR> --verbose
     BUILD_ALWAYS          TRUE
     BUILD_BYPRODUCTS      ${OUTPUTS_${N}}
