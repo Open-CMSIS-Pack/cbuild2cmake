@@ -91,6 +91,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
   # Database generation step
   ExternalProject_Add_Step(${CONTEXT} database
     COMMAND           ${CMAKE_COMMAND} --build <BINARY_DIR> --target database --verbose
+    EXCLUDE_FROM_MAIN TRUE
     ALWAYS            TRUE
     USES_TERMINAL     ON
     DEPENDEES         configure
