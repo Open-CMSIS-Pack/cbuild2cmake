@@ -47,19 +47,23 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		contextOutputs += ")"
 	}
 
-	var westContexts, westContextCheck, westTarget string
+	var westContexts, westContextCheck, westTarget, excludeFromMain string
 	if west {
 		westContexts = "\nset(WEST_CONTEXTS\n" + westContextFlags + ")\n"
 		westContextCheck = "\n  list(GET WEST_CONTEXTS ${INDEX} WEST_CONTEXT)\n  if(WEST_CONTEXT)\n    set(WEST_TARGET \"--target west\")\n  endif()"
 		westTarget = " ${WEST_TARGET}"
+		excludeFromMain = "\n    EXCLUDE_FROM_MAIN TRUE"
 	}
 
-	var verbosity, logConfigure string
+	var verbosity, logConfigure, stepLog string
 	if m.Options.Debug || m.Options.Verbose {
 		verbosity = " --verbose"
 	} else {
 		logConfigure = "\n    LOG_CONFIGURE         ON"
 		logConfigure += "\n    LOG_OUTPUT_ON_FAILURE ON"
+		if !west {
+			stepLog = "\n    LOG               TRUE"
+		}
 	}
 
 	// Write content
@@ -133,8 +137,8 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
 
   # Database generation step
   ExternalProject_Add_Step(${CONTEXT} database
-    COMMAND           ${CMAKE_COMMAND} --build <BINARY_DIR> --target database` + verbosity + `
-    ALWAYS            TRUE
+    COMMAND           ${CMAKE_COMMAND} --build <BINARY_DIR> --target database` + verbosity + excludeFromMain + `
+    ALWAYS            TRUE` + stepLog + `
     USES_TERMINAL     ON
     DEPENDEES         configure
   )
