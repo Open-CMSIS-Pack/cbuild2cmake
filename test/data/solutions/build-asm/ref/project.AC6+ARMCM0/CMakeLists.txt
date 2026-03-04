@@ -10,6 +10,9 @@ set(DPACK ARM::Cortex_DFP@1.0.0)
 set(DPACK_DIR "${CMSIS_PACK_ROOT}/ARM/Cortex_DFP/1.0.0")
 set(OUT_DIR "${SOLUTION_ROOT}/out/project/ARMCM0/AC6")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_COMPILE_COMMANDS ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json)
+set(COMPILE_COMMANDS ${OUT_DIR}/compile_commands.json)
+set(COMPILE_MACROS ${OUT_DIR}/compile_macros.h)
 set(LD_SCRIPT "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/ARMCM0_ac6.sct")
 set(LD_SCRIPT_PP ${LD_SCRIPT})
 
@@ -28,9 +31,12 @@ project(${CONTEXT} LANGUAGES C ASM)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 # Compilation database
-add_custom_target(database
-  COMMAND ${CMAKE_COMMAND} -E make_directory "${OUT_DIR}"
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" "${OUT_DIR}"
+add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS})
+add_custom_command(OUTPUT ${COMPILE_COMMANDS}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_COMPILE_COMMANDS}" "${COMPILE_COMMANDS}"
+)
+add_custom_command(OUTPUT ${COMPILE_MACROS}
+  COMMAND ${CPP} ${CPP_DUMP_MACROS}
 )
 set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES})
 
