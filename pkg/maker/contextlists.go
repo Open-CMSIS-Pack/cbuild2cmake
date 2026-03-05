@@ -122,7 +122,10 @@ set(TARGET ${CONTEXT})` + deviceVars + `
 set(DPACK ` + cbuild.BuildDescType.DevicePack + `)
 set(DPACK_DIR "` + cbuild.AddRootPrefix(cbuild.ContextRoot, cbuild.GetDpackDir()) + `")
 set(OUT_DIR "` + outDir + `")
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)` + outputByProducts + linkerVars + `
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_COMPILE_COMMANDS ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json)
+set(COMPILE_COMMANDS ${OUT_DIR}/compile_commands.json)
+set(COMPILE_MACROS ${OUT_DIR}/compile_macros.h)` + outputByProducts + linkerVars + `
 
 # Processor Options` + cbuild.ProcessorOptions() + `
 
@@ -137,9 +140,12 @@ project(${CONTEXT} LANGUAGES ` + strings.Join(cbuild.Languages, " ") + `)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 # Compilation database
-add_custom_target(database
-  COMMAND ${CMAKE_COMMAND} -E make_directory "${OUT_DIR}"
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" "${OUT_DIR}"
+add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS})
+add_custom_command(OUTPUT ${COMPILE_COMMANDS}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_COMPILE_COMMANDS}" "${COMPILE_COMMANDS}"
+)
+add_custom_command(OUTPUT ${COMPILE_MACROS}
+  COMMAND ${CPP} ${CPP_DUMP_MACROS}
 )` + systemIncludes + `
 
 # Setup context
