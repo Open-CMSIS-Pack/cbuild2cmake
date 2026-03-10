@@ -308,6 +308,7 @@ func ListCompileDefinitions(defines []interface{}, delimiter string) string {
 		key, value := utils.GetDefine(define)
 		pair := key
 		if len(value) > 0 {
+			value = strings.ReplaceAll(value, ">", "$<ANGLE-R>")
 			pair += "=" + value
 		}
 		definesList = append(definesList, pair)

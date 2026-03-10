@@ -556,4 +556,11 @@ add_dependencies(project.debug+target-executes
 		}
 		assert.Equal("${CMSIS_PACK_ROOT}/Vendor/PackName/1.2.3", cbuild.GetDpackDir())
 	})
+
+	t.Run("test escape right angle bracket", func(t *testing.T) {
+		defines := []interface{}{
+			map[string]interface{}{"FOO": "A>B>C"},
+		}
+		assert.Equal("FOO=A$<ANGLE-R>B$<ANGLE-R>C", maker.ListCompileDefinitions(defines, ";"))
+	})
 }
