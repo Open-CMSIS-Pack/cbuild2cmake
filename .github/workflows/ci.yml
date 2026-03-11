@@ -27,7 +27,7 @@ jobs:
     with:
       program: cbuild2cmake
       go-version-file: ./go.mod
-      enable-qlty-coverage: true
+      enable-qlty-coverage: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
 
   publish-test-results:
     name: "Publish Tests Results"
