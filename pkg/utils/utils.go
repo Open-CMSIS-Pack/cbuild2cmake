@@ -7,8 +7,10 @@
 package utils
 
 import (
+	"errors"
 	"os"
 	"path"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -158,10 +160,30 @@ func ExtractPackIdParts(s string) (vendor, name, version string) {
 }
 
 func CopyFile(src, dst string) error {
-	data, err := os.ReadFile(src)
+	safeSrc, err := sanitizePath(src)
 	if err != nil {
 		return err
 	}
-	_ = os.MkdirAll(path.Dir(dst), 0755)
-	return os.WriteFile(dst, data, 0o600)
+	safeDst, err := sanitizePath(dst)
+	if err != nil {
+		return err
+	}
+	data, err := os.ReadFile(safeSrc)
+	if err != nil {
+		return err
+	}
+	_ = os.MkdirAll(filepath.Dir(safeDst), 0755)
+	return os.WriteFile(safeDst, data, 0o600)
+}
+
+func sanitizePath(input string) (string, error) {
+	if len(input) == 0 {
+		return "", errors.New("path is empty")
+	}
+	clean := filepath.Clean(input)
+	cleanSlash := filepath.ToSlash(clean)
+	if cleanSlash == ".." || strings.HasPrefix(cleanSlash, "../") || strings.Contains(cleanSlash, "/../") {
+		return "", errors.New("invalid path: " + input)
+	}
+	return clean, nil
 }

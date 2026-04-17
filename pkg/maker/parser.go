@@ -366,21 +366,24 @@ func (m *Maker) ParseClayerFile(clayerFile string) (data Clayer, err error) {
 
 func (m *Maker) ParseClayerFiles() error {
 	// Parse clayer files
-	for _, clayerRef := range m.CbuildIndex.BuildIdx.Cbuilds[0].Clayers {
-		clayerFile := path.Join(m.CbuildIndex.BaseDir, clayerRef.Clayer)
-		if _, err := os.Stat(clayerFile); os.IsNotExist(err) {
-			log.Warn("file " + clayerFile + " was not found")
-			continue
+	if len(m.CbuildIndex.BuildIdx.Cbuilds) > 0 {
+		m.Clayers = make([]Clayer, 0, len(m.CbuildIndex.BuildIdx.Cbuilds[0].Clayers))
+		for _, clayerRef := range m.CbuildIndex.BuildIdx.Cbuilds[0].Clayers {
+			clayerFile := path.Join(m.CbuildIndex.BaseDir, clayerRef.Clayer)
+			if _, err := os.Stat(clayerFile); os.IsNotExist(err) {
+				log.Warn("file " + clayerFile + " was not found")
+				continue
+			}
+			clayer, err := m.ParseClayerFile(clayerFile)
+			if err != nil {
+				return err
+			}
+			clayer.File = filepath.ToSlash(clayerFile)
+			clayer.BaseDir, _ = filepath.Abs(path.Dir(clayerFile))
+			clayer.BaseDir = filepath.ToSlash(clayer.BaseDir)
+			clayer.Name = strings.TrimSuffix(filepath.Base(clayerFile), ".clayer.yml")
+			m.Clayers = append(m.Clayers, clayer)
 		}
-		clayer, err := m.ParseClayerFile(clayerFile)
-		if err != nil {
-			return err
-		}
-		clayer.File = filepath.ToSlash(clayerFile)
-		clayer.BaseDir, _ = filepath.Abs(path.Dir(clayerFile))
-		clayer.BaseDir = filepath.ToSlash(clayer.BaseDir)
-		clayer.Name = strings.TrimSuffix(filepath.Base(clayerFile), ".clayer.yml")
-		m.Clayers = append(m.Clayers, clayer)
 	}
 	return nil
 }

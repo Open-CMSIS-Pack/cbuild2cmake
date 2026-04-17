@@ -151,6 +151,9 @@ func TestZephyr(t *testing.T) {
 		text := string(content)
 		assert.Contains(text, "set(CMSIS_PACK_ROOT $ENV{CMSIS_PACK_ROOT})")
 		assert.Contains(text, "cmake_path(SET VENDOR_PACK NORMALIZE \"${CMAKE_CURRENT_LIST_DIR}/packs/vendor/pack\")")
+		assert.Contains(text, "if(NOT EXISTS \"${VENDOR_PACK}/Vendor.Pack.pdsc\")")
+		assert.Contains(text, "cmake_path(SET VENDOR_PACK NORMALIZE \"${CMSIS_PACK_ROOT}/Vendor/Pack/1.0.0\")")
+		assert.Contains(text, "message(FATAL_ERROR \"Pack(s) not found. Set pack path or CMSIS_PACK_ROOT.\")")
 		assert.Contains(text, "zephyr_compile_definitions(")
 		assert.Contains(text, "DEF_SCALAR")
 		assert.Contains(text, "DEF_KEY=VALUE")
@@ -179,7 +182,7 @@ func TestZephyr(t *testing.T) {
 		clayerContent := `layer:
   description: Layer A description
   packs:
-    - pack: Vendor::Pack
+    - pack: Vendor::Pack@1.0.0
   components:
     - component: CORE
 `

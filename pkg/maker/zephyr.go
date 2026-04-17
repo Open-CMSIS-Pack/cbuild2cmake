@@ -43,6 +43,8 @@ func (m *Maker) GenerateZephyrModules() error {
 	m.ZephyrMaker.Cbuild = &m.Cbuilds[0]
 	m.ZephyrMaker.Cbuild.ContextRoot, _ = filepath.Rel(m.SolutionRoot, m.ZephyrMaker.Cbuild.BaseDir)
 	m.ZephyrMaker.Cbuild.ContextRoot = filepath.ToSlash(m.ZephyrMaker.Cbuild.ContextRoot)
+	m.ZephyrMaker.Layers = nil
+	m.ZephyrMaker.DupComponents = nil
 	m.ZephyrMaker.PackPaths = make(map[string]string)
 	m.ZephyrMaker.ComponentFiles = make(map[string]BuildFiles)
 	m.ZephyrMaker.CompileOptions = make(map[string][]string)
@@ -56,10 +58,11 @@ func (m *Maker) GenerateZephyrModules() error {
 		// Packs
 		for _, layerPack := range zephyrLayer.Clayer.Layer.Packs {
 			for _, pack := range m.ZephyrMaker.Cbuild.BuildDescType.Packs {
-				if strings.Contains(pack.Pack, layerPack.Pack) {
+				vendor, name, _ := utils.ExtractPackIdParts(pack.Pack)
+				layerVendor, layerName, _ := utils.ExtractPackIdParts(layerPack.Pack)
+				if vendor == layerVendor && name == layerName {
 					zephyrLayer.Packs = append(zephyrLayer.Packs, pack)
-
-					if path.IsAbs(pack.Path) || strings.HasPrefix(pack.Path, "${") {
+					if filepath.IsAbs(pack.Path) || strings.HasPrefix(pack.Path, "${") {
 						m.ZephyrMaker.PackPaths[pack.Pack] = pack.Path
 					} else {
 						packPath, _ := filepath.Rel(path.Join(m.SolutionRoot, m.SolutionName), (path.Join(m.ZephyrMaker.Cbuild.BaseDir, pack.Path)))
@@ -201,8 +204,10 @@ func (m *Maker) GenerateModuleCMakeLists() error {
 	for _, zephyrLayer := range m.ZephyrMaker.Layers {
 		configList = append(configList, "CONFIG_CMSIS_"+strings.ToUpper(ReplaceSpecialChars(zephyrLayer.Clayer.Name)))
 	}
-	content := "if(" + strings.Join(configList, " OR ") +
-		")\n  include(${CMAKE_CURRENT_LIST_DIR}/sources.cmake)\nendif()\n"
+	content := "include(${CMAKE_CURRENT_LIST_DIR}/sources.cmake)\n"
+	if len(configList) > 0 {
+		content = "if(" + strings.Join(configList, " OR ") + ")\n  " + content + "endif()\n"
+	}
 
 	// Write CMakeLists.txt
 	cmakeLists := path.Join(m.SolutionRoot, m.SolutionName, "CMakeLists.txt")
@@ -215,30 +220,33 @@ func (m *Maker) GenerateModuleCMakeLists() error {
 
 func (m *Maker) GenerateModuleCMakeSources() error {
 	content := "set(CMSIS_PACK_ROOT $ENV{CMSIS_PACK_ROOT})\n"
-	fallback := ""
-	pdscs := []string{}
-	// Iterate over used packs and set pack paths
-	for packId, packPath := range m.ZephyrMaker.PackPaths {
-		packName := strings.ToUpper(ReplaceSpecialChars(strings.SplitN(packId, "@", 2)[0]))
-		content += "cmake_path(SET " + packName + " NORMALIZE \"" + packPath + "\")\n"
-		vendor, name, version := utils.ExtractPackIdParts(packId)
-		pdsc := vendor + "." + name + ".pdsc"
-		pdscs = append(pdscs, "\"${"+packName+"}/"+pdsc+"\"")
-		if strings.HasPrefix(packPath, "${CMAKE_CURRENT_LIST_DIR}") {
-			fallback += `if(NOT EXISTS "${` + packName + `}/` + pdsc + `")
+	if len(m.ZephyrMaker.PackPaths) > 0 {
+		fallback := ""
+		pdscs := []string{}
+		// Iterate over used packs and set pack paths
+		for packId, packPath := range m.ZephyrMaker.PackPaths {
+			packName := strings.ToUpper(ReplaceSpecialChars(strings.SplitN(packId, "@", 2)[0]))
+			content += "cmake_path(SET " + packName + " NORMALIZE \"" + packPath + "\")\n"
+			vendor, name, version := utils.ExtractPackIdParts(packId)
+			pdsc := vendor + "." + name + ".pdsc"
+			pdscs = append(pdscs, "\"${"+packName+"}/"+pdsc+"\"")
+			if strings.HasPrefix(packPath, "${CMAKE_CURRENT_LIST_DIR}") {
+				fallback += `if(NOT EXISTS "${` + packName + `}/` + pdsc + `")
   # Fallback to CMSIS_PACK_ROOT
   cmake_path(SET ` + packName + ` NORMALIZE "${CMSIS_PACK_ROOT}/` + vendor + `/` + name + `/` + version + `")
 endif()
 
 `
+			}
 		}
-	}
-	content += "\n" + fallback
-	content += `if(NOT EXISTS ` + strings.Join(pdscs, "\n  OR NOT EXISTS ") + `)
+		content += "\n" + fallback
+		content += `if(NOT EXISTS ` + strings.Join(pdscs, "\n  OR NOT EXISTS ") + `)
   message(FATAL_ERROR "Pack(s) not found. Set pack path or CMSIS_PACK_ROOT.")
 endif()
 
 `
+	}
+
 	// Add compile definitions
 	defineList := ListCompileDefinitions(m.ZephyrMaker.Cbuild.BuildDescType.Define, "\n  ")
 	if len(defineList) > 0 {

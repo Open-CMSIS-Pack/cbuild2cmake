@@ -118,5 +118,11 @@ func TestUtils(t *testing.T) {
 		content, err := os.ReadFile(dst)
 		assert.Nil(err)
 		assert.Equal("copy-content", string(content))
+
+		// invalid paths are rejected
+		assert.Error(utils.CopyFile("../src.txt", dst))
+		assert.Error(utils.CopyFile(src, "../dst.txt"))
+		assert.Error(utils.CopyFile("", dst))
+		assert.Error(utils.CopyFile(src, ""))
 	})
 }
