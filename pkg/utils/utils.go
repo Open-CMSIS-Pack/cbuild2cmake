@@ -150,3 +150,18 @@ func ExtractDnamePname(s string) (string, string) {
 	}
 	return s, ""
 }
+
+func ExtractPackIdParts(s string) (vendor, name, version string) {
+	left, version, _ := strings.Cut(s, "@")
+	vendor, name, _ = strings.Cut(left, "::")
+	return
+}
+
+func CopyFile(src, dst string) error {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		return err
+	}
+	_ = os.MkdirAll(path.Dir(dst), 0755)
+	return os.WriteFile(dst, data, 0o600)
+}

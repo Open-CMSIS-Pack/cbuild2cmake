@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -26,12 +26,14 @@ type Options struct {
 	Debug         bool
 	Verbose       bool
 	UseContextSet bool
+	Zephyr        bool
 }
 
 type Vars struct {
 	CbuildIndex              CbuildIndex
 	CbuildSet                CbuildSet
 	Cbuilds                  []Cbuild
+	Clayers                  []Clayer
 	Contexts                 []string
 	EnvVars                  utils.EnvVars
 	GeneratedFiles           []string
@@ -42,6 +44,7 @@ type Vars struct {
 	SolutionTmpDir           string
 	SolutionRoot             string
 	SolutionName             string
+	ZephyrMaker              ZephyrMaker
 }
 
 type Maker struct {
@@ -68,6 +71,11 @@ func (m *Maker) GenerateCMakeLists() error {
 		m.CbuildIndex.BuildIdx.TmpDir = "tmp"
 	}
 	m.SolutionTmpDir = path.Join(m.CbuildIndex.BaseDir, m.CbuildIndex.BuildIdx.TmpDir)
+
+	// Create Zephyr modules
+	if m.Options.Zephyr {
+		return m.GenerateZephyrModules()
+	}
 
 	// Create roots.cmake
 	err = m.CMakeCreateRoots(m.SolutionRoot)

@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
@@ -92,12 +93,27 @@ type Cbuild struct {
 	LinkerLto          bool
 }
 
+type Clayer struct {
+	Layer struct {
+		Description string        `yaml:"description"`
+		Packs       []Packs       `yaml:"packs"`
+		Define      []interface{} `yaml:"define"`
+		Components  []struct {
+			Component string `yaml:"component"`
+		} `yaml:"components"`
+	} `yaml:"layer"`
+	Name    string
+	File    string
+	BaseDir string
+}
+
 type Cbuilds struct {
-	Cbuild        string   `yaml:"cbuild"`
-	Project       string   `yaml:"project"`
-	Configuration string   `yaml:"configuration"`
-	DependsOn     []string `yaml:"depends-on"`
-	West          bool     `yaml:"west"`
+	Cbuild        string    `yaml:"cbuild"`
+	Project       string    `yaml:"project"`
+	Configuration string    `yaml:"configuration"`
+	DependsOn     []string  `yaml:"depends-on"`
+	Clayers       []Clayers `yaml:"clayers"`
+	West          bool      `yaml:"west"`
 }
 
 type Clayers struct {
@@ -337,4 +353,34 @@ func (m *Maker) ParseCbuildFiles() error {
 		m.Cbuilds = append(m.Cbuilds, cbuild)
 	}
 	return err
+}
+
+func (m *Maker) ParseClayerFile(clayerFile string) (data Clayer, err error) {
+	yfile, err := os.ReadFile(clayerFile)
+	if err != nil {
+		return
+	}
+	err = yaml.Unmarshal(yfile, &data)
+	return
+}
+
+func (m *Maker) ParseClayerFiles() error {
+	// Parse clayer files
+	for _, clayerRef := range m.CbuildIndex.BuildIdx.Cbuilds[0].Clayers {
+		clayerFile := path.Join(m.CbuildIndex.BaseDir, clayerRef.Clayer)
+		if _, err := os.Stat(clayerFile); os.IsNotExist(err) {
+			log.Warn("file " + clayerFile + " was not found")
+			continue
+		}
+		clayer, err := m.ParseClayerFile(clayerFile)
+		if err != nil {
+			return err
+		}
+		clayer.File = filepath.ToSlash(clayerFile)
+		clayer.BaseDir, _ = filepath.Abs(path.Dir(clayerFile))
+		clayer.BaseDir = filepath.ToSlash(clayer.BaseDir)
+		clayer.Name = strings.TrimSuffix(filepath.Base(clayerFile), ".clayer.yml")
+		m.Clayers = append(m.Clayers, clayer)
+	}
+	return nil
 }

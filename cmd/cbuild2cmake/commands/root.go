@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2026 Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -94,12 +94,14 @@ func NewRootCmd() *cobra.Command {
 			debug, _ := cmd.Flags().GetBool("debug")
 			verbose, _ := cmd.Flags().GetBool("verbose")
 			useContextSet, _ := cmd.Flags().GetBool("context-set")
+			zephyr, _ := cmd.Flags().GetBool("zephyr")
 
 			options := maker.Options{
 				Quiet:         quiet,
 				Debug:         debug,
 				Verbose:       verbose,
 				UseContextSet: useContextSet,
+				Zephyr:        zephyr,
 			}
 
 			configs, _ := utils.GetInstallConfigs()
@@ -134,6 +136,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.Flags().BoolP("debug", "d", false, "Enable debug messages")
 	rootCmd.Flags().BoolP("verbose", "v", false, "Enable verbose messages from toolchain builds")
 	rootCmd.Flags().BoolP("context-set", "S", false, "Select the context names from cbuild-set.yml")
+	rootCmd.Flags().BoolP("zephyr", "z", false, "Generate Zephyr modules for clayer.yml files")
 
 	rootCmd.SetFlagErrorFunc(FlagErrorFunc)
 	return rootCmd
