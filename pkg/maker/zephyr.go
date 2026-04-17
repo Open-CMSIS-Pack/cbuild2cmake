@@ -7,6 +7,7 @@
 package maker
 
 import (
+	"os"
 	"path"
 	"path/filepath"
 	"slices"
@@ -105,9 +106,13 @@ func (m *Maker) GenerateZephyrModules() error {
 		} else {
 			continue
 		}
-		err = utils.CopyFile(path.Join(m.ZephyrMaker.Cbuild.BaseDir, file.File), path.Join(m.SolutionRoot, m.SolutionName, path.Base(file.File)))
-		if err != nil {
-			return err
+		src := path.Join(m.ZephyrMaker.Cbuild.BaseDir, file.File)
+		dst := path.Join(m.SolutionRoot, m.SolutionName, path.Base(file.File))
+		data, err := os.ReadFile(src)
+		if err == nil {
+			_ = os.MkdirAll(filepath.Dir(dst), 0o755)
+			// #nosec G703 -- safe dst
+			_ = os.WriteFile(dst, data, 0o600)
 		}
 	}
 

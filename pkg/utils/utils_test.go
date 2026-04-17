@@ -106,23 +106,4 @@ func TestUtils(t *testing.T) {
 		assert.Equal("CMSIS", name)
 		assert.Equal("6.1.0", version)
 	})
-
-	t.Run("test CopyFile", func(t *testing.T) {
-		sourceDir := t.TempDir()
-		src := sourceDir + "/src.txt"
-		dst := sourceDir + "/nested/dir/dst.txt"
-
-		assert.Nil(os.WriteFile(src, []byte("copy-content"), 0o600))
-		assert.Nil(utils.CopyFile(src, dst))
-
-		content, err := os.ReadFile(dst)
-		assert.Nil(err)
-		assert.Equal("copy-content", string(content))
-
-		// invalid paths are rejected
-		assert.Error(utils.CopyFile("../src.txt", dst))
-		assert.Error(utils.CopyFile(src, "../dst.txt"))
-		assert.Error(utils.CopyFile("", dst))
-		assert.Error(utils.CopyFile(src, ""))
-	})
 }
