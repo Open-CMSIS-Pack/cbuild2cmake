@@ -99,4 +99,11 @@ func TestUtils(t *testing.T) {
 		assert.Equal("DeviceName", dname)
 		assert.Equal("", pname)
 	})
+
+	t.Run("extract Pack ID parts", func(t *testing.T) {
+		vendor, name, version := utils.ExtractPackIdParts("ARM::CMSIS@6.1.0")
+		assert.Equal("ARM", vendor)
+		assert.Equal("CMSIS", name)
+		assert.Equal("6.1.0", version)
+	})
 }

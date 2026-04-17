@@ -26,6 +26,19 @@ func TestReplaceDelimiters(t *testing.T) {
 	})
 }
 
+func TestReplaceSpecialChars(t *testing.T) {
+	assert := assert.New(t)
+
+	t.Run("test replace special chars", func(t *testing.T) {
+		assert.Equal("Cvendor_Cbundle_Cclass_Cgroup_Cvariant_Cversion", maker.ReplaceSpecialChars("Cvendor&Cbundle::Cclass:Cgroup&Cvariant@Cversion"))
+		assert.Equal("ARM_CMSIS_CORE_A", maker.ReplaceSpecialChars("ARM::CMSIS.CORE A"))
+		assert.Equal("AC6_6_16_0", maker.ReplaceSpecialChars("AC6@>=6.16.0"))
+		assert.Equal("path_with_spaces", maker.ReplaceSpecialChars("path/with spaces"))
+		assert.Equal("Handlers__GCC_", maker.ReplaceSpecialChars("Handlers (GCC)"))
+		assert.Equal("name_with_dash", maker.ReplaceSpecialChars("name-with-dash"))
+	})
+}
+
 func TestBuildContent(t *testing.T) {
 	assert := assert.New(t)
 

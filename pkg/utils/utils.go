@@ -150,3 +150,9 @@ func ExtractDnamePname(s string) (string, string) {
 	}
 	return s, ""
 }
+
+func ExtractPackIdParts(s string) (vendor, name, version string) {
+	left, version, _ := strings.Cut(s, "@")
+	vendor, name, _ = strings.Cut(left, "::")
+	return
+}

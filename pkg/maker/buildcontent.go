@@ -88,7 +88,14 @@ func GetScope(file Files) string {
 }
 
 func ReplaceDelimiters(identifier string) string {
+	// replace component delimiters
 	pattern := regexp.MustCompile(`::|:|&|@>=|@|\.|/|\(|\)| `)
+	return pattern.ReplaceAllString(identifier, "_")
+}
+
+func ReplaceSpecialChars(identifier string) string {
+	// replace component delimiters and dash '-'
+	pattern := regexp.MustCompile(`::|:|&|@>=|@|\.|/|\(|\)|-| `)
 	return pattern.ReplaceAllString(identifier, "_")
 }
 
