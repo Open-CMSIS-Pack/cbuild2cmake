@@ -5,7 +5,7 @@ go 1.24.0
 toolchain go1.24.5
 
 require (
-	github.com/Masterminds/semver/v3 v3.4.0
+	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/Open-CMSIS-Pack/cbuild/v2 v2.13.0
 	github.com/gobs/sortedmap v1.0.0
 	github.com/otiai10/copy v1.14.1
