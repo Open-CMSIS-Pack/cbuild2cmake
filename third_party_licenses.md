@@ -2,7 +2,7 @@
 
 | __Name__ | __Version__ | __Licence__ |
 |----------|-------------|-------------|
-| github.com/Masterminds/semver/v3 | v3.4.0  | [MIT](https://github.com/Masterminds/semver/blob/v3.4.0/LICENSE.txt) |
+| github.com/Masterminds/semver/v3 | v3.5.0  | [MIT](https://github.com/Masterminds/semver/blob/v3.5.0/LICENSE.txt) |
 | github.com/Open-CMSIS-Pack/cbuild/v2/pkg | v2.13.0  | [Apache-2.0](https://github.com/Open-CMSIS-Pack/cbuild/blob/v2.13.0/LICENSE) |
 | github.com/aymanbagabas/go-pty | v0.2.2  | [MIT](https://github.com/aymanbagabas/go-pty/blob/v0.2.2/LICENSE) |
 | github.com/creack/pty | v1.1.21  | [MIT](https://github.com/creack/pty/blob/v1.1.21/LICENSE) |
