@@ -72,7 +72,7 @@ func TestZephyr(t *testing.T) {
 		text := string(content)
 		assert.Contains(text, "menuconfig CMSIS_LAYER_MAIN")
 		assert.Contains(text, "depends on CPP && STD_CPP17")
-		assert.Contains(text, "Source: layers/layer-main.clayer.yml")
+		assert.Contains(text, "Source: layer-main.clayer.yml")
 		assert.Contains(text, "config CMSIS_LAYER_MAIN_VENDOR_PACK_COMP")
 		assert.Contains(text, "Component: Vendor::Pack:Comp@1.0.0")
 	})
@@ -113,7 +113,8 @@ func TestZephyr(t *testing.T) {
 		cbuild.BuildDescType.Define = []interface{}{"DEF_SCALAR", map[string]interface{}{"DEF_KEY": "VALUE"}}
 		m.ZephyrMaker.Cbuild = &cbuild
 		m.ZephyrMaker.PackPaths = map[string]string{
-			"Vendor::Pack@1.0.0": "${CMAKE_CURRENT_LIST_DIR}/packs/vendor/pack",
+			"Another::Pack@2.0.0": "${CMAKE_CURRENT_LIST_DIR}/packs/another/pack",
+			"Vendor::Pack@1.0.0":  "${CMAKE_CURRENT_LIST_DIR}/packs/vendor/pack",
 		}
 		m.ZephyrMaker.CompileOptions = map[string][]string{
 			"C":   {"-O2"},
@@ -150,6 +151,7 @@ func TestZephyr(t *testing.T) {
 		assert.NoError(err)
 		text := string(content)
 		assert.Contains(text, "set(CMSIS_PACK_ROOT $ENV{CMSIS_PACK_ROOT})")
+		assert.Less(strings.Index(text, "cmake_path(SET ANOTHER_PACK NORMALIZE"), strings.Index(text, "cmake_path(SET VENDOR_PACK NORMALIZE"))
 		assert.Contains(text, "cmake_path(SET VENDOR_PACK NORMALIZE \"${CMAKE_CURRENT_LIST_DIR}/packs/vendor/pack\")")
 		assert.Contains(text, "if(NOT EXISTS \"${VENDOR_PACK}/Vendor.Pack.pdsc\")")
 		assert.Contains(text, "cmake_path(SET VENDOR_PACK NORMALIZE \"${CMSIS_PACK_ROOT}/Vendor/Pack/1.0.0\")")
@@ -175,6 +177,12 @@ func TestZephyr(t *testing.T) {
 		assert := assert.New(t)
 		require := require.New(t)
 		root := filepath.ToSlash(t.TempDir())
+		wd, err := os.Getwd()
+		require.NoError(err)
+		require.NoError(os.Chdir(root))
+		t.Cleanup(func() {
+			_ = os.Chdir(wd)
+		})
 		baseDir := path.Join(root, "build")
 		require.NoError(os.MkdirAll(baseDir, 0o755))
 
@@ -231,7 +239,7 @@ func TestZephyr(t *testing.T) {
 		}
 		m.Cbuilds = []maker.Cbuild{cbuild}
 
-		err := m.GenerateZephyrModules()
+		err = m.GenerateZephyrModules()
 		assert.NoError(err)
 		assert.True(m.ZephyrMaker.RteComponents)
 		assert.True(m.ZephyrMaker.PreIncludeGlobal)
