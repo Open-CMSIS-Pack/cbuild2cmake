@@ -166,8 +166,6 @@ func (m *Maker) GenerateModuleKconfig() error {
 	// Iterate over zephyr layers
 	for _, zephyrLayer := range m.ZephyrMaker.Layers {
 		menuConfigName := "CMSIS_" + strings.ToUpper(ReplaceSpecialChars(zephyrLayer.Clayer.Name))
-		source, _ := filepath.Rel(m.SolutionRoot, zephyrLayer.Clayer.File)
-		source = filepath.ToSlash(source)
 		cpp := ""
 		if slices.Contains(m.ZephyrMaker.Cbuild.Languages, "CXX") {
 			cpp = "\n    depends on CPP && STD_CPP17"
@@ -177,7 +175,7 @@ func (m *Maker) GenerateModuleKconfig() error {
     default y
     help
         ` + zephyrLayer.Clayer.Layer.Description + `
-        Source: ` + source + "\n\n"
+        Source: ` + filepath.Base(zephyrLayer.Clayer.File) + "\n\n"
 
 		// Iterate over components
 		content += "if " + menuConfigName + "\n\n"
@@ -229,7 +227,9 @@ func (m *Maker) GenerateModuleCMakeSources() error {
 		fallback := ""
 		pdscs := []string{}
 		// Iterate over used packs and set pack paths
-		for packId, packPath := range m.ZephyrMaker.PackPaths {
+		for _, pack := range sortedmap.AsSortedMap(m.ZephyrMaker.PackPaths) {
+			packId := pack.Key
+			packPath := pack.Value
 			packName := strings.ToUpper(ReplaceSpecialChars(strings.SplitN(packId, "@", 2)[0]))
 			content += "cmake_path(SET " + packName + " NORMALIZE \"" + packPath + "\")\n"
 			vendor, name, version := utils.ExtractPackIdParts(packId)
