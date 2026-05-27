@@ -1,6 +1,6 @@
 module github.com/Open-CMSIS-Pack/cbuild2cmake
 
-go 1.25.0
+go 1.26
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0
@@ -23,8 +23,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/u-root/u-root v0.16.0 // indirect
-	golang.org/x/crypto v0.51.0 // indirect
+	golang.org/x/crypto v0.52.0 // indirect
 	golang.org/x/sync v0.18.0 // indirect
-	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/term v0.43.0 // indirect
 )
