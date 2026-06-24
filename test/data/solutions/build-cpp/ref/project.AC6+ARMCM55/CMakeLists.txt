@@ -20,7 +20,7 @@ set(LD_SCRIPT_PP ${LD_SCRIPT})
 set(CPU Cortex-M55)
 set(FPU DP_FPU)
 set(DSP DSP)
-set(MVE FP_FVE)
+set(MVE FP_MVE)
 
 # Toolchain config map
 set(COMPILER AC6)
