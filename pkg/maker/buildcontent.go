@@ -684,7 +684,7 @@ func (c *Cbuild) ProcessorOptions() string {
 	}
 
 	var MveMap = map[string]string{
-		"fp":  "FP_FVE",
+		"fp":  "FP_MVE",
 		"int": "MVE",
 		"off": "NO_MVE",
 	}
