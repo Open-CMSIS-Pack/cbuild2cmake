@@ -8,3 +8,4 @@ project:
     - group: Source
       files:
         - file: ./main.c
+        - file: ./libr ary.a

@@ -83,6 +83,7 @@ target_link_libraries(${CONTEXT} PUBLIC
   Group_Source
   ARM_CMSIS_CORE_6_1_0
   ARM_Device_Startup_C_Startup_2_2_0
+  "${SOLUTION_ROOT}/project/libr ary.a"
 )
 
 # Linker options

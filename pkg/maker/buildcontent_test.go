@@ -455,6 +455,20 @@ add_dependencies(project.debug+target-executes
 		assert.Contains(linkerOptions, "--linkCPP-flag")
 	})
 
+	t.Run("test quote link libraries with spaces", func(t *testing.T) {
+		var cbuild maker.Cbuild
+		content := cbuild.CMakeTargetLinkLibraries("TARGET", "PUBLIC",
+			"libnospace.a",
+			"  libnospace2.a",
+			"  C:/Program Files/vendor/lib with spaces.a",
+			"  \"C:/Program Files/vendor/already quoted.a\"")
+
+		assert.Contains(content, "\n  libnospace.a")
+		assert.Contains(content, "\n    libnospace2.a")
+		assert.Contains(content, "\n    \"C:/Program Files/vendor/lib with spaces.a\"")
+		assert.Contains(content, "\n    \"C:/Program Files/vendor/already quoted.a\"")
+	})
+
 	t.Run("test linker options with pre-processing", func(t *testing.T) {
 		var cbuild maker.Cbuild
 		define := make([]interface{}, 1)
