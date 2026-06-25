@@ -389,7 +389,7 @@ func (c *Cbuild) CMakeTargetLinkLibrariesGlobal() string {
 
 	// set content
 	for _, library := range libraries {
-		content += "\n  " + library
+		content += "\n  " + quoteEntry(library)
 	}
 	content += "\n)"
 	return content
@@ -398,10 +398,25 @@ func (c *Cbuild) CMakeTargetLinkLibrariesGlobal() string {
 func (c *Cbuild) CMakeTargetLinkLibraries(name string, scope string, libraries ...string) string {
 	content := "\ntarget_link_libraries(" + name + " " + scope
 	for _, library := range libraries {
-		content += "\n  " + library
+		content += "\n  " + quoteEntry(library)
 	}
 	content += "\n)"
 	return content
+}
+
+func quoteEntry(entry string) string {
+	trimmed := strings.TrimLeft(entry, " ")
+	if len(trimmed) == 0 {
+		return entry
+	}
+	if !strings.Contains(trimmed, " ") {
+		return entry
+	}
+	leadingSpaces := entry[:len(entry)-len(trimmed)]
+	if strings.HasPrefix(trimmed, "\"") && strings.HasSuffix(trimmed, "\"") {
+		return entry
+	}
+	return leadingSpaces + "\"" + trimmed + "\""
 }
 
 func (c *Cbuild) CMakeTargetCompileOptions(name string, scope string, lto bool, misc Misc, preIncludes []string, parent string) string {

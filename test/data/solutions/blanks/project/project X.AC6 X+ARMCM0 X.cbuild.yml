@@ -107,6 +107,8 @@ build:
       files:
         - file: main.c
           category: sourceC
+        - file: libr ary.a
+          category: library
   constructed-files:
     - file: RTE/_AC6_X_ARMCM0_X/RTE_Components.h
       category: header
