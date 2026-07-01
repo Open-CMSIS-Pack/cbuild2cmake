@@ -18,7 +18,7 @@ jobs:
     permissions:
       contents: read
       actions: write
-    uses: Open-CMSIS-Pack/workflows-and-actions-collection/.github/workflows/build-and-verify.yml@v2.0.0
+    uses: Open-CMSIS-Pack/workflows-and-actions-collection/.github/workflows/build-and-verify.yml@v3.0.0
     with:
       program: cbuild2cmake
       go-version-file: ./go.mod
