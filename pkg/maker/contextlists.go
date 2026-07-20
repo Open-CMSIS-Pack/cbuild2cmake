@@ -70,6 +70,7 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 			systemIncludes += "\nset(CMAKE_" + language + "_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_" + language + "_IMPLICIT_INCLUDE_DIRECTORIES})"
 		}
 	}
+	preprocessorOptions, compileMacros, compileMacroDependencies, compileMacroCommands := cbuild.PreprocessorOptions()
 
 	// Constructed files: collect headers and global pre-includes
 	constructedFiles := cbuild.ClassifyFiles(cbuild.BuildDescType.ConstructedFiles)
@@ -124,8 +125,7 @@ set(DPACK_DIR "` + cbuild.AddRootPrefix(cbuild.ContextRoot, cbuild.GetDpackDir()
 set(OUT_DIR "` + outDir + `")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COMPILE_COMMANDS ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json)
-set(COMPILE_COMMANDS ${OUT_DIR}/compile_commands.json)
-set(COMPILE_MACROS ${OUT_DIR}/compile_macros.h)` + outputByProducts + linkerVars + `
+set(COMPILE_COMMANDS ${OUT_DIR}/compile_commands.json)` + compileMacros + outputByProducts + linkerVars + `
 
 # Processor Options` + cbuild.ProcessorOptions() + `
 
@@ -139,15 +139,15 @@ project(${CONTEXT} LANGUAGES ` + strings.Join(cbuild.Languages, " ") + `)
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
+# Preprocessor options` + preprocessorOptions + `
+
 # Compilation database
-add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS})
+add_custom_target(database DEPENDS ${COMPILE_COMMANDS}` + compileMacroDependencies + `)
 add_custom_command(OUTPUT ${COMPILE_COMMANDS}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_COMPILE_COMMANDS}" "${COMPILE_COMMANDS}"
   DEPENDS "${CMAKE_COMPILE_COMMANDS}"
 )
-add_custom_command(OUTPUT ${COMPILE_MACROS}
-  COMMAND ${CPP} ${CPP_DUMP_MACROS}
-)` + systemIncludes + `
+` + compileMacroCommands + systemIncludes + `
 
 # Setup context
 ` + cmakeTargetType + `(${CONTEXT})
@@ -174,6 +174,38 @@ include("components.cmake")
 		return err
 	}
 	return err
+}
+
+func (c *Cbuild) PreprocessorOptions() (options string, macros string, dependencies string, commands string) {
+	var commandLines string
+	for _, language := range c.Languages {
+		var languageOption string
+		var miscOptions []string
+		switch language {
+		case "C":
+			languageOption = "-xc"
+			miscOptions = append(c.BuildDescType.Misc.C, c.BuildDescType.Misc.CCPP...)
+		case "CXX":
+			languageOption = "-xc++"
+			miscOptions = append(c.BuildDescType.Misc.CPP, c.BuildDescType.Misc.CCPP...)
+		default:
+			continue
+		}
+
+		options += "\nset(CPP_OPTIONS_" + language + " \"" + languageOption + "\""
+		for _, option := range miscOptions {
+			option = strings.ReplaceAll(c.AdjustRelativePath(option), "\"", "\\\"")
+			options += " \"" + option + "\""
+		}
+		options += ")"
+		macros += "\nset(COMPILE_MACROS_" + language + " ${OUT_DIR}/compile_macros_" + strings.ToLower(language) + ".h)"
+		dependencies += " ${COMPILE_MACROS_" + language + "}"
+		commandLines += "\n  COMMAND ${CPP} ${CPP_OPTIONS_" + language + "} ${CPP_DUMP_MACROS} \"${COMPILE_MACROS_" + language + "}\""
+	}
+	if len(commandLines) > 0 {
+		commands = "add_custom_command(OUTPUT" + dependencies + commandLines + "\n)"
+	}
+	return options, macros, dependencies, commands
 }
 
 func (m *Maker) CMakeCreateToolchain(index int, contextDir string, inc bool) error {
