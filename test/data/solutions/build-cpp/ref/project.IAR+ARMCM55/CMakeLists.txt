@@ -35,8 +35,8 @@ project(${CONTEXT} LANGUAGES CXX C)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 # Preprocessor options
-set(CPP_OPTIONS_CXX "-xc++" "--dlib_config DLib_Config_Full.h")
-set(CPP_OPTIONS_C "-xc" "--dlib_config DLib_Config_Full.h")
+set(CPP_OPTIONS_CXX "--c++" "--dlib_config DLib_Config_Full.h")
+set(CPP_OPTIONS_C "--dlib_config DLib_Config_Full.h")
 
 # Compilation database
 add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS_CXX} ${COMPILE_MACROS_C})

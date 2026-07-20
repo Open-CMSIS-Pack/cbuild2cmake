@@ -44,4 +44,19 @@ func TestContextLists(t *testing.T) {
 		assert.Equal("add_custom_command(OUTPUT ${COMPILE_MACROS_C} ${COMPILE_MACROS_CXX}\n  COMMAND ${CPP} ${CPP_OPTIONS_C} ${CPP_DUMP_MACROS} \"${COMPILE_MACROS_C}\"\n  COMMAND ${CPP} ${CPP_OPTIONS_CXX} ${CPP_DUMP_MACROS} \"${COMPILE_MACROS_CXX}\"\n)", commands)
 		assert.NotContains(options+macros+dependencies+commands, "ASM")
 	})
+
+	t.Run("test IAR preprocessor options", func(t *testing.T) {
+		var cbuild maker.Cbuild
+		cbuild.Toolchain = "IAR"
+		cbuild.Languages = []string{"C", "CXX"}
+		cbuild.BuildDescType.Misc = maker.Misc{
+			C:   []string{"--c-option"},
+			CPP: []string{"--cxx-option"},
+		}
+
+		options, _, _, _ := cbuild.PreprocessorOptions()
+		assert.Contains(options, "set(CPP_OPTIONS_C \"--c-option\")")
+		assert.Contains(options, "set(CPP_OPTIONS_CXX \"--c++\" \"--cxx-option\")")
+		assert.NotContains(options, "-xc")
+	})
 }

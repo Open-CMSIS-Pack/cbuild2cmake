@@ -191,8 +191,18 @@ func (c *Cbuild) PreprocessorOptions() (options string, macros string, dependenc
 		default:
 			continue
 		}
+		if c.Toolchain == "IAR" {
+			if language == "CXX" {
+				languageOption = "--c++"
+			} else {
+				languageOption = ""
+			}
+		}
 
-		options += "\nset(CPP_OPTIONS_" + language + " \"" + languageOption + "\""
+		options += "\nset(CPP_OPTIONS_" + language
+		if len(languageOption) > 0 {
+			options += " \"" + languageOption + "\""
+		}
 		for _, option := range miscOptions {
 			option = strings.ReplaceAll(c.AdjustRelativePath(option), "\"", "\\\"")
 			options += " \"" + option + "\""
