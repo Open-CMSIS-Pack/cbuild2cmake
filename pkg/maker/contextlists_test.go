@@ -45,6 +45,17 @@ func TestContextLists(t *testing.T) {
 		assert.NotContains(options+macros+dependencies+commands, "ASM")
 	})
 
+	t.Run("test preprocessor options with spaces", func(t *testing.T) {
+		var cbuild maker.Cbuild
+		cbuild.Languages = []string{"C"}
+		cbuild.BuildDescType.Misc = maker.Misc{
+			C: []string{`-DTEST=1 -include "path with spaces/header.h" -Wall`},
+		}
+
+		options, _, _, _ := cbuild.PreprocessorOptions()
+		assert.Contains(options, `set(CPP_OPTIONS_C "-xc" "-DTEST=1" "-include" "\"path with spaces/header.h\"" "-Wall")`)
+	})
+
 	t.Run("test IAR preprocessor options", func(t *testing.T) {
 		var cbuild maker.Cbuild
 		cbuild.Toolchain = "IAR"

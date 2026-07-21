@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/utils"
 	"golang.org/x/exp/maps"
@@ -204,8 +205,11 @@ func (c *Cbuild) PreprocessorOptions() (options string, macros string, dependenc
 			options += " \"" + languageOption + "\""
 		}
 		for _, option := range miscOptions {
-			option = strings.ReplaceAll(c.AdjustRelativePath(option), "\"", "\\\"")
-			options += " \"" + option + "\""
+			option = c.AdjustRelativePath(option)
+			for _, argument := range splitPreprocessorOption(option) {
+				argument = strings.ReplaceAll(argument, "\"", "\\\"")
+				options += " \"" + argument + "\""
+			}
 		}
 		options += ")"
 		macros += "\nset(COMPILE_MACROS_" + language + " ${OUT_DIR}/compile_macros_" + strings.ToLower(language) + ".h)"
@@ -216,6 +220,29 @@ func (c *Cbuild) PreprocessorOptions() (options string, macros string, dependenc
 		commands = "add_custom_command(OUTPUT" + dependencies + commandLines + "\n)"
 	}
 	return options, macros, dependencies, commands
+}
+
+func splitPreprocessorOption(option string) []string {
+	var arguments []string
+	var argument strings.Builder
+	inQuotes := false
+	for _, character := range option {
+		if character == '"' {
+			inQuotes = !inQuotes
+		}
+		if unicode.IsSpace(character) && !inQuotes {
+			if argument.Len() > 0 {
+				arguments = append(arguments, argument.String())
+				argument.Reset()
+			}
+			continue
+		}
+		argument.WriteRune(character)
+	}
+	if argument.Len() > 0 {
+		arguments = append(arguments, argument.String())
+	}
+	return arguments
 }
 
 func (m *Maker) CMakeCreateToolchain(index int, contextDir string, inc bool) error {

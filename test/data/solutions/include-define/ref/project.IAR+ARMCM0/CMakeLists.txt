@@ -32,7 +32,7 @@ project(${CONTEXT} LANGUAGES C)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 # Preprocessor options
-set(CPP_OPTIONS_C "--dlib_config DLib_Config_Full.h")
+set(CPP_OPTIONS_C "--dlib_config" "DLib_Config_Full.h")
 
 # Compilation database
 add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS_C})
