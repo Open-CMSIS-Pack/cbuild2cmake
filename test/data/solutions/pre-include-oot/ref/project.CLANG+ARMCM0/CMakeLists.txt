@@ -12,7 +12,7 @@ set(OUT_DIR "${SOLUTION_ROOT}/../pre-include-oot/out/project/ARMCM0/CLANG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COMPILE_COMMANDS ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json)
 set(COMPILE_COMMANDS ${OUT_DIR}/compile_commands.json)
-set(COMPILE_MACROS ${OUT_DIR}/compile_macros.h)
+set(COMPILE_MACROS_C ${OUT_DIR}/compile_macros_c.h)
 set(LD_SCRIPT "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/clang_linker_script.ld.src")
 set(LD_REGIONS "${SOLUTION_ROOT}/project/RTE/Device/ARMCM0/regions_ARMCM0.h")
 set(LD_SCRIPT_PP "${CMAKE_CURRENT_BINARY_DIR}/clang_linker_script.ld")
@@ -31,14 +31,17 @@ project(${CONTEXT} LANGUAGES C)
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
+# Preprocessor options
+set(CPP_OPTIONS_C "-xc" "-std=gnu11" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
+
 # Compilation database
-add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS})
+add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS_C})
 add_custom_command(OUTPUT ${COMPILE_COMMANDS}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_COMPILE_COMMANDS}" "${COMPILE_COMMANDS}"
   DEPENDS "${CMAKE_COMPILE_COMMANDS}"
 )
-add_custom_command(OUTPUT ${COMPILE_MACROS}
-  COMMAND ${CPP} ${CPP_DUMP_MACROS}
+add_custom_command(OUTPUT ${COMPILE_MACROS_C}
+  COMMAND ${CPP} ${CPP_OPTIONS_C} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_C}"
 )
 set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES})
 
