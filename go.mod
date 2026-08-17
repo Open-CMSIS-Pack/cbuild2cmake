@@ -7,7 +7,7 @@ require (
 	github.com/Open-CMSIS-Pack/cbuild/v2 v2.14.0
 	github.com/gobs/sortedmap v1.0.0
 	github.com/otiai10/copy v1.14.1
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
