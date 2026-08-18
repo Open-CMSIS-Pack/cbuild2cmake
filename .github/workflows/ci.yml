@@ -27,10 +27,10 @@ jobs:
     with:
       program: cbuild2cmake
       go-version-file: ./go.mod
-      enable-qlty-coverage: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
+      enable-qlty-coverage: ${{ !(github.event_name == 'pull_request' && (github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]'))}}
 
   publish-test-results:
-    name: "Publish Tests Results"
+    name: "Publish Test Results"
     needs: [ build-and-verify ]
     runs-on: ubuntu-latest
     permissions:
