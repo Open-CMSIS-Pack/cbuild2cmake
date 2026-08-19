@@ -7,7 +7,7 @@
 | github.com/aymanbagabas/go-pty | v0.2.3  | [MIT](https://github.com/aymanbagabas/go-pty/blob/v0.2.3/LICENSE) |
 | github.com/creack/pty | v1.1.24  | [MIT](https://github.com/creack/pty/blob/v1.1.24/LICENSE) |
 | github.com/gobs/sortedmap | v1.0.0  | [MIT](https://github.com/gobs/sortedmap/blob/v1.0.0/LICENSE) |
-| github.com/sirupsen/logrus | v1.9.4  | [MIT](https://github.com/sirupsen/logrus/blob/v1.9.4/LICENSE) |
+| github.com/sirupsen/logrus | v1.10.0  | [MIT](https://github.com/sirupsen/logrus/blob/v1.10.0/LICENSE) |
 | github.com/spf13/cobra | v1.10.2  | [Apache-2.0](https://github.com/spf13/cobra/blob/v1.10.2/LICENSE.txt) |
 | github.com/spf13/pflag | v1.0.10  | [BSD-3-Clause](https://github.com/spf13/pflag/blob/v1.0.10/LICENSE) |
 | github.com/u-root/u-root/pkg/termios | v0.16.0  | [BSD-3-Clause](https://github.com/u-root/u-root/blob/v0.16.0/LICENSE) |
