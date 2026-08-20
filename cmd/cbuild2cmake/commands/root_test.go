@@ -353,6 +353,20 @@ set(OUTPUTS_1
 		assert.False(mismatch)
 	})
 
+	t.Run("test native cmake solution", func(t *testing.T) {
+		cmd := commands.NewRootCmd()
+		testCaseRoot := testRoot + "/run/solutions/cmake-support"
+		cbuildIdxFile := testCaseRoot + "/solution.cbuild-idx.yml"
+		cmd.SetArgs([]string{cbuildIdxFile, "--debug"})
+		err := cmd.Execute()
+		assert.Nil(err)
+
+		// check golden references
+		err, mismatch := inittest.CompareFiles(testCaseRoot+"/ref", testCaseRoot+"/tmp/CM0/default")
+		assert.Nil(err)
+		assert.False(mismatch)
+	})
+
 	t.Run("test link whole archive", func(t *testing.T) {
 		cmd := commands.NewRootCmd()
 		testCaseRoot := testRoot + "/run/solutions/link-lib"

@@ -1,0 +1,14 @@
+build-idx:
+  generated-by: csolution version 2.14.1+p58-g3fd82d46
+  csolution: solution.csolution.yml
+  cbuild-run: out/solution+CM0.cbuild-run.yml
+  tmpdir: tmp/CM0/default
+  cbuilds:
+    - cbuild: out/core0/CM0/Debug/core0.Debug+CM0.cbuild.yml
+      cmake: true
+      project: core0
+      configuration: .Debug+CM0
+    - cbuild: out/explicit-core1/CM0/Debug/explicit-core1.Debug+CM0.cbuild.yml
+      cmake: true
+      project: explicit-core1
+      configuration: .Debug+CM0

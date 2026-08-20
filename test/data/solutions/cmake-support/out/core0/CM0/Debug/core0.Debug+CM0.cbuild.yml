@@ -1,0 +1,36 @@
+build:
+  generated-by: csolution version 2.14.1+p58-g3fd82d46
+  solution: ../../../../solution.csolution.yml
+  context: core0.Debug+CM0
+  compiler: AC6
+  board: Keil::RteTest Dummy board:1.2.3
+  board-pack: ARM::RteTest_DFP@0.1.0
+  device: ARM::RteTest_ARMCM0_Dual:cm0_core0
+  device-pack: ARM::RteTest_DFP@0.1.0
+  device-books:
+    - name: http://infocenter.arm.com/help/topic/com.arm.doc.dui0497a/index.html
+      title: Cortex-M0 Device Generic Users Guide
+  packs:
+    - pack: ARM::RteTest_DFP@0.1.0
+      path: ${CMSIS_PACK_ROOT}/ARM/RteTest_DFP/0.2.0
+  output:
+    - type: elf
+      file: build/core0.elf
+    - type: comp-db
+      file: compile_commands.json
+    - type: comp-db
+      file: compile_macros.h
+  licenses:
+    - license: <unknown>
+      packs:
+        - pack: ARM::RteTest_DFP@0.1.0
+  cmake:
+    project-id: core0
+    source: ../../../../cmake/core0
+    generator: Ninja Multi-Config
+    configure:
+      - -DCMAKE_BUILD_TYPE=Debug
+    target: core0-target
+    images:
+      - image: build/core0.elf
+        type: elf

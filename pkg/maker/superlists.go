@@ -20,13 +20,18 @@ const CMAKE_MIN_REQUIRED = "3.27"
 
 func (m *Maker) CreateSuperCMakeLists() error {
 	// Iterate over cbuilds
-	var contexts, dirs, westContextFlags, contextOutputs, compilers string
+	var contexts, dirs, westContextFlags, nativeCMakeContextFlags, contextOutputs, compilers string
 	west := false
+	nativeCMake := false
 	for i, cbuild := range m.Cbuilds {
 		contexts = contexts + "  \"" + strings.ReplaceAll(cbuild.BuildDescType.Context, " ", "_") + "\"\n"
 		dirs = dirs + "  \"${CMAKE_CURRENT_SOURCE_DIR}/" + cbuild.BuildDescType.Context + "\"\n"
-		west = west || (cbuild.BuildDescType.West.AppPath != "")
-		westContextFlags = westContextFlags + "  \"" + strconv.FormatBool(west) + "\"\n"
+		westContext := cbuild.WestContext
+		nativeCMakeContext := cbuild.NativeCMakeContext
+		west = west || westContext
+		nativeCMake = nativeCMake || nativeCMakeContext
+		westContextFlags += "  \"" + strconv.FormatBool(westContext) + "\"\n"
+		nativeCMakeContextFlags += "  \"" + strconv.FormatBool(nativeCMakeContext) + "\"\n"
 
 		compilers += "  \"" + m.RegisteredToolchains[m.SelectedToolchainVersion[i]].Name +
 			" V" + m.SelectedToolchainVersion[i].String() + "\"\n"
@@ -34,24 +39,35 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		var contextOutputsName = "OUTPUTS_" + strconv.Itoa(i+1)
 		contextOutputs += "\nset(" + contextOutputsName + "\n"
 
-		var outputFile string
-		for _, output := range cbuild.BuildDescType.Output {
-			outputFile = output.File
-
-			cbuildRelativePath, _ := filepath.Rel(m.SolutionRoot, cbuild.BaseDir)
-			cbuildRelativePath = filepath.ToSlash(cbuildRelativePath)
-			output := cbuild.AddRootPrefix(cbuildRelativePath, path.Join(cbuild.BuildDescType.OutputDirs.Outdir, outputFile))
-			contextOutputs += "  \"" + output + "\"\n"
+		cbuildRelativePath, _ := filepath.Rel(m.SolutionRoot, cbuild.BaseDir)
+		cbuildRelativePath = filepath.ToSlash(cbuildRelativePath)
+		if nativeCMakeContext {
+			for _, image := range cbuild.BuildDescType.CMake.Images {
+				output := cbuild.AddRootPrefix(cbuildRelativePath, path.Join(cbuild.BuildDescType.OutputDirs.Outdir, image.Image))
+				contextOutputs += "  \"" + output + "\"\n"
+			}
+		} else {
+			for _, buildOutput := range cbuild.BuildDescType.Output {
+				output := cbuild.AddRootPrefix(cbuildRelativePath, path.Join(cbuild.BuildDescType.OutputDirs.Outdir, buildOutput.File))
+				contextOutputs += "  \"" + output + "\"\n"
+			}
 		}
 
 		contextOutputs += ")"
 	}
 
-	var westContexts, westContextCheck, westTarget, excludeFromMain string
+	var westContexts, westContextCheck, westTarget string
+	var nativeCMakeContexts, nativeCMakeContextCheck, nativeCMakeTarget, excludeFromMain string
 	if west {
 		westContexts = "\nset(WEST_CONTEXTS\n" + westContextFlags + ")\n"
 		westContextCheck = "\n  list(GET WEST_CONTEXTS ${INDEX} WEST_CONTEXT)\n  if(WEST_CONTEXT)\n    set(WEST_TARGET \"--target west\")\n  endif()"
 		westTarget = " ${WEST_TARGET}"
+		excludeFromMain = "\n    EXCLUDE_FROM_MAIN TRUE"
+	}
+	if nativeCMake {
+		nativeCMakeContexts = "\nset(NATIVE_CMAKE_CONTEXTS\n" + nativeCMakeContextFlags + ")\n"
+		nativeCMakeContextCheck = "\n  list(GET NATIVE_CMAKE_CONTEXTS ${INDEX} NATIVE_CMAKE_CONTEXT)\n  if(NATIVE_CMAKE_CONTEXT)\n    set(NATIVE_CMAKE_TARGET \"--target cmake\")\n  else()\n    set(NATIVE_CMAKE_TARGET \"\")\n  endif()"
+		nativeCMakeTarget = " ${NATIVE_CMAKE_TARGET}"
 		excludeFromMain = "\n    EXCLUDE_FROM_MAIN TRUE"
 	}
 
@@ -61,7 +77,7 @@ func (m *Maker) CreateSuperCMakeLists() error {
 	} else {
 		logConfigure = "\n    LOG_CONFIGURE         ON"
 		logConfigure += "\n    LOG_OUTPUT_ON_FAILURE ON"
-		if !west {
+		if !west && !nativeCMake {
 			stepLog = "\n    LOG               TRUE"
 		}
 	}
@@ -90,7 +106,7 @@ set(COMPILERS
 
 set(DIRS
 ` + dirs + `)
-` + westContexts + contextOutputs + `
+` + westContexts + nativeCMakeContexts + contextOutputs + `
 
 set(ARGS
   "-DSOLUTION_ROOT=${SOLUTION_ROOT}"
@@ -107,7 +123,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
   math(EXPR N "${INDEX}+1")
   list(GET CONTEXTS ${INDEX} CONTEXT)
   list(GET COMPILERS ${INDEX} COMPILER)
-  list(GET DIRS ${INDEX} DIR)` + westContextCheck + `
+  list(GET DIRS ${INDEX} DIR)` + westContextCheck + nativeCMakeContextCheck + `
 
   # Create external project, set configure and build steps
   ExternalProject_Add(${CONTEXT}
@@ -119,7 +135,7 @@ foreach(INDEX RANGE ${CONTEXTS_LENGTH})
     CONFIGURE_COMMAND     ${CMAKE_COMMAND} -G Ninja -S <SOURCE_DIR> -B <BINARY_DIR> ${ARGS} 
     BUILD_COMMAND         ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold "Building CMake target '${CONTEXT}'"
     COMMAND               ${CMAKE_COMMAND} -E echo "Using compiler: ${COMPILER}"
-    COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR>` + westTarget + verbosity + `
+    COMMAND               ${CMAKE_COMMAND} --build <BINARY_DIR>` + westTarget + nativeCMakeTarget + verbosity + `
     BUILD_ALWAYS          TRUE
     BUILD_BYPRODUCTS      ${OUTPUTS_${N}}` + logConfigure + `
     USES_TERMINAL_BUILD   ON

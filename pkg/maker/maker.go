@@ -102,8 +102,10 @@ func (m *Maker) GenerateCMakeLists() error {
 
 	// Create context specific CMake files
 	for index := range m.Cbuilds {
-		if m.CbuildIndex.BuildIdx.Cbuilds[index].West {
+		if m.Cbuilds[index].WestContext {
 			err = m.CreateWestCMakeLists(index)
+		} else if m.Cbuilds[index].NativeCMakeContext {
+			err = m.CreateNativeCMakeLists(index)
 		} else {
 			err = m.CreateContextCMakeLists(index)
 		}
