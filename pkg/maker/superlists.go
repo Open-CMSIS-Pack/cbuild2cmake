@@ -39,7 +39,11 @@ func (m *Maker) CreateSuperCMakeLists() error {
 		var contextOutputsName = "OUTPUTS_" + strconv.Itoa(i+1)
 		contextOutputs += "\nset(" + contextOutputsName + "\n"
 
-		cbuildRelativePath, _ := filepath.Rel(m.SolutionRoot, cbuild.BaseDir)
+		cbuildRelativePath, err := filepath.Rel(m.SolutionRoot, cbuild.BaseDir)
+		if err != nil {
+			log.Error("derive cbuild path for ", cbuild.BaseDir, " relative to solution root ", m.SolutionRoot, ": ", err)
+			return err
+		}
 		cbuildRelativePath = filepath.ToSlash(cbuildRelativePath)
 		if nativeCMakeContext {
 			for _, image := range cbuild.BuildDescType.CMake.Images {
@@ -66,7 +70,7 @@ func (m *Maker) CreateSuperCMakeLists() error {
 	}
 	if nativeCMake {
 		nativeCMakeContexts = "\nset(NATIVE_CMAKE_CONTEXTS\n" + nativeCMakeContextFlags + ")\n"
-		nativeCMakeContextCheck = "\n  list(GET NATIVE_CMAKE_CONTEXTS ${INDEX} NATIVE_CMAKE_CONTEXT)\n  if(NATIVE_CMAKE_CONTEXT)\n    set(NATIVE_CMAKE_TARGET \"--target cmake\")\n  else()\n    set(NATIVE_CMAKE_TARGET \"\")\n  endif()"
+		nativeCMakeContextCheck = "\n  list(GET NATIVE_CMAKE_CONTEXTS ${INDEX} NATIVE_CMAKE_CONTEXT)\n  if(NATIVE_CMAKE_CONTEXT)\n    set(NATIVE_CMAKE_TARGET \"--target cmake\")\n  endif()"
 		nativeCMakeTarget = " ${NATIVE_CMAKE_TARGET}"
 		excludeFromMain = "\n    EXCLUDE_FROM_MAIN TRUE"
 	}

@@ -8,8 +8,11 @@ package maker_test
 
 import (
 	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 
+	semver "github.com/Masterminds/semver/v3"
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/maker"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,6 +39,34 @@ func TestNativeCMake(t *testing.T) {
 
 	super, err := os.ReadFile(testRoot + "/data/solutions/cmake-support/tmp/CM0/default/CMakeLists.txt")
 	require.NoError(t, err)
-	assert.Contains(t, string(super), "if(NATIVE_CMAKE_CONTEXT)\n    set(NATIVE_CMAKE_TARGET \"--target cmake\")\n  else()\n    set(NATIVE_CMAKE_TARGET \"\")\n  endif()")
+	assert.Contains(t, string(super), "if(NATIVE_CMAKE_CONTEXT)\n    set(NATIVE_CMAKE_TARGET \"--target cmake\")\n  endif()")
+	assert.NotContains(t, string(super), "set(NATIVE_CMAKE_TARGET \"\")")
 	assert.Contains(t, string(super), "set(OUTPUTS_1\n  \"${SOLUTION_ROOT}/out/core0/CM0/Debug/build/core0.elf\"\n)")
+}
+
+func TestSuperCMakeListsRejectsCbuildOnDifferentVolume(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("filepath.Rel only rejects different volumes on Windows")
+	}
+
+	solutionRoot := t.TempDir()
+	solutionVolume := filepath.VolumeName(solutionRoot)
+	otherVolume := "C:"
+	if solutionVolume == otherVolume {
+		otherVolume = "D:"
+	}
+
+	version := semver.MustParse("1.0.0")
+	m := maker.Maker{}
+	m.SolutionRoot = solutionRoot
+	m.SolutionTmpDir = t.TempDir()
+	m.Cbuilds = []maker.Cbuild{{BaseDir: filepath.Join(otherVolume+`\`, "context")}}
+	m.SelectedToolchainVersion = []*semver.Version{version}
+	m.RegisteredToolchains = map[*semver.Version]maker.Toolchain{
+		version: {Name: "GCC"},
+	}
+
+	err := m.CreateSuperCMakeLists()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Rel:")
 }

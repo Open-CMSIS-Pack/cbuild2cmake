@@ -291,31 +291,25 @@ type NativeCMakeImage struct {
 	Type  string `yaml:"type"`
 }
 
-func loggedError(message string) error {
-	err := errors.New(message)
-	log.Error(err)
-	return err
-}
-
 func validateContextClassification(cbuildRef Cbuilds, cbuild Cbuild) error {
 	context := cbuild.BuildDescType.Context
 	if cbuildRef.West && cbuildRef.CMake {
-		return loggedError("context " + strconv.Quote(context) + " cannot be both west and native CMake")
+		return errors.New("context " + strconv.Quote(context) + " cannot be both west and native CMake")
 	}
 	if cbuildRef.West != (cbuild.BuildDescType.West.AppPath != "") {
-		return loggedError("context " + strconv.Quote(context) + " west classification does not match its build description")
+		return errors.New("context " + strconv.Quote(context) + " west classification does not match its build description")
 	}
 	if cbuildRef.CMake != (cbuild.BuildDescType.CMake.Source != "") {
-		return loggedError("context " + strconv.Quote(context) + " native CMake classification does not match its build description")
+		return errors.New("context " + strconv.Quote(context) + " native CMake classification does not match its build description")
 	}
 	for _, image := range cbuild.BuildDescType.CMake.Images {
 		if image.Image == "" {
-			return loggedError("context " + strconv.Quote(context) + " native CMake image path cannot be empty")
+			return errors.New("context " + strconv.Quote(context) + " native CMake image path cannot be empty")
 		}
 		switch image.Type {
 		case "elf", "hex", "bin", "lib":
 		default:
-			return loggedError("context " + strconv.Quote(context) + " native CMake image " + strconv.Quote(image.Image) + " has unsupported type " + strconv.Quote(image.Type))
+			return errors.New("context " + strconv.Quote(context) + " native CMake image " + strconv.Quote(image.Image) + " has unsupported type " + strconv.Quote(image.Type))
 		}
 	}
 	return nil
