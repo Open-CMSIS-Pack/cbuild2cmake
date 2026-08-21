@@ -58,4 +58,11 @@ func TestMaker(t *testing.T) {
 		err := m.GenerateCMakeLists()
 		assert.Nil(err)
 	})
+
+	t.Run("test maker with native cmake solution", func(t *testing.T) {
+		var m maker.Maker
+		m.Params.InputFile = testRoot + "/data/solutions/cmake-support/solution.cbuild-idx.yml"
+		err := m.GenerateCMakeLists()
+		assert.Nil(err)
+	})
 }

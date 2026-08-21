@@ -127,6 +127,26 @@ func TestParser(t *testing.T) {
 		assert.Equal("header", data.BuildDescType.ConstructedFiles[0].Category)
 	})
 
+	t.Run("test parsing native cmake context", func(t *testing.T) {
+		index, err := m.ParseCbuildIndexFile(testRoot + "/data/solutions/cmake-support/solution.cbuild-idx.yml")
+		assert.Nil(err)
+		assert.True(index.BuildIdx.Cbuilds[0].CMake)
+
+		data, err := m.ParseCbuildFile(testRoot + "/data/solutions/cmake-support/out/core0/CM0/Debug/core0.Debug+CM0.cbuild.yml")
+		assert.Nil(err)
+		assert.Equal("core0", data.BuildDescType.CMake.ProjectId)
+		assert.Equal("Ninja Multi-Config", data.BuildDescType.CMake.Generator)
+		assert.Equal("../../../../cmake/core0", data.BuildDescType.CMake.Source)
+		assert.Equal([]string{"-DCMAKE_BUILD_TYPE=Debug"}, data.BuildDescType.CMake.Configure)
+		assert.Equal("core0-target", data.BuildDescType.CMake.Target)
+		assert.Equal([]maker.NativeCMakeImage{{Image: "build/core0.elf", Type: "elf"}}, data.BuildDescType.CMake.Images)
+
+		m.Params.InputFile = testRoot + "/data/solutions/cmake-support/solution.cbuild-idx.yml"
+		assert.NoError(m.ParseCbuildFiles())
+		assert.True(m.Cbuilds[0].NativeCMakeContext)
+		assert.False(m.Cbuilds[0].WestContext)
+	})
+
 	t.Run("test parsing invalid cbuild-idx.yml", func(t *testing.T) {
 		_, err := m.ParseCbuildIndexFile(testRoot + "/invalid.cbuild-idx.yml")
 		assert.Error(err)

@@ -7,11 +7,13 @@
 package maker
 
 import (
+	"errors"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -77,6 +79,7 @@ type Cbuild struct {
 		ConstructedFiles []Files       `yaml:"constructed-files"`
 		Licenses         []struct{}    `yaml:"licenses"`
 		West             West          `yaml:"west"`
+		CMake            NativeCMake   `yaml:"cmake"`
 	} `yaml:"build"`
 	BaseDir            string
 	ContextRoot        string
@@ -91,6 +94,8 @@ type Cbuild struct {
 	Toolchain          string
 	GeneratedFiles     []string
 	LinkerLto          bool
+	WestContext        bool
+	NativeCMakeContext bool
 }
 
 type Clayer struct {
@@ -114,6 +119,7 @@ type Cbuilds struct {
 	DependsOn     []string  `yaml:"depends-on"`
 	Clayers       []Clayers `yaml:"clayers"`
 	West          bool      `yaml:"west"`
+	CMake         bool      `yaml:"cmake"`
 }
 
 type Clayers struct {
@@ -271,6 +277,44 @@ type West struct {
 	WestOpt   []string      `yaml:"west-opt"`
 }
 
+type NativeCMake struct {
+	ProjectId string             `yaml:"project-id"`
+	Generator string             `yaml:"generator"`
+	Source    string             `yaml:"source"`
+	Configure []string           `yaml:"configure"`
+	Target    string             `yaml:"target"`
+	Images    []NativeCMakeImage `yaml:"images"`
+}
+
+type NativeCMakeImage struct {
+	Image string `yaml:"image"`
+	Type  string `yaml:"type"`
+}
+
+func validateContextClassification(cbuildRef Cbuilds, cbuild Cbuild) error {
+	context := cbuild.BuildDescType.Context
+	if cbuildRef.West && cbuildRef.CMake {
+		return errors.New("context " + strconv.Quote(context) + " cannot be both west and native CMake")
+	}
+	if cbuildRef.West != (cbuild.BuildDescType.West.AppPath != "") {
+		return errors.New("context " + strconv.Quote(context) + " west classification does not match its build description")
+	}
+	if cbuildRef.CMake != (cbuild.BuildDescType.CMake.Source != "") {
+		return errors.New("context " + strconv.Quote(context) + " native CMake classification does not match its build description")
+	}
+	for _, image := range cbuild.BuildDescType.CMake.Images {
+		if image.Image == "" {
+			return errors.New("context " + strconv.Quote(context) + " native CMake image path cannot be empty")
+		}
+		switch image.Type {
+		case "elf", "hex", "bin", "lib":
+		default:
+			return errors.New("context " + strconv.Quote(context) + " native CMake image " + strconv.Quote(image.Image) + " has unsupported type " + strconv.Quote(image.Type))
+		}
+	}
+	return nil
+}
+
 func (m *Maker) ParseCbuildIndexFile(cbuildIndexFile string) (data CbuildIndex, err error) {
 	yfile, err := os.ReadFile(cbuildIndexFile)
 	if err != nil {
@@ -344,6 +388,11 @@ func (m *Maker) ParseCbuildFiles() error {
 		if err != nil {
 			return err
 		}
+		if err := validateContextClassification(cbuildRef, cbuild); err != nil {
+			return err
+		}
+		cbuild.WestContext = cbuildRef.West
+		cbuild.NativeCMakeContext = cbuildRef.CMake
 		if !m.Options.UseContextSet {
 			m.Contexts = append(m.Contexts, cbuild.BuildDescType.Context)
 		}

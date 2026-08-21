@@ -1,0 +1,29 @@
+build:
+  generated-by: csolution version 2.14.1+p58-g3fd82d46
+  solution: ../../../../solution.csolution.yml
+  context: explicit-core1.Debug+CM0
+  compiler: AC6
+  board: Keil::RteTest Dummy board:1.2.3
+  board-pack: ARM::RteTest_DFP@0.1.0
+  device: ARM::RteTest_ARMCM0_Dual:cm0_core1
+  device-pack: ARM::RteTest_DFP@0.1.0
+  device-books:
+    - name: http://infocenter.arm.com/help/topic/com.arm.doc.dui0497a/index.html
+      title: Cortex-M0 Device Generic Users Guide
+  packs:
+    - pack: ARM::RteTest_DFP@0.1.0
+      path: ${CMSIS_PACK_ROOT}/ARM/RteTest_DFP/0.2.0
+  output:
+    - type: elf
+      file: explicit-core1.elf
+    - type: comp-db
+      file: compile_commands.json
+    - type: comp-db
+      file: compile_macros.h
+  licenses:
+    - license: <unknown>
+      packs:
+        - pack: ARM::RteTest_DFP@0.1.0
+  cmake:
+    project-id: explicit-core1
+    source: ../../../../cmake/core1
