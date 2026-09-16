@@ -1,6 +1,6 @@
 module github.com/Open-CMSIS-Pack/cbuild2cmake
 
-go 1.26
+go 1.27
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0
