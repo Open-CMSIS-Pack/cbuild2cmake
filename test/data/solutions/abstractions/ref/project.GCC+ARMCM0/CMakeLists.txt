@@ -20,6 +20,9 @@ set(LD_SCRIPT_PP ${LD_SCRIPT})
 set(CPU Cortex-M0)
 set(FPU NO_FPU)
 
+# Preprocessor options
+set(CPP_OPTIONS_C "-xc" "-std=gnu11" "-masm-syntax-unified" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
+
 # Toolchain config map
 set(COMPILER GCC)
 include("toolchain.cmake")
@@ -29,9 +32,6 @@ project(${CONTEXT} LANGUAGES C)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
-
-# Preprocessor options
-set(CPP_OPTIONS_C "-xc" "-std=gnu11" "-masm-syntax-unified" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
 
 # Compilation database
 add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS_C})
