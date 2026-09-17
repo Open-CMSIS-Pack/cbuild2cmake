@@ -24,6 +24,10 @@ set(FPU DP_FPU)
 set(DSP DSP)
 set(MVE FP_MVE)
 
+# Preprocessor options
+set(CPP_OPTIONS_CXX "--c++" "--dlib_config" "DLib_Config_Full.h")
+set(CPP_OPTIONS_C "--dlib_config" "DLib_Config_Full.h")
+
 # Toolchain config map
 set(COMPILER IAR)
 include("toolchain.cmake")
@@ -33,10 +37,6 @@ project(${CONTEXT} LANGUAGES CXX C)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
-
-# Preprocessor options
-set(CPP_OPTIONS_CXX "--c++" "--dlib_config" "DLib_Config_Full.h")
-set(CPP_OPTIONS_C "--dlib_config" "DLib_Config_Full.h")
 
 # Compilation database
 add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS_CXX} ${COMPILE_MACROS_C})

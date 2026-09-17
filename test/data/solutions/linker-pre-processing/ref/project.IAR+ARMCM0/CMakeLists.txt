@@ -25,6 +25,9 @@ set(LD_SCRIPT_PP "${CMAKE_CURRENT_BINARY_DIR}/iar_linker_script.icf")
 set(CPU Cortex-M0)
 set(FPU NO_FPU)
 
+# Preprocessor options
+set(CPP_OPTIONS_C "--dlib_config" "DLib_Config_Full.h")
+
 # Toolchain config map
 set(COMPILER IAR)
 include("toolchain.cmake")
@@ -34,9 +37,6 @@ project(${CONTEXT} LANGUAGES C)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
-
-# Preprocessor options
-set(CPP_OPTIONS_C "--dlib_config" "DLib_Config_Full.h")
 
 # Compilation database
 add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS_C})

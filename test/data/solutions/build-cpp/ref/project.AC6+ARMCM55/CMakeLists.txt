@@ -23,6 +23,10 @@ set(FPU DP_FPU)
 set(DSP DSP)
 set(MVE FP_MVE)
 
+# Preprocessor options
+set(CPP_OPTIONS_CXX "-xc++" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
+set(CPP_OPTIONS_C "-xc" "-std=gnu11" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
+
 # Toolchain config map
 set(COMPILER AC6)
 include("toolchain.cmake")
@@ -32,10 +36,6 @@ project(${CONTEXT} LANGUAGES CXX C)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
-
-# Preprocessor options
-set(CPP_OPTIONS_CXX "-xc++" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
-set(CPP_OPTIONS_C "-xc" "-std=gnu11" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
 
 # Compilation database
 add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS_CXX} ${COMPILE_MACROS_C})

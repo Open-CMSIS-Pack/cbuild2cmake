@@ -24,6 +24,10 @@ set(FPU DP_FPU)
 set(DSP DSP)
 set(MVE FP_MVE)
 
+# Preprocessor options
+set(CPP_OPTIONS_CXX "-xc++" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
+set(CPP_OPTIONS_C "-xc" "-std=gnu11" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
+
 # Toolchain config map
 set(COMPILER CLANG)
 include("toolchain.cmake")
@@ -33,10 +37,6 @@ project(${CONTEXT} LANGUAGES CXX C)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
-
-# Preprocessor options
-set(CPP_OPTIONS_CXX "-xc++" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
-set(CPP_OPTIONS_C "-xc" "-std=gnu11" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
 
 # Compilation database
 add_custom_target(database DEPENDS ${COMPILE_COMMANDS} ${COMPILE_MACROS_CXX} ${COMPILE_MACROS_C})

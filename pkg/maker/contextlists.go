@@ -130,6 +130,8 @@ set(COMPILE_COMMANDS ${OUT_DIR}/compile_commands.json)` + compileMacros + output
 
 # Processor Options` + cbuild.ProcessorOptions() + `
 
+# Preprocessor options` + preprocessorOptions + `
+
 # Toolchain config map
 set(COMPILER ` + cbuild.Toolchain + `)
 include("toolchain.cmake")
@@ -139,8 +141,6 @@ project(${CONTEXT} LANGUAGES ` + strings.Join(cbuild.Languages, " ") + `)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
-
-# Preprocessor options` + preprocessorOptions + `
 
 # Compilation database
 add_custom_target(database DEPENDS ${COMPILE_COMMANDS}` + compileMacroDependencies + `)
