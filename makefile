@@ -5,7 +5,8 @@ OS ?= $(shell uname)
 ARCH ?= $(shell uname -m)
 
 # Retrieve version from git history
-VERSION ?= $(shell git describe --tags 2>/dev/null || echo unknown)
+VERSION_SCRIPT := scripts/version
+VERSION := $(shell $(VERSION_SCRIPT))
 
 # Path to lint tool
 GOLINTER ?= golangci-lint
