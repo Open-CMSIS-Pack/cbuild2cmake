@@ -3,7 +3,7 @@
 | __Name__ | __Version__ | __Licence__ |
 |----------|-------------|-------------|
 | github.com/Masterminds/semver/v3 | v3.5.0  | [MIT](https://github.com/Masterminds/semver/blob/v3.5.0/LICENSE.txt) |
-| github.com/Open-CMSIS-Pack/cbuild/v2/pkg | v2.14.0  | [Apache-2.0](https://github.com/Open-CMSIS-Pack/cbuild/blob/v2.14.0/LICENSE) |
+| github.com/Open-CMSIS-Pack/cbuild/v2/pkg | v2.15.0  | [Apache-2.0](https://github.com/Open-CMSIS-Pack/cbuild/blob/v2.15.0/LICENSE) |
 | github.com/aymanbagabas/go-pty | v0.2.3  | [MIT](https://github.com/aymanbagabas/go-pty/blob/v0.2.3/LICENSE) |
 | github.com/creack/pty | v1.1.24  | [MIT](https://github.com/creack/pty/blob/v1.1.24/LICENSE) |
 | github.com/gobs/sortedmap | v1.0.0  | [MIT](https://github.com/gobs/sortedmap/blob/v1.0.0/LICENSE) |
@@ -13,8 +13,8 @@
 | github.com/u-root/u-root/pkg/termios | v0.16.0  | [BSD-3-Clause](https://github.com/u-root/u-root/blob/v0.16.0/LICENSE) |
 | golang.org/x/crypto | v0.52.0  | [BSD-3-Clause](https://cs.opensource.google/go/x/crypto/+/v0.52.0:LICENSE) |
 | golang.org/x/exp | v0.0.0-20250305212735-054e65f0b394  | [BSD-3-Clause](https://cs.opensource.google/go/x/exp/+/054e65f0:LICENSE) |
-| golang.org/x/sys/unix | v0.45.0  | [BSD-3-Clause](https://cs.opensource.google/go/x/sys/+/v0.45.0:LICENSE) |
-| golang.org/x/term | v0.43.0  | [BSD-3-Clause](https://cs.opensource.google/go/x/term/+/v0.43.0:LICENSE) |
+| golang.org/x/sys/unix | v0.48.0  | [BSD-3-Clause](https://cs.opensource.google/go/x/sys/+/v0.48.0:LICENSE) |
+| golang.org/x/term | v0.46.0  | [BSD-3-Clause](https://cs.opensource.google/go/x/term/+/v0.46.0:LICENSE) |
 | gopkg.in/yaml.v3 | v3.0.1  | [MIT](https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE) |
 
 Report generated and repository checked for [forbidden](https://github.com/google/licenseclassifier/blob/842c0d70d7027215932deb13801890992c9ba364/license_type.go#L323) and [restricted](https://github.com/google/licenseclassifier/blob/842c0d70d7027215932deb13801890992c9ba364/license_type.go#L176) licenses.
