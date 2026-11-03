@@ -18,7 +18,7 @@ var WestToolchainMap = map[string]string{
 	"AC6":   "armclang",
 	"GCC":   "gnuarmemb",
 	"IAR":   "iar",
-	"CLANG": "llvm",
+	"CLANG": "host/llvm",
 }
 
 func (m *Maker) CreateWestCMakeLists(index int) error {
@@ -86,7 +86,7 @@ set(CMAKE_COLOR_DIAGNOSTICS ON)
 set(ZEPHYR_TOOLCHAIN_PATH "${REGISTERED_TOOLCHAIN_ROOT}/..")
 cmake_path(ABSOLUTE_PATH ZEPHYR_TOOLCHAIN_PATH NORMALIZE OUTPUT_VARIABLE ZEPHYR_TOOLCHAIN_PATH)
 set(ENV_VARS
-  ` + strings.ToUpper(westToolchain) + `_TOOLCHAIN_PATH="${ZEPHYR_TOOLCHAIN_PATH}"
+  ` + strings.ToUpper(strings.TrimPrefix(westToolchain, "host/")) + `_TOOLCHAIN_PATH="${ZEPHYR_TOOLCHAIN_PATH}"
   ZEPHYR_TOOLCHAIN_VARIANT="` + westToolchain + `"
 )
 
