@@ -29,7 +29,7 @@ func (m *Maker) CreateWestCMakeLists(index int) error {
 	outDir := cbuild.AddRootPrefix(cbuild.ContextRoot, cbuild.BuildDescType.OutputDirs.Outdir)
 	contextDir := path.Join(m.SolutionTmpDir, cbuild.BuildDescType.Context)
 	westApp := cbuild.AddRootPrefix(cbuild.ContextRoot, cbuild.BuildDescType.West.AppPath)
-	westToolchain := WestToolchainMap[cbuild.BuildDescType.Compiler]
+	westToolchain := WestToolchainMap[cbuild.Toolchain]
 
 	var westOptions, westDefs string
 	var westOptionsRef, westDefsRef string
