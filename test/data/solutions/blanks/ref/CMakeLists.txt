@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.27)
+
+if(CMAKE_VERSION VERSION_LESS "4.2.1")
+  message(WARNING "CMake 4.2.1 or newer is recommended. You are using CMake ${CMAKE_VERSION}.")
+endif()
+
 include(ExternalProject)
 	
 project("solution" NONE)
