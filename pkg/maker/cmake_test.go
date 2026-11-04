@@ -27,7 +27,7 @@ func TestCMakeVersionWarning(t *testing.T) {
 			name = "image-only"
 		}
 		t.Run(name, func(t *testing.T) {
-			m := maker.Maker{SolutionTmpDir: t.TempDir(), SolutionName: "version-warning"}
+			m := maker.Maker{Vars: maker.Vars{SolutionTmpDir: t.TempDir(), SolutionName: "version-warning"}}
 			if imageOnly {
 				require.NoError(t, m.CreateCMakeListsImageOnly())
 			} else {
