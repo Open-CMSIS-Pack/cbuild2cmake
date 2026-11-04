@@ -7,6 +7,9 @@
 package maker_test
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/Open-CMSIS-Pack/cbuild2cmake/pkg/maker"
@@ -22,8 +25,22 @@ func TestWest(t *testing.T) {
 		err := m.GenerateCMakeLists()
 		assert.Nil(err)
 		for index := range m.Cbuilds {
-			err = m.CreateWestCMakeLists(index)
-			assert.Nil(err)
+			toolchain := m.RegisteredToolchains[m.SelectedToolchainVersion[index]]
+			version := m.SelectedToolchainVersion[index].String()
+			for _, suffix := range []string{"", "@" + version, "@>=" + version} {
+				m.Cbuilds[index].BuildDescType.Compiler = toolchain.Name + suffix
+				err = m.CreateWestCMakeLists(index)
+				assert.Nil(err)
+				contextDir := filepath.Join(m.SolutionTmpDir, m.Cbuilds[index].BuildDescType.Context)
+				content, err := os.ReadFile(filepath.Join(contextDir, "CMakeLists.txt"))
+				assert.Nil(err)
+				variant := maker.WestToolchainMap[toolchain.Name]
+				assert.Contains(string(content), strings.ToUpper(variant)+`_TOOLCHAIN_PATH="${ZEPHYR_TOOLCHAIN_PATH}"`, "compiler: %s", toolchain.Name+suffix)
+				assert.Contains(string(content), `ZEPHYR_TOOLCHAIN_VARIANT="`+variant+`"`, "compiler: %s", toolchain.Name+suffix)
+				content, err = os.ReadFile(filepath.Join(contextDir, "toolchain.cmake"))
+				assert.Nil(err)
+				assert.Contains(string(content), `set(REGISTERED_TOOLCHAIN_ROOT "`+toolchain.Path+`")`)
+			}
 		}
 	})
 }
