@@ -18,6 +18,13 @@ import (
 
 const CMAKE_MIN_REQUIRED = "3.27"
 
+const cmakeVersionHeader = `cmake_minimum_required(VERSION ` + CMAKE_MIN_REQUIRED + `)
+
+if(CMAKE_VERSION VERSION_LESS "4.2.1")
+  message(WARNING "CMake 4.2.1 or newer is recommended. You are using CMake ${CMAKE_VERSION}.")
+endif()
+`
+
 func (m *Maker) CreateSuperCMakeLists() error {
 	// Iterate over cbuilds
 	var contexts, dirs, westContextFlags, nativeCMakeContextFlags, contextOutputs, compilers string
@@ -88,7 +95,7 @@ func (m *Maker) CreateSuperCMakeLists() error {
 
 	// Write content
 	content :=
-		`cmake_minimum_required(VERSION ` + CMAKE_MIN_REQUIRED + `)
+		cmakeVersionHeader + `
 include(ExternalProject)
 	
 project("` + m.SolutionName + `" NONE)
@@ -200,8 +207,7 @@ cmake_path(ABSOLUTE_PATH SOLUTION_ROOT NORMALIZE OUTPUT_VARIABLE SOLUTION_ROOT)
 func (m *Maker) CreateCMakeListsImageOnly() error {
 	// Write content
 	content :=
-		`cmake_minimum_required(VERSION ` + CMAKE_MIN_REQUIRED + `)
-
+		cmakeVersionHeader + `
 project("` + m.SolutionName + `" NONE)
 
 # Roots

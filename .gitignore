@@ -19,3 +19,10 @@
 
 # Go workspace file
 go.work
+
+# Generated test data
+/test/run/
+/test/data/solutions/*/tmp/
+
+# CMSIS-Dev local output
+/.cmsis-dev/
