@@ -8,8 +8,10 @@ package maker_test
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	semver "github.com/Masterminds/semver/v3"
@@ -17,6 +19,55 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestCMakeVersionWarning(t *testing.T) {
+	for _, imageOnly := range []bool{false, true} {
+		name := "super"
+		if imageOnly {
+			name = "image-only"
+		}
+		t.Run(name, func(t *testing.T) {
+			m := maker.Maker{SolutionTmpDir: t.TempDir(), SolutionName: "version-warning"}
+			if imageOnly {
+				require.NoError(t, m.CreateCMakeListsImageOnly())
+			} else {
+				require.NoError(t, m.CreateSuperCMakeLists())
+			}
+			content, err := os.ReadFile(filepath.Join(m.SolutionTmpDir, "CMakeLists.txt"))
+			require.NoError(t, err)
+			header, _, found := strings.Cut(string(content), "endif()")
+			require.True(t, found)
+			require.Contains(t, header, "cmake_minimum_required(VERSION 3.27)")
+			require.Contains(t, header, `if(CMAKE_VERSION VERSION_LESS "4.2.1")`)
+
+			cmake, err := exec.LookPath("cmake")
+			if err != nil {
+				t.Skip("CMake is required to execute the generated version check")
+			}
+			for _, version := range []string{"3.27.0", "4.2.0", "4.2.1", "4.3.0"} {
+				t.Run(version, func(t *testing.T) {
+					scriptDir := t.TempDir()
+					root, err := os.OpenRoot(scriptDir)
+					require.NoError(t, err)
+					err = root.WriteFile("version.cmake", []byte("set(CMAKE_VERSION "+version+")\n"+header+"endif()\n"), 0600)
+					require.NoError(t, root.Close())
+					require.NoError(t, err)
+					command := exec.Command(cmake, "-P", "version.cmake")
+					command.Dir = scriptDir
+					output, err := command.CombinedOutput()
+					require.NoError(t, err, string(output))
+					if version == "3.27.0" || version == "4.2.0" {
+						assert.Contains(t, string(output), "CMake Warning")
+						assert.Contains(t, string(output), "CMake 4.2.1 or newer is recommended.")
+						assert.Contains(t, string(output), "You are using CMake "+version)
+					} else {
+						assert.Empty(t, string(output))
+					}
+				})
+			}
+		})
+	}
+}
 
 func TestNativeCMake(t *testing.T) {
 	var m maker.Maker
