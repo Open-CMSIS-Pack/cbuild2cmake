@@ -47,7 +47,8 @@ func (m *Maker) CreateWestCMakeLists(index int) error {
 		if len(value) > 0 {
 			def += "=" + value
 		}
-		westDefs += "\n  -D" + def
+		def = strings.NewReplacer(`\`, `\\`, `"`, `\"`, `;`, `\;`).Replace(def)
+		westDefs += "\n  \"-D" + def + "\""
 	}
 	if len(westDefs) > 0 {
 		westDefs = "\nset(WEST_DEFS" + westDefs + "\n)"
@@ -86,8 +87,8 @@ set(CMAKE_COLOR_DIAGNOSTICS ON)
 set(ZEPHYR_TOOLCHAIN_PATH "${REGISTERED_TOOLCHAIN_ROOT}/..")
 cmake_path(ABSOLUTE_PATH ZEPHYR_TOOLCHAIN_PATH NORMALIZE OUTPUT_VARIABLE ZEPHYR_TOOLCHAIN_PATH)
 set(ENV_VARS
-  ` + strings.ToUpper(strings.TrimPrefix(westToolchain, "host/")) + `_TOOLCHAIN_PATH="${ZEPHYR_TOOLCHAIN_PATH}"
-  ZEPHYR_TOOLCHAIN_VARIANT="` + westToolchain + `"
+  "` + strings.ToUpper(strings.TrimPrefix(westToolchain, "host/")) + `_TOOLCHAIN_PATH=${ZEPHYR_TOOLCHAIN_PATH}"
+  "ZEPHYR_TOOLCHAIN_VARIANT=` + westToolchain + `"
 )
 
 # West setup and compilation database
@@ -100,6 +101,7 @@ add_custom_command(
   COMMENT "" 
   DEPENDS "${CMAKE_CURRENT_LIST_FILE}"
   USES_TERMINAL
+  VERBATIM
 )
 
 # West build
