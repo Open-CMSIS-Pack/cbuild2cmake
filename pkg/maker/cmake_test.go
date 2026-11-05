@@ -20,14 +20,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCMakeVersionWarning(t *testing.T) {
+func TestCMakeVersionNotice(t *testing.T) {
 	for _, imageOnly := range []bool{false, true} {
 		name := "super"
 		if imageOnly {
 			name = "image-only"
 		}
 		t.Run(name, func(t *testing.T) {
-			m := maker.Maker{Vars: maker.Vars{SolutionTmpDir: t.TempDir(), SolutionName: "version-warning"}}
+			m := maker.Maker{Vars: maker.Vars{SolutionTmpDir: t.TempDir(), SolutionName: "version-notice"}}
 			if imageOnly {
 				require.NoError(t, m.CreateCMakeListsImageOnly())
 			} else {
@@ -39,6 +39,7 @@ func TestCMakeVersionWarning(t *testing.T) {
 			require.True(t, found)
 			require.Contains(t, header, "cmake_minimum_required(VERSION 3.27)")
 			require.Contains(t, header, `if(CMAKE_VERSION VERSION_LESS "4.2.1")`)
+			require.Contains(t, header, `message(NOTICE "CMake 4.2.1 or newer is recommended for CMSIS-Toolbox. You are using CMake ${CMAKE_VERSION}.")`)
 
 			cmake, err := exec.LookPath("cmake")
 			if err != nil {
@@ -57,9 +58,7 @@ func TestCMakeVersionWarning(t *testing.T) {
 					output, err := command.CombinedOutput()
 					require.NoError(t, err, string(output))
 					if version == "3.27.0" || version == "4.2.0" {
-						assert.Contains(t, string(output), "CMake Warning")
-						assert.Contains(t, string(output), "CMake 4.2.1 or newer is recommended.")
-						assert.Contains(t, string(output), "You are using CMake "+version)
+						assert.Equal(t, "CMake 4.2.1 or newer is recommended for CMSIS-Toolbox. You are using CMake "+version+".", strings.TrimSpace(string(output)))
 					} else {
 						assert.Empty(t, string(output))
 					}

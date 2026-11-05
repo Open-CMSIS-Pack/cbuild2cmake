@@ -21,7 +21,7 @@ const CMAKE_MIN_REQUIRED = "3.27"
 const cmakeVersionHeader = `cmake_minimum_required(VERSION ` + CMAKE_MIN_REQUIRED + `)
 
 if(CMAKE_VERSION VERSION_LESS "4.2.1")
-  message(WARNING "CMake 4.2.1 or newer is recommended. You are using CMake ${CMAKE_VERSION}.")
+  message(NOTICE "CMake 4.2.1 or newer is recommended for CMSIS-Toolbox. You are using CMake ${CMAKE_VERSION}.")
 endif()
 `
 
