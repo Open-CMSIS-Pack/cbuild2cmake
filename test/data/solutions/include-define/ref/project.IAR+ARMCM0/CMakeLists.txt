@@ -29,7 +29,9 @@ set(COMPILER IAR)
 include("toolchain.cmake")
 
 # Setup project
+string(JOIN " " CMAKE_C_FLAGS ${CPP_OPTIONS_C})
 project(${CONTEXT} LANGUAGES C)
+unset(CMAKE_C_FLAGS)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)

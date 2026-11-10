@@ -24,14 +24,18 @@ set(FPU NO_FPU)
 
 # Preprocessor options
 set(CPP_OPTIONS_C "--dlib_config" "DLib_Config_Full.h")
-set(CPP_OPTIONS_CXX "--c++" "--dlib_config" "DLib_Config_Full.h")
+set(CPP_OPTIONS_CXX "--dlib_config" "DLib_Config_Full.h")
 
 # Toolchain config map
 set(COMPILER IAR)
 include("toolchain.cmake")
 
 # Setup project
+string(JOIN " " CMAKE_C_FLAGS ${CPP_OPTIONS_C})
+string(JOIN " " CMAKE_CXX_FLAGS ${CPP_OPTIONS_CXX})
 project(${CONTEXT} LANGUAGES C CXX)
+unset(CMAKE_C_FLAGS)
+unset(CMAKE_CXX_FLAGS)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
@@ -44,7 +48,7 @@ add_custom_command(OUTPUT ${COMPILE_COMMANDS}
 )
 add_custom_command(OUTPUT ${COMPILE_MACROS_C} ${COMPILE_MACROS_CXX}
   COMMAND ${CPP} ${CPP_OPTIONS_C} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_C}"
-  COMMAND ${CPP} ${CPP_OPTIONS_CXX} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_CXX}"
+  COMMAND ${CPP} --c++ ${CPP_OPTIONS_CXX} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_CXX}"
 )
 set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES})
 set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})

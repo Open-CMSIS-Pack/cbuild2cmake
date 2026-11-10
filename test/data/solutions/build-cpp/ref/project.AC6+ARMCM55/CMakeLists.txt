@@ -24,15 +24,19 @@ set(DSP DSP)
 set(MVE FP_MVE)
 
 # Preprocessor options
-set(CPP_OPTIONS_CXX "-xc++" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
-set(CPP_OPTIONS_C "-xc" "-std=gnu11" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
+set(CPP_OPTIONS_CXX "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
+set(CPP_OPTIONS_C "-std=gnu11" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
 
 # Toolchain config map
 set(COMPILER AC6)
 include("toolchain.cmake")
 
 # Setup project
+string(JOIN " " CMAKE_CXX_FLAGS ${CPP_OPTIONS_CXX})
+string(JOIN " " CMAKE_C_FLAGS ${CPP_OPTIONS_C})
 project(${CONTEXT} LANGUAGES CXX C)
+unset(CMAKE_CXX_FLAGS)
+unset(CMAKE_C_FLAGS)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
@@ -44,8 +48,8 @@ add_custom_command(OUTPUT ${COMPILE_COMMANDS}
   DEPENDS "${CMAKE_COMPILE_COMMANDS}"
 )
 add_custom_command(OUTPUT ${COMPILE_MACROS_CXX} ${COMPILE_MACROS_C}
-  COMMAND ${CPP} ${CPP_OPTIONS_CXX} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_CXX}"
-  COMMAND ${CPP} ${CPP_OPTIONS_C} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_C}"
+  COMMAND ${CPP} -xc++ ${CPP_OPTIONS_CXX} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_CXX}"
+  COMMAND ${CPP} -xc ${CPP_OPTIONS_C} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_C}"
 )
 set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES})

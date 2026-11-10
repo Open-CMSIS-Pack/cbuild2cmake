@@ -72,6 +72,7 @@ func (m *Maker) CreateContextCMakeLists(index int) error {
 		}
 	}
 	preprocessorOptions, compileMacros, compileMacroDependencies, compileMacroCommands := cbuild.PreprocessorOptions()
+	discoveryOptions, restoreOptions := cbuild.CompilerDiscoveryOptions()
 
 	// Constructed files: collect headers and global pre-includes
 	constructedFiles := cbuild.ClassifyFiles(cbuild.BuildDescType.ConstructedFiles)
@@ -136,8 +137,8 @@ set(COMPILE_COMMANDS ${OUT_DIR}/compile_commands.json)` + compileMacros + output
 set(COMPILER ` + cbuild.Toolchain + `)
 include("toolchain.cmake")
 
-# Setup project
-project(${CONTEXT} LANGUAGES ` + strings.Join(cbuild.Languages, " ") + `)
+# Setup project` + discoveryOptions + `
+project(${CONTEXT} LANGUAGES ` + strings.Join(cbuild.Languages, " ") + `)` + restoreOptions + `
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
@@ -177,6 +178,28 @@ include("components.cmake")
 	return err
 }
 
+func (c *Cbuild) CompilerDiscoveryOptions() (setup string, restore string) {
+	for _, language := range c.Languages {
+		var miscOptions []string
+		switch language {
+		case "C":
+			miscOptions = append(miscOptions, c.BuildDescType.Misc.C...)
+		case "CXX":
+			miscOptions = append(miscOptions, c.BuildDescType.Misc.CPP...)
+		default:
+			continue
+		}
+		miscOptions = append(miscOptions, c.BuildDescType.Misc.CCPP...)
+		if len(miscOptions) == 0 {
+			continue
+		}
+		flags := "CMAKE_" + language + "_FLAGS"
+		setup += "\nstring(JOIN \" \" " + flags + " ${CPP_OPTIONS_" + language + "})"
+		restore += "\nunset(" + flags + ")"
+	}
+	return setup, restore
+}
+
 func (c *Cbuild) PreprocessorOptions() (options string, macros string, dependencies string, commands string) {
 	var commandLines string
 	for _, language := range c.Languages {
@@ -201,9 +224,6 @@ func (c *Cbuild) PreprocessorOptions() (options string, macros string, dependenc
 		}
 
 		options += "\nset(CPP_OPTIONS_" + language
-		if len(languageOption) > 0 {
-			options += " \"" + languageOption + "\""
-		}
 		for _, option := range miscOptions {
 			option = c.AdjustRelativePath(option)
 			for _, argument := range splitPreprocessorOption(option) {
@@ -214,7 +234,11 @@ func (c *Cbuild) PreprocessorOptions() (options string, macros string, dependenc
 		options += ")"
 		macros += "\nset(COMPILE_MACROS_" + language + " ${OUT_DIR}/compile_macros_" + strings.ToLower(language) + ".h)"
 		dependencies += " ${COMPILE_MACROS_" + language + "}"
-		commandLines += "\n  COMMAND ${CPP} ${CPP_OPTIONS_" + language + "} ${CPP_DUMP_MACROS} \"${COMPILE_MACROS_" + language + "}\""
+		commandLines += "\n  COMMAND ${CPP}"
+		if len(languageOption) > 0 {
+			commandLines += " " + languageOption
+		}
+		commandLines += " ${CPP_OPTIONS_" + language + "} ${CPP_DUMP_MACROS} \"${COMPILE_MACROS_" + language + "}\""
 	}
 	if len(commandLines) > 0 {
 		commands = "add_custom_command(OUTPUT" + dependencies + commandLines + "\n)"
