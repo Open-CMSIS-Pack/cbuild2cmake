@@ -24,15 +24,17 @@ set(FPU DP_FPU)
 set(DSP DSP)
 set(MVE FP_MVE)
 
-# Preprocessor options
-set(CPP_OPTIONS_CXX "-xc++" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
-set(CPP_OPTIONS_C "-xc" "-std=gnu11" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
-
 # Toolchain config map
 set(COMPILER CLANG)
 include("toolchain.cmake")
 
+# Preprocessor options
+set(CPP_OPTIONS_CXX ${CXX_FLAGS} "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
+set(CPP_OPTIONS_C ${CC_FLAGS} "-std=gnu11" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
+
 # Setup project
+string(JOIN " " CMAKE_CXX_FLAGS "${CXX_CPU}" ${CPP_OPTIONS_CXX})
+string(JOIN " " CMAKE_C_FLAGS "${CC_CPU}" ${CPP_OPTIONS_C})
 project(${CONTEXT} LANGUAGES CXX C)
 
 # Enable color diagnostics
@@ -45,8 +47,8 @@ add_custom_command(OUTPUT ${COMPILE_COMMANDS}
   DEPENDS "${CMAKE_COMPILE_COMMANDS}"
 )
 add_custom_command(OUTPUT ${COMPILE_MACROS_CXX} ${COMPILE_MACROS_C}
-  COMMAND ${CPP} ${CPP_OPTIONS_CXX} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_CXX}"
-  COMMAND ${CPP} ${CPP_OPTIONS_C} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_C}"
+  COMMAND ${CPP} -xc++ ${CPP_OPTIONS_CXX} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_CXX}"
+  COMMAND ${CPP} -xc ${CPP_OPTIONS_C} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_C}"
 )
 set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES})
@@ -75,21 +77,6 @@ target_compile_definitions(${CONTEXT} PUBLIC
 
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
-  $<$<COMPILE_LANGUAGE:C>:
-    "SHELL:${CC_CPU}"
-    "SHELL:${CC_FLAGS}"
-    "SHELL:-std=gnu11"
-    "SHELL:-fomit-frame-pointer"
-    "SHELL:-ffunction-sections"
-    "SHELL:-fdata-sections"
-  >
-  $<$<COMPILE_LANGUAGE:CXX>:
-    "SHELL:${CXX_CPU}"
-    "SHELL:${CXX_FLAGS}"
-    "SHELL:-fomit-frame-pointer"
-    "SHELL:-ffunction-sections"
-    "SHELL:-fdata-sections"
-  >
 )
 
 # Add groups and components

@@ -21,15 +21,17 @@ set(LD_SCRIPT_PP ${LD_SCRIPT})
 set(CPU Cortex-M0)
 set(FPU NO_FPU)
 
-# Preprocessor options
-set(CPP_OPTIONS_C "-xc" "-std=gnu11" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
-set(CPP_OPTIONS_CXX "-xc++" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
-
 # Toolchain config map
 set(COMPILER AC6)
 include("toolchain.cmake")
 
+# Preprocessor options
+set(CPP_OPTIONS_C ${CC_FLAGS} "-std=gnu11" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
+set(CPP_OPTIONS_CXX ${CXX_FLAGS} "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
+
 # Setup project
+string(JOIN " " CMAKE_C_FLAGS "${CC_CPU}" ${CPP_OPTIONS_C})
+string(JOIN " " CMAKE_CXX_FLAGS "${CXX_CPU}" ${CPP_OPTIONS_CXX})
 project(${CONTEXT} LANGUAGES C CXX)
 
 # Enable color diagnostics
@@ -42,8 +44,8 @@ add_custom_command(OUTPUT ${COMPILE_COMMANDS}
   DEPENDS "${CMAKE_COMPILE_COMMANDS}"
 )
 add_custom_command(OUTPUT ${COMPILE_MACROS_C} ${COMPILE_MACROS_CXX}
-  COMMAND ${CPP} ${CPP_OPTIONS_C} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_C}"
-  COMMAND ${CPP} ${CPP_OPTIONS_CXX} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_CXX}"
+  COMMAND ${CPP} -xc ${CPP_OPTIONS_C} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_C}"
+  COMMAND ${CPP} -xc++ ${CPP_OPTIONS_CXX} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_CXX}"
 )
 set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES})
 set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
@@ -77,23 +79,6 @@ target_compile_definitions(${CONTEXT} PUBLIC
 
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
-  $<$<COMPILE_LANGUAGE:C>:
-    "SHELL:${CC_CPU}"
-    "SHELL:${CC_FLAGS}"
-    "SHELL:-std=gnu11"
-    "SHELL:-Wno-macro-redefined"
-    "SHELL:-Wno-pragma-pack"
-    "SHELL:-Wno-parentheses-equality"
-    "SHELL:-Wno-license-management"
-  >
-  $<$<COMPILE_LANGUAGE:CXX>:
-    "SHELL:${CXX_CPU}"
-    "SHELL:${CXX_FLAGS}"
-    "SHELL:-Wno-macro-redefined"
-    "SHELL:-Wno-pragma-pack"
-    "SHELL:-Wno-parentheses-equality"
-    "SHELL:-Wno-license-management"
-  >
 )
 
 # Add groups and components

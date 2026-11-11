@@ -20,14 +20,15 @@ set(LD_SCRIPT_PP ${LD_SCRIPT})
 set(CPU Cortex-M0)
 set(FPU NO_FPU)
 
-# Preprocessor options
-set(CPP_OPTIONS_C "-xc" "-std=gnu11" "-masm-syntax-unified" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
-
 # Toolchain config map
 set(COMPILER GCC)
 include("toolchain.cmake")
 
+# Preprocessor options
+set(CPP_OPTIONS_C ${CC_FLAGS} "-std=gnu11" "-masm-syntax-unified" "-fomit-frame-pointer" "-ffunction-sections" "-fdata-sections")
+
 # Setup project
+string(JOIN " " CMAKE_C_FLAGS "${CC_CPU}" ${CPP_OPTIONS_C})
 project(${CONTEXT} LANGUAGES C)
 
 # Enable color diagnostics
@@ -40,7 +41,7 @@ add_custom_command(OUTPUT ${COMPILE_COMMANDS}
   DEPENDS "${CMAKE_COMPILE_COMMANDS}"
 )
 add_custom_command(OUTPUT ${COMPILE_MACROS_C}
-  COMMAND ${CPP} ${CPP_OPTIONS_C} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_C}"
+  COMMAND ${CPP} -xc ${CPP_OPTIONS_C} ${CPP_DUMP_MACROS} "${COMPILE_MACROS_C}"
 )
 set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES})
 
@@ -70,15 +71,6 @@ target_compile_definitions(${CONTEXT} PUBLIC
 
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
-  $<$<COMPILE_LANGUAGE:C>:
-    "SHELL:${CC_CPU}"
-    "SHELL:${CC_FLAGS}"
-    "SHELL:-std=gnu11"
-    "SHELL:-masm-syntax-unified"
-    "SHELL:-fomit-frame-pointer"
-    "SHELL:-ffunction-sections"
-    "SHELL:-fdata-sections"
-  >
 )
 
 # Add groups and components
