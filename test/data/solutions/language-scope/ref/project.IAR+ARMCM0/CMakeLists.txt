@@ -22,20 +22,18 @@ set(LD_SCRIPT_PP "${CMAKE_CURRENT_BINARY_DIR}/iar_linker_script.icf")
 set(CPU Cortex-M0)
 set(FPU NO_FPU)
 
-# Preprocessor options
-set(CPP_OPTIONS_C "--dlib_config" "DLib_Config_Full.h")
-set(CPP_OPTIONS_CXX "--dlib_config" "DLib_Config_Full.h")
-
 # Toolchain config map
 set(COMPILER IAR)
 include("toolchain.cmake")
 
+# Preprocessor options
+set(CPP_OPTIONS_C ${CC_FLAGS} "--dlib_config" "DLib_Config_Full.h")
+set(CPP_OPTIONS_CXX ${CXX_FLAGS} "--dlib_config" "DLib_Config_Full.h")
+
 # Setup project
-string(JOIN " " CMAKE_C_FLAGS ${CPP_OPTIONS_C})
-string(JOIN " " CMAKE_CXX_FLAGS ${CPP_OPTIONS_CXX})
+string(JOIN " " CMAKE_C_FLAGS "${CC_CPU}" ${CPP_OPTIONS_C})
+string(JOIN " " CMAKE_CXX_FLAGS "${CXX_CPU}" ${CPP_OPTIONS_CXX})
 project(${CONTEXT} LANGUAGES C CXX)
-unset(CMAKE_C_FLAGS)
-unset(CMAKE_CXX_FLAGS)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
@@ -82,16 +80,6 @@ target_compile_definitions(${CONTEXT} PUBLIC
 
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
-  $<$<COMPILE_LANGUAGE:C>:
-    "SHELL:${CC_CPU}"
-    "SHELL:${CC_FLAGS}"
-    "SHELL:--dlib_config DLib_Config_Full.h"
-  >
-  $<$<COMPILE_LANGUAGE:CXX>:
-    "SHELL:${CXX_CPU}"
-    "SHELL:${CXX_FLAGS}"
-    "SHELL:--dlib_config DLib_Config_Full.h"
-  >
 )
 
 # Add groups and components

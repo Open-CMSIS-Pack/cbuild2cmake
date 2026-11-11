@@ -23,20 +23,18 @@ set(FPU DP_FPU)
 set(DSP DSP)
 set(MVE FP_MVE)
 
-# Preprocessor options
-set(CPP_OPTIONS_CXX "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
-set(CPP_OPTIONS_C "-std=gnu11" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
-
 # Toolchain config map
 set(COMPILER AC6)
 include("toolchain.cmake")
 
+# Preprocessor options
+set(CPP_OPTIONS_CXX ${CXX_FLAGS} "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
+set(CPP_OPTIONS_C ${CC_FLAGS} "-std=gnu11" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
+
 # Setup project
-string(JOIN " " CMAKE_CXX_FLAGS ${CPP_OPTIONS_CXX})
-string(JOIN " " CMAKE_C_FLAGS ${CPP_OPTIONS_C})
+string(JOIN " " CMAKE_CXX_FLAGS "${CXX_CPU}" ${CPP_OPTIONS_CXX})
+string(JOIN " " CMAKE_C_FLAGS "${CC_CPU}" ${CPP_OPTIONS_C})
 project(${CONTEXT} LANGUAGES CXX C)
-unset(CMAKE_CXX_FLAGS)
-unset(CMAKE_C_FLAGS)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
@@ -79,23 +77,10 @@ target_compile_definitions(${CONTEXT} PUBLIC
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
   $<$<COMPILE_LANGUAGE:C>:
-    "SHELL:${CC_CPU}"
-    "SHELL:${CC_FLAGS}"
     "SHELL:${CC_LTO}"
-    "SHELL:-std=gnu11"
-    "SHELL:-Wno-macro-redefined"
-    "SHELL:-Wno-pragma-pack"
-    "SHELL:-Wno-parentheses-equality"
-    "SHELL:-Wno-license-management"
   >
   $<$<COMPILE_LANGUAGE:CXX>:
-    "SHELL:${CXX_CPU}"
-    "SHELL:${CXX_FLAGS}"
     "SHELL:${CXX_LTO}"
-    "SHELL:-Wno-macro-redefined"
-    "SHELL:-Wno-pragma-pack"
-    "SHELL:-Wno-parentheses-equality"
-    "SHELL:-Wno-license-management"
   >
 )
 

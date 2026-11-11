@@ -20,17 +20,16 @@ set(LD_SCRIPT_PP ${LD_SCRIPT})
 set(CPU Cortex-M0)
 set(FPU NO_FPU)
 
-# Preprocessor options
-set(CPP_OPTIONS_C "-std=gnu11" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
-
 # Toolchain config map
 set(COMPILER AC6)
 include("toolchain.cmake")
 
+# Preprocessor options
+set(CPP_OPTIONS_C ${CC_FLAGS} "-std=gnu11" "-Wno-macro-redefined" "-Wno-pragma-pack" "-Wno-parentheses-equality" "-Wno-license-management")
+
 # Setup project
-string(JOIN " " CMAKE_C_FLAGS ${CPP_OPTIONS_C})
+string(JOIN " " CMAKE_C_FLAGS "${CC_CPU}" ${CPP_OPTIONS_C})
 project(${CONTEXT} LANGUAGES C)
-unset(CMAKE_C_FLAGS)
 
 # Enable color diagnostics
 set(CMAKE_COLOR_DIAGNOSTICS ON)
@@ -69,15 +68,6 @@ target_compile_definitions(${CONTEXT} PUBLIC
 
 # Compile options
 target_compile_options(${CONTEXT} PUBLIC
-  $<$<COMPILE_LANGUAGE:C>:
-    "SHELL:${CC_CPU}"
-    "SHELL:${CC_FLAGS}"
-    "SHELL:-std=gnu11"
-    "SHELL:-Wno-macro-redefined"
-    "SHELL:-Wno-pragma-pack"
-    "SHELL:-Wno-parentheses-equality"
-    "SHELL:-Wno-license-management"
-  >
 )
 
 # Add groups and components

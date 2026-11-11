@@ -341,8 +341,10 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 		if language == "C" {
 			prefix = "CC"
 		}
-		optionsMap[language] = append(optionsMap[language], "${"+prefix+"_CPU}")
-		optionsMap[language] = append(optionsMap[language], "${"+prefix+"_FLAGS}")
+		if language == "ASM" {
+			optionsMap[language] = append(optionsMap[language], "${"+prefix+"_CPU}")
+			optionsMap[language] = append(optionsMap[language], "${"+prefix+"_FLAGS}")
+		}
 		if len(c.BuildDescType.Processor.Trustzone) > 0 {
 			optionsMap[language] = append(optionsMap[language], "${"+prefix+"_SECURE}")
 		}
@@ -354,7 +356,7 @@ func (c *Cbuild) CMakeTargetCompileOptionsGlobal(name string, scope string) stri
 		}
 	}
 	// add global misc options
-	c.GetCompileOptionsLanguageMap((c.BuildDescType.Lto), c.BuildDescType.Misc, &optionsMap)
+	c.GetCompileOptionsLanguageMap(c.BuildDescType.Lto, Misc{ASM: c.BuildDescType.Misc.ASM}, &optionsMap)
 
 	// pre-includes global
 	for _, preInclude := range c.PreIncludeGlobal {
