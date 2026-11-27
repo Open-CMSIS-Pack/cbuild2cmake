@@ -25,6 +25,9 @@ func TestCMakeRootsRefreshCache(t *testing.T) {
 	if err != nil {
 		t.Skip("CMake is required to verify root cache updates")
 	}
+	if _, err := exec.LookPath("ninja"); err != nil {
+		t.Skip("Ninja is required to verify root cache updates")
+	}
 
 	sourceDir := t.TempDir()
 	buildDir := t.TempDir()
