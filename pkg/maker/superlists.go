@@ -187,9 +187,9 @@ endforeach()` + m.ExecutesCommands(m.CbuildIndex.BuildIdx.Executes) + m.BuildDep
 func (m *Maker) CMakeCreateRoots(solutionRoot string) error {
 	content :=
 		`# roots.cmake
-set(CMSIS_PACK_ROOT "` + m.EnvVars.PackRoot + `" CACHE PATH "CMSIS pack root")
+set(CMSIS_PACK_ROOT "` + m.EnvVars.PackRoot + `" CACHE PATH "CMSIS pack root" FORCE)
 cmake_path(ABSOLUTE_PATH CMSIS_PACK_ROOT NORMALIZE OUTPUT_VARIABLE CMSIS_PACK_ROOT)
-set(CMSIS_COMPILER_ROOT "` + m.EnvVars.CompilerRoot + `" CACHE PATH "CMSIS compiler root")
+set(CMSIS_COMPILER_ROOT "` + m.EnvVars.CompilerRoot + `" CACHE PATH "CMSIS compiler root" FORCE)
 cmake_path(ABSOLUTE_PATH CMSIS_COMPILER_ROOT NORMALIZE OUTPUT_VARIABLE CMSIS_COMPILER_ROOT)
 set(SOLUTION_ROOT "` + solutionRoot + `" CACHE PATH "CMSIS solution root")
 cmake_path(ABSOLUTE_PATH SOLUTION_ROOT NORMALIZE OUTPUT_VARIABLE SOLUTION_ROOT)

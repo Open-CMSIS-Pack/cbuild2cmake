@@ -20,6 +20,41 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestCMakeRootsRefreshCache(t *testing.T) {
+	cmake, err := exec.LookPath("cmake")
+	if err != nil {
+		t.Skip("CMake is required to verify root cache updates")
+	}
+	if _, err := exec.LookPath("ninja"); err != nil {
+		t.Skip("Ninja is required to verify root cache updates")
+	}
+
+	sourceDir := t.TempDir()
+	buildDir := t.TempDir()
+	m := maker.Maker{Vars: maker.Vars{SolutionTmpDir: sourceDir}}
+	root, err := os.OpenRoot(sourceDir)
+	require.NoError(t, err)
+	err = root.WriteFile("CMakeLists.txt", []byte("cmake_minimum_required(VERSION 3.27)\nproject(roots NONE)\ninclude(roots.cmake)\n"), 0600)
+	require.NoError(t, root.Close())
+	require.NoError(t, err)
+
+	for _, revision := range []string{"initial", "updated"} {
+		m.EnvVars.PackRoot = filepath.ToSlash(filepath.Join(sourceDir, revision, "pack root"))
+		m.EnvVars.CompilerRoot = filepath.ToSlash(filepath.Join(sourceDir, revision, "compiler root"))
+		require.NoError(t, m.CMakeCreateRoots(filepath.ToSlash(sourceDir)))
+
+		command := exec.Command(cmake, "-G", "Ninja", "-S", sourceDir, "-B", buildDir)
+		output, err := command.CombinedOutput()
+		require.NoError(t, err, string(output))
+
+		cache, err := os.ReadFile(filepath.Join(buildDir, "CMakeCache.txt"))
+		require.NoError(t, err)
+		cacheContent := strings.ReplaceAll(string(cache), "\r\n", "\n")
+		assert.Contains(t, cacheContent, "CMSIS_PACK_ROOT:PATH="+m.EnvVars.PackRoot+"\n")
+		assert.Contains(t, cacheContent, "CMSIS_COMPILER_ROOT:PATH="+m.EnvVars.CompilerRoot+"\n")
+	}
+}
+
 func TestCMakeVersionNotice(t *testing.T) {
 	for _, imageOnly := range []bool{false, true} {
 		name := "super"
